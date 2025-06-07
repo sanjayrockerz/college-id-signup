@@ -1,0 +1,15 @@
+# Node.js dependencies
+node_modules/
+
+# Environment files
+.env
+.env.example
+
+# Logs
+*.log
+
+# Build files
+dist/
+
+# Temporary files
+uploads/
