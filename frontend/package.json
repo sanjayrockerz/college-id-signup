@@ -2,21 +2,24 @@
   "name": "frontend",
   "version": "1.0.0",
   "description": "Frontend for document upload and validation",
-  "main": "src/index.tsx",
+  "main": "src/index.ts",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "lint": "eslint src/**/*.ts src/**/*.tsx",
+    "format": "prettier --write src/**/*.ts src/**/*.tsx"
   },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.0.0",
-    "react-scripts": "^0.0.0"
+    "react-scripts": "^5.0.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.0.0",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "eslint": "^8.27.0",
+    "prettier": "^2.8.3"
   }
 }

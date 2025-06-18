@@ -10,11 +10,11 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
 import { AuthGuard } from '@nestjs/passport';
+import * as clamav from 'clamav.js'; // Install clamav.js for malware scanning
 
 export function validateFile(file: Express.Multer.File): boolean {
   const allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-  const maxFileSize = 5 * 1024 * 1024; // 5MB
-
+  const maxFileSize = 5 * 1024 * 1024; 
   // Check file type
   if (!allowedMimeTypes.includes(file.mimetype)) {
     return false;
@@ -41,6 +41,26 @@ export function validateFile(file: Express.Multer.File): boolean {
   }
 
   return true;
+}
+
+async function scanForMalware(file: Express.Multer.File): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    clamav.ping(3310, 'localhost', (err) => {
+      if (err) {
+        reject('ClamAV is not running');
+      } else {
+        clamav.scan(file.buffer, 3310, 'localhost', (err, reply) => {
+          if (err) {
+            reject(err);
+          } else if (reply.includes('FOUND')) {
+            reject('Malware detected');
+          } else {
+            resolve(true);
+          }
+        });
+      }
+    });
+  });
 }
 
 @Controller('upload')
