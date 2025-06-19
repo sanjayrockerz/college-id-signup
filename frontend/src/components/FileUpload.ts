@@ -2,15 +2,10 @@ import { join } from 'path';
 import { useState } from 'react';
 import { ProgressBar } from './ProgressBar';
 import { ThumbnailPreview } from './ThumbnailPreview';
-import styles from '../styles/FileUpload.module.css';
+import styles from './styles/FileUpload.module.css';
 
-declare module '*.module.css' {
-  const classes: { [key: string]: string };
-  export default classes;
-}
-
-const allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-const maxFileSize = 5 * 1024 * 1024; // 5MB
+const allowedMimeTypes = ['image/jpeg','image/png', 'application/pdf'];
+const maxFileSize = 5 * 1024 * 1024;
 export class FileUpload {
   private files: File[] = [];
   private errors: string[] = [];
