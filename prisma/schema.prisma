@@ -1,0 +1,189 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String   @id @default(cuid())
+  email                 String   @unique
+  username              String   @unique
+  firstName             String?
+  lastName              String?
+  bio                   String?
+  profileImageUrl       String?
+  isVerified            Boolean  @default(false)
+  isActive              Boolean  @default(true)
+  
+  // College verification
+  verifiedCollegeId     String?
+  collegeName           String?
+  studentIdNumber       String?
+  graduationYear        Int?
+  
+  // Social features
+  anonymousPostsToday   Int      @default(0)
+  weeklyPushesUsed      Int      @default(0)
+  lastAnonymousPostDate DateTime?
+  lastWeeklyReset       DateTime @default(now())
+  
+  // Privacy settings
+  allowDirectMessages   Boolean  @default(true)
+  showOnlineStatus      Boolean  @default(true)
+  profileVisibility     VisibilityType @default(PUBLIC)
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  lastLoginAt           DateTime?
+  
+  // Relationships
+  posts                 Post[]
+  interactions          Interaction[]
+  sentConnections       Connection[] @relation("ConnectionRequester")
+  receivedConnections   Connection[] @relation("ConnectionReceiver")
+  coolnessRatings       CoolnessRating[]
+  pushes                Push[]
+  receivedPushes        Push[] @relation("PushReceiver")
+  
+  @@map("users")
+}
+
+model Post {
+  id              String         @id @default(cuid())
+  content         String
+  imageUrls       String[]       @default([])
+  
+  // Post settings
+  isAnonymous     Boolean        @default(false)
+  visibility      VisibilityType @default(PUBLIC)
+  allowComments   Boolean        @default(true)
+  allowSharing    Boolean        @default(true)
+  
+  // Metrics
+  viewCount       Int            @default(0)
+  shareCount      Int            @default(0)
+  
+  // Timestamps
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  // Relationships
+  authorId        String
+  author          User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  interactions    Interaction[]
+  coolnessRatings CoolnessRating[]
+  pushes          Push[]
+  postViews       PostView[]
+  
+  @@map("posts")
+}
+
+model Interaction {
+  id        String          @id @default(cuid())
+  type      InteractionType
+  createdAt DateTime        @default(now())
+  
+  // Relationships
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  // Ensure one interaction per user per post per type
+  @@unique([userId, postId, type])
+  @@map("interactions")
+}
+
+model Connection {
+  id          String           @id @default(cuid())
+  status      ConnectionStatus @default(PENDING)
+  isCloseFriend Boolean        @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  // Relationships
+  requesterId String
+  requester   User             @relation("ConnectionRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User             @relation("ConnectionReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  // Ensure unique connections
+  @@unique([requesterId, receiverId])
+  @@map("connections")
+}
+
+model CoolnessRating {
+  id        String   @id @default(cuid())
+  rating    Int      // 1-5 scale
+  createdAt DateTime @default(now())
+  
+  // Relationships
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  // Ensure one rating per user per post
+  @@unique([userId, postId])
+  @@map("coolness_ratings")
+}
+
+model Push {
+  id          String   @id @default(cuid())
+  message     String?
+  createdAt   DateTime @default(now())
+  
+  // Relationships
+  pusherId    String
+  pusher      User     @relation(fields: [pusherId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User     @relation("PushReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  postId      String
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@map("pushes")
+}
+
+model PostView {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  // Relationships
+  userId    String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  // Ensure one view per user per post per hour (handled in application logic)
+  @@unique([userId, postId])
+  @@map("post_views")
+}
+
+// Enums
+enum VisibilityType {
+  PUBLIC
+  CONNECTIONS_ONLY
+  CLOSE_FRIENDS_ONLY
+  PRIVATE
+}
+
+enum InteractionType {
+  LIKE
+  COMMENT
+  SHARE
+  VIEW
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+  REJECTED
+}
+
