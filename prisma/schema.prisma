@@ -38,12 +38,17 @@ model User {
   showOnlineStatus      Boolean  @default(true)
   profileVisibility     VisibilityType @default(PUBLIC)
   
+  // Chat presence
+  isOnline              Boolean  @default(false)
+  lastSeenAt            DateTime?
+  typingIn              String?  // conversationId where user is currently typing
+  
   // Timestamps
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   lastLoginAt           DateTime?
   
-  // Relationships
+  // Relationships - Social
   posts                 Post[]
   interactions          Interaction[]
   sentConnections       Connection[] @relation("ConnectionRequester")
@@ -52,6 +57,15 @@ model User {
   pushes                Push[]
   receivedPushes        Push[] @relation("PushReceiver")
   
+  // Relationships - Chat
+  conversationUsers     ConversationUser[] @relation("ConversationMember")
+  sentMessages          Message[] @relation("MessageSender")
+  messageReads          MessageRead[] @relation("MessageReader")
+  attachments           Attachment[] @relation("AttachmentUploader")
+  createdConversations  Conversation[] @relation("ConversationCreator")
+  
+  @@index([isOnline, lastSeenAt])
+  @@index([verifiedCollegeId])
   @@map("users")
 }
 
@@ -185,5 +199,200 @@ enum ConnectionStatus {
   ACCEPTED
   BLOCKED
   REJECTED
+}
+
+enum ConversationType {
+  DIRECT_MESSAGE
+  GROUP_CHAT
+  CHANNEL
+}
+
+enum ConversationRole {
+  MEMBER
+  ADMIN
+  OWNER
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  AUDIO
+  VIDEO
+  LOCATION
+  SYSTEM
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  DELETED
+}
+
+enum AttachmentType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  OTHER
+}
+
+// === CHAT MODELS ===
+
+model Conversation {
+  id                String             @id @default(cuid())
+  name              String?            // null for direct messages
+  description       String?
+  type              ConversationType   @default(DIRECT_MESSAGE)
+  avatarUrl         String?
+  isActive          Boolean            @default(true)
+  
+  // Group chat settings
+  allowMemberAdd    Boolean            @default(true)
+  allowFileSharing  Boolean            @default(true)
+  maxMembers        Int?
+  
+  // Last activity tracking
+  lastMessageAt     DateTime?
+  lastMessageId     String?
+  
+  // Timestamps
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  // Relationships
+  creatorId         String
+  creator           User               @relation("ConversationCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  conversationUsers ConversationUser[] @relation("ConversationMembers")
+  messages          Message[]          @relation("ConversationMessages")
+  
+  @@index([updatedAt])
+  @@index([type, isActive])
+  @@index([creatorId])
+  @@map("conversations")
+}
+
+model ConversationUser {
+  id               String           @id @default(cuid())
+  role             ConversationRole @default(MEMBER)
+  isActive         Boolean          @default(true)
+  isMuted          Boolean          @default(false)
+  mutedUntil       DateTime?
+  
+  // Join/leave tracking
+  joinedAt         DateTime         @default(now())
+  leftAt           DateTime?
+  lastReadAt       DateTime?
+  lastReadMessageId String?
+  
+  // Timestamps
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  
+  // Relationships
+  userId           String
+  user             User             @relation("ConversationMember", fields: [userId], references: [id], onDelete: Cascade)
+  conversationId   String
+  conversation     Conversation     @relation("ConversationMembers", fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, conversationId])
+  @@index([userId, conversationId])
+  @@index([conversationId, isActive])
+  @@index([userId, isActive])
+  @@map("conversation_users")
+}
+
+model Message {
+  id               String          @id @default(cuid())
+  content          String?
+  type             MessageType     @default(TEXT)
+  status           MessageStatus   @default(SENT)
+  isEdited         Boolean         @default(false)
+  editedAt         DateTime?
+  isDeleted        Boolean         @default(false)
+  deletedAt        DateTime?
+  
+  // Thread/Reply support
+  replyToId        String?
+  threadId         String?         // root message ID for threaded conversations
+  
+  // Metadata
+  metadata         Json?           // For storing additional message data (reactions, etc.)
+  
+  // Timestamps
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  
+  // Relationships
+  senderId         String
+  sender           User            @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  conversationId   String
+  conversation     Conversation    @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  replyTo          Message?        @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies          Message[]       @relation("MessageReply")
+  
+  attachments      Attachment[]    @relation("MessageAttachments")
+  messageReads     MessageRead[]   @relation("MessageReadStatus")
+  
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([threadId])
+  @@index([replyToId])
+  @@index([type, isDeleted])
+  @@map("messages")
+}
+
+model MessageRead {
+  id           String   @id @default(cuid())
+  readAt       DateTime @default(now())
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relationships
+  userId       String
+  user         User     @relation("MessageReader", fields: [userId], references: [id], onDelete: Cascade)
+  messageId    String
+  message      Message  @relation("MessageReadStatus", fields: [messageId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, messageId])
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reads")
+}
+
+model Attachment {
+  id            String         @id @default(cuid())
+  filename      String
+  originalName  String
+  mimeType      String
+  size          Int
+  url           String
+  thumbnailUrl  String?
+  type          AttachmentType
+  
+  // Image/Video specific
+  width         Int?
+  height        Int?
+  duration      Int?           // for audio/video in seconds
+  
+  // Timestamps
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  // Relationships
+  uploaderId    String
+  uploader      User           @relation("AttachmentUploader", fields: [uploaderId], references: [id], onDelete: Cascade)
+  messageId     String?
+  message       Message?       @relation("MessageAttachments", fields: [messageId], references: [id], onDelete: Cascade)
+  
+  @@index([messageId])
+  @@index([uploaderId])
+  @@index([type])
+  @@map("attachments")
 }
 
