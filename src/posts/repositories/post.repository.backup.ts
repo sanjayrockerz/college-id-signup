@@ -12,7 +12,7 @@ export class PostRepository {
   }
 
   async create(authorId: string, data: CreatePostDto) {
-    return this.db.post.create({
+    return this.prisma.post.create({
       data: {
         ...data,
         authorId,
@@ -31,12 +31,9 @@ export class PostRepository {
           select: {
             interactions: {
               where: {
-                type: {
-                  in: ['LIKE', 'LOVE', 'LAUGH', 'WOW', 'SAD', 'ANGRY'],
-                },
+                type: 'LIKE',
               },
             },
-            coolnessRatings: true,
           },
         },
       },
@@ -44,7 +41,7 @@ export class PostRepository {
   }
 
   async findById(id: string) {
-    return this.db.post.findUnique({
+    return this.prisma.post.findUnique({
       where: { id },
       include: {
         author: {
@@ -54,7 +51,6 @@ export class PostRepository {
             firstName: true,
             lastName: true,
             profileImageUrl: true,
-            isVerified: true,
           },
         },
         interactions: true,
@@ -62,13 +58,8 @@ export class PostRepository {
         _count: {
           select: {
             interactions: {
-              where: {
-                type: {
-                  in: ['LIKE', 'LOVE', 'LAUGH', 'WOW', 'SAD', 'ANGRY'],
-                },
-              },
+              where: { type: 'LIKE' },
             },
-            coolnessRatings: true,
           },
         },
       },
@@ -83,26 +74,29 @@ export class PostRepository {
       visibility?: string[];
       authorIds?: string[];
     }
-  ): Promise<{
-    posts: any[];
-    hasMore: boolean;
-    nextCursor: string | null;
-  }> {
-    const where: Prisma.PostWhereInput = {};
+  ) {
+    const where: Prisma.PostWhereInput = {
+      ...(filters?.visibility && {
+        visibility: {
+          in: filters.visibility as any[],
+        },
+      }),
+      ...(filters?.authorIds && {
+        authorId: {
+          in: filters.authorIds,
+        },
+      }),
+    };
 
-    if (filters?.visibility) {
-      where.visibility = { in: filters.visibility as any };
-    }
-
-    if (filters?.authorIds) {
-      where.authorId = { in: filters.authorIds };
-    }
-
+    const orderBy = { createdAt: 'desc' as const };
+    
     if (cursor) {
-      where.createdAt = { lt: new Date(cursor) };
+      where.id = {
+        lt: cursor,
+      };
     }
 
-    const posts = await this.db.post.findMany({
+    return this.prisma.post.findMany({
       where,
       include: {
         author: {
@@ -112,48 +106,46 @@ export class PostRepository {
             firstName: true,
             lastName: true,
             profileImageUrl: true,
-            isVerified: true,
+          },
+        },
+        interactions: {
+          where: {
+            userId,
+          },
+        },
+        coolnessRatings: {
+          where: {
+            userId,
           },
         },
         _count: {
           select: {
             interactions: {
-              where: {
-                type: {
-                  in: ['LIKE', 'LOVE', 'LAUGH', 'WOW', 'SAD', 'ANGRY'],
-                },
-              },
+              where: { type: 'LIKE' },
             },
-            coolnessRatings: true,
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
-      take: limit + 1,
+      orderBy,
+      take: limit,
     });
-
-    const hasMore = posts.length > limit;
-    const postsToReturn = hasMore ? posts.slice(0, -1) : posts;
-    const nextCursor = hasMore 
-      ? postsToReturn[postsToReturn.length - 1].createdAt.toISOString() 
-      : null;
-
-    return {
-      posts: postsToReturn,
-      hasMore,
-      nextCursor,
-    };
   }
 
   async getAnonymousPostsToday(userId: string): Promise<number> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const count = await this.db.post.count({
+    const count = await this.prisma.post.count({
       where: {
         authorId: userId,
         isAnonymous: true,
-        createdAt: { gte: today },
+        createdAt: {
+          gte: today,
+          lt: tomorrow,
+        },
       },
     });
 
@@ -161,21 +153,20 @@ export class PostRepository {
   }
 
   async incrementViewCount(postId: string) {
-    return this.db.post.update({
+    return this.prisma.post.update({
       where: { id: postId },
-      data: { viewCount: { increment: 1 } },
+      data: {
+        viewCount: {
+          increment: 1,
+        },
+      },
     });
   }
 
   async update(id: string, data: UpdatePostDto) {
-    return this.db.post.update({
+    return this.prisma.post.update({
       where: { id },
-      data: {
-        content: data.content,
-        allowComments: data.allowComments,
-        allowSharing: data.allowSharing,
-        updatedAt: new Date(),
-      },
+      data,
       include: {
         author: {
           select: {
@@ -191,54 +182,58 @@ export class PostRepository {
   }
 
   async delete(id: string) {
-    return this.db.post.delete({
+    return this.prisma.post.delete({
       where: { id },
     });
   }
 
-  async getConnectionIds(userId: string): Promise<string[]> {
-    const connections = await this.db.connection.findMany({
+  async getConnectionsPosts(userId: string, limit: number = 10, cursor?: string) {
+    // Get accepted connections
+    const connections = await this.prisma.connection.findMany({
       where: {
         OR: [
           { requesterId: userId, status: 'ACCEPTED' },
-          { addresseeId: userId, status: 'ACCEPTED' },
+          { receiverId: userId, status: 'ACCEPTED' },
         ],
       },
       select: {
         requesterId: true,
-        addresseeId: true,
+        receiverId: true,
       },
     });
 
-    return connections.map((conn) =>
-      conn.requesterId === userId ? conn.addresseeId : conn.requesterId
+    const connectedUserIds = connections.map(conn => 
+      conn.requesterId === userId ? conn.receiverId : conn.requesterId
     );
+
+    return this.getPostsForUser(userId, cursor, limit, {
+      authorIds: connectedUserIds,
+      visibility: ['PUBLIC', 'CONNECTIONS_ONLY'],
+    });
   }
 
-  async getCloseFriendIds(userId: string): Promise<string[]> {
-    const closeFriends = await this.db.connection.findMany({
+  async getCloseFriendsPosts(userId: string, limit: number = 10, cursor?: string) {
+    // Get close friend connections
+    const closeFriends = await this.prisma.connection.findMany({
       where: {
         OR: [
-          { 
-            requesterId: userId, 
-            status: 'ACCEPTED',
-            type: 'CLOSE_FRIEND'
-          },
-          { 
-            addresseeId: userId, 
-            status: 'ACCEPTED',
-            type: 'CLOSE_FRIEND'
-          },
+          { requesterId: userId, status: 'ACCEPTED', isCloseFriend: true },
+          { receiverId: userId, status: 'ACCEPTED', isCloseFriend: true },
         ],
       },
       select: {
         requesterId: true,
-        addresseeId: true,
+        receiverId: true,
       },
     });
 
-    return closeFriends.map((conn) =>
-      conn.requesterId === userId ? conn.addresseeId : conn.requesterId
+    const closeFriendIds = closeFriends.map(conn => 
+      conn.requesterId === userId ? conn.receiverId : conn.requesterId
     );
+
+    return this.getPostsForUser(userId, cursor, limit, {
+      authorIds: closeFriendIds,
+      visibility: ['PUBLIC', 'CONNECTIONS_ONLY', 'CLOSE_FRIENDS_ONLY'],
+    });
   }
 }

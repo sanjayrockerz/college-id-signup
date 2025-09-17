@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../infra/prisma/prisma.service';
+import { getPrismaClient } from '../../config/database';
 
 export interface UpdateUserDto {
   firstName?: string;
@@ -37,8 +37,9 @@ export interface UserResponseDto {
 
 @Injectable()
 export class UserRepository {
-  constructor(private prisma: PrismaService) {
-    // Will be implemented once Prisma is properly set up
+  // Use the database singleton directly
+  private get db() {
+    return getPrismaClient();
   }
 
   async findById(id: string): Promise<any | null> {

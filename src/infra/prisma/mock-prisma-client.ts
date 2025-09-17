@@ -264,6 +264,7 @@ export namespace Prisma {
     id?: string | { lt?: string; gt?: string; in?: string[] };
     authorId?: string | { in?: string[] };
     visibility?: string | { in?: string[] };
+    createdAt?: Date | { lt?: Date; gt?: Date; gte?: Date; lte?: Date };
     AND?: PostWhereInput[];
     OR?: PostWhereInput[];
     author?: UserWhereInput;

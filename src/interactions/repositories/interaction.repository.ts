@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../infra/prisma/prisma.service';
+import { getPrismaClient } from '../../config/database';
 
 @Injectable()
 export class InteractionRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  // Use the database singleton directly
+  private get db() {
+    return getPrismaClient();
+  }
 
   async create(userId: string, postId: string, type: string) {
     // TODO: Implement after Prisma setup

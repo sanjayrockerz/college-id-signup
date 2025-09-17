@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../infra/prisma/prisma.service';
+import { getPrismaClient } from '../../config/database';
 
 @Injectable()
 export class FeedRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  // Use the database singleton directly
+  private get db() {
+    return getPrismaClient();
+  }
 
   async getConnectionsPosts(userId: string, limit: number = 10, cursor?: string) {
     // TODO: Implement after Prisma setup

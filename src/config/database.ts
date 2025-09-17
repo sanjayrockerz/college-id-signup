@@ -1,4 +1,38 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+// Try to import Prisma client, fall back to mock if not available
+let PrismaClient: any;
+let Prisma: any;
+
+try {
+  const prismaModule = require('@prisma/client');
+  PrismaClient = prismaModule.PrismaClient;
+  Prisma = prismaModule.Prisma;
+} catch (error) {
+  // Fallback to mock client if @prisma/client is not available
+  console.warn('⚠️  @prisma/client not found, using mock client');
+  const mockModule = require('../infra/prisma/mock-prisma-client');
+  PrismaClient = mockModule.MockPrismaClient;
+  Prisma = mockModule.Prisma;
+}
+
+// Type definitions
+type IPrismaClient = InstanceType<typeof PrismaClient>;
+type LogLevel = 'info' | 'query' | 'warn' | 'error';
+type LogDefinition = {
+  level: LogLevel;
+  emit: 'stdout' | 'event';
+};
+type QueryEvent = {
+  timestamp: Date;
+  query: string;
+  params: string;
+  duration: number;
+  target: string;
+};
+type LogEvent = {
+  timestamp: Date;
+  message: string;
+  target: string;
+};
 
 // Type for database health check result
 export interface DatabaseHealth {
@@ -17,20 +51,20 @@ export interface DatabaseMetrics {
 }
 
 // Global variable to store the singleton instance
-let prisma: PrismaClient | undefined;
+let prismaInstance: IPrismaClient | undefined;
 
 /**
  * Creates and returns a singleton Prisma client instance
  * This ensures we don't create multiple database connections
  * which can lead to connection pool exhaustion
  */
-function createPrismaClient(): PrismaClient {
+function createPrismaClient(): IPrismaClient {
   // Check if we're in development mode
   const isDevelopment = process.env.NODE_ENV === 'development';
   const isProduction = process.env.NODE_ENV === 'production';
 
   // Configure logging based on environment
-  const logConfig: Prisma.LogLevel[] | Prisma.LogDefinition[] = isDevelopment
+  const logConfig: LogLevel[] | LogDefinition[] = isDevelopment
     ? [
         { emit: 'event', level: 'query' },
         { emit: 'event', level: 'error' },
@@ -52,22 +86,22 @@ function createPrismaClient(): PrismaClient {
 
   // Setup query logging for development
   if (isDevelopment) {
-    client.$on('query', (e: Prisma.QueryEvent) => {
+    client.$on('query', (e: QueryEvent) => {
       console.log('Query: ' + e.query);
       console.log('Params: ' + e.params);
       console.log('Duration: ' + e.duration + 'ms');
       console.log('---');
     });
 
-    client.$on('error', (e: Prisma.LogEvent) => {
+    client.$on('error', (e: LogEvent) => {
       console.error('Database error:', e);
     });
 
-    client.$on('info', (e: Prisma.LogEvent) => {
+    client.$on('info', (e: LogEvent) => {
       console.info('Database info:', e);
     });
 
-    client.$on('warn', (e: Prisma.LogEvent) => {
+    client.$on('warn', (e: LogEvent) => {
       console.warn('Database warning:', e);
     });
   }
@@ -79,12 +113,12 @@ function createPrismaClient(): PrismaClient {
  * Get or create the singleton Prisma client instance
  * In development, we attach it to global to survive hot reloads
  */
-function getPrismaClient(): PrismaClient {
+function getPrismaClient(): IPrismaClient {
   if (process.env.NODE_ENV === 'development') {
     // In development, use a global variable to preserve the instance
     // across hot reloads to avoid connection issues
     const globalWithPrisma = global as typeof globalThis & {
-      __prisma?: PrismaClient;
+      __prisma?: IPrismaClient;
     };
 
     if (!globalWithPrisma.__prisma) {
@@ -93,10 +127,10 @@ function getPrismaClient(): PrismaClient {
     return globalWithPrisma.__prisma;
   } else {
     // In production, use the module-level variable
-    if (!prisma) {
-      prisma = createPrismaClient();
+    if (!prismaInstance) {
+      prismaInstance = createPrismaClient();
     }
-    return prisma;
+    return prismaInstance;
   }
 }
 
@@ -104,7 +138,7 @@ function getPrismaClient(): PrismaClient {
  * Initialize the database connection
  * This should be called when the application starts
  */
-export async function connectDatabase(): Promise<PrismaClient> {
+export async function connectDatabase(): Promise<IPrismaClient> {
   const client = getPrismaClient();
   
   try {
@@ -169,7 +203,7 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
  * Wrapper for Prisma's $transaction method
  */
 export async function executeTransaction<T>(
-  callback: (prisma: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>) => Promise<T>
+  callback: (prisma: Omit<IPrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>) => Promise<T>
 ): Promise<T> {
   const client = getPrismaClient();
   return await client.$transaction(callback);
