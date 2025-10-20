@@ -109,14 +109,7 @@ async function bootstrap() {
     console.log("");
     console.log("📚 Available API Endpoints:");
     console.log(`  - Chat: http://localhost:${port}/api/v1/chat`);
-    console.log(`  - Feed: http://localhost:${port}/api/v1/feed`);
-    console.log(`  - Posts: http://localhost:${port}/api/v1/posts`);
-    console.log(`  - Upload: http://localhost:${port}/api/v1/upload`);
     console.log(`  - Users: http://localhost:${port}/api/v1/users`);
-    console.log(`  - Connections: http://localhost:${port}/api/v1/connections`);
-    console.log(
-      `  - Interactions: http://localhost:${port}/api/v1/interactions`,
-    );
     console.log("");
     console.log("🛡️  Security: Rate limiting, validation, logging enabled");
     console.log("📖 Docs: docs/operations/monitoring.md");
