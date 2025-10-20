@@ -5,11 +5,6 @@ import { PrismaModule } from "./infra/prisma/prisma.module";
 import { CommonModule } from "./common/common.module";
 
 @Module({
-  imports: [
-    PrismaModule,
-    CommonModule,
-    UserModule,
-    ChatModule,
-  ],
+  imports: [PrismaModule, CommonModule, UserModule, ChatModule],
 })
 export class AppModule {}
