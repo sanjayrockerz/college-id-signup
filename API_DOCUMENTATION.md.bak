@@ -1,0 +1,1686 @@
+# College Social Platform API Documentation# College Social Platform API Documentation# College ID Signup API Documentation
+
+
+
+## Overview
+
+
+
+The College Social Platform API provides messaging, social feed, and college verification services. ## Overview## Overview
+
+
+
+⚠️ **IMPORTANT: This API operates without authentication.** All endpoints are public and require explicit `userId` parameters for user-specific operations. Rate limiting is enforced by IP address.
+
+
+
+## Base URLThe College Social Platform API provides messaging, social feed, and college verification services. **All endpoints are now public** and require explicit `userId` parameters for user-specific operations.The College ID Signup API provides authentication, user management, and ID card verification services for college students. It features JWT-based authentication, real-time Socket.IO integration, and comprehensive security measures.
+
+
+
+```
+
+http://localhost:3001 (Production)
+
+http://localhost:3000 (Development)## Base URL## Base URL
+
+```
+
+
+
+## Rate Limiting
+
+``````
+
+All endpoints are rate-limited by IP address to prevent abuse:
+
+http://localhost:3001 (NestJS API)http://localhost:3001
+
+| Endpoint Type | Limit | Window |
+
+|--------------|-------|--------|http://localhost:3000 (Express API)```
+
+| General API | 100 requests | 15 minutes |
+
+| Messaging | 200 requests | 15 minutes |```
+
+| File Uploads | 10 requests | 15 minutes |
+
+| Admin Operations | 20 requests | 15 minutes |## Authentication
+
+| Write Operations (POST/PUT/DELETE) | 30 requests | 15 minutes |
+
+## ⚠️ Important Changes - Authentication Removed
+
+### Rate Limit Response Headers
+
+The API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
+
+- `RateLimit-Limit`: Total requests allowed in the window
+
+- `RateLimit-Remaining`: Requests remaining in current windowThis API **no longer uses authentication**. All endpoints are public and expect userId to be provided:
+
+- `RateLimit-Reset`: Timestamp when the limit resets
+
+- **REST endpoints**: Pass `userId` as query parameter or in request body```
+
+### Rate Limit Error Response (429)
+
+- **Socket.IO**: Pass `userId` in event payloads or handshake queryAuthorization: Bearer <your-jwt-token>
+
+```json
+
+{- **No JWT tokens required**```
+
+  "success": false,
+
+  "error": "Rate limit exceeded",
+
+  "message": "Too many requests from this IP address. Please try again later.",
+
+  "retryAfter": "in 15 minutes"## API Endpoints## API Endpoints
+
+}
+
+```
+
+
+
+---### Health Check### Health Check
+
+
+
+## Authentication
+
+
+
+**⚠️ No authentication system is in place.** All endpoints are public:#### GET /health#### GET /health
+
+
+
+- **REST endpoints**: Pass `userId` as query parameter or in request bodyReturns server health status.Returns server health status.
+
+- **Socket.IO**: Pass `userId` in event payloads or connection handshake query
+
+- **No JWT tokens required or accepted**
+
+
+
+---**Response:****Response:**
+
+
+
+## API Endpoints```json```json
+
+
+
+### Health Check{{
+
+
+
+#### GET /health  "status": "OK",  "status": "OK",
+
+
+
+Returns server health status.  "timestamp": "2024-01-01T00:00:00.000Z",  "timestamp": "2024-01-01T00:00:00.000Z",
+
+
+
+**Response:**  "uptime": 123.456  "uptime": 123.456
+
+```json
+
+{}}
+
+  "status": "OK",
+
+  "timestamp": "2024-10-20T00:00:00.000Z",``````
+
+  "uptime": 123.456
+
+}
+
+```
+
+#### GET /health/database#### GET /health/database
+
+#### GET /health/database
+
+Returns database connection status.Returns database connection status.
+
+Returns database connection status.
+
+
+
+**Response:**
+
+```json**Response:****Response:**
+
+{
+
+  "status": "OK",```json```json
+
+  "database": "Connected",
+
+  "timestamp": "2024-10-20T00:00:00.000Z"{{
+
+}
+
+```  "status": "OK",  "status": "OK",
+
+
+
+---  "database": "Connected",  "database": "Connected",
+
+
+
+## Messaging Endpoints (api/v1/chat)  "timestamp": "2024-01-01T00:00:00.000Z"  "timestamp": "2024-01-01T00:00:00.000Z"
+
+
+
+All messaging endpoints support real-time updates via Socket.IO. Rate limited to 200 requests per 15 minutes.}}
+
+
+
+### Create Conversation``````
+
+
+
+**POST** `/api/v1/chat/conversations`
+
+
+
+Create a new conversation (direct message or group chat).---### Authentication Endpoints
+
+
+
+**Request Body:**
+
+```json
+
+{## Messaging Endpoints (NestJS - api/v1/chat)#### POST /api/auth/register
+
+  "userId": "user-123",
+
+  "participantIds": ["user-456", "user-789"],Register a new user account.
+
+  "type": "DIRECT_MESSAGE",
+
+  "name": "Project Discussion",### POST /api/v1/chat/conversations
+
+  "description": "Planning our final project"
+
+}Create a new conversation.**Request Body:**
+
+```
+
+```json
+
+**Validation:**
+
+- `userId`: Required, must be valid user ID**Request Body:**{
+
+- `participantIds`: Required array, minimum 1 participant
+
+- `type`: Required, one of: DIRECT_MESSAGE, GROUP_CHAT, CHANNEL```json  "email": "student@college.edu",
+
+- DIRECT_MESSAGE must have exactly 2 participants (including creator)
+
+{  "password": "SecurePassword123!",
+
+**Response (201):**
+
+```json  "userId": "user-123",  "firstName": "John",
+
+{
+
+  "success": true,  "name": "Project Discussion",  "lastName": "Doe",
+
+  "data": {
+
+    "id": "conv-123",  "type": "GROUP_CHAT",  "studentId": "STU12345",
+
+    "name": "Project Discussion",
+
+    "type": "GROUP_CHAT",  "participantIds": ["user-456", "user-789"]  "phoneNumber": "+1234567890"
+
+    "creatorId": "user-123",
+
+    "participants": [}}
+
+      {
+
+        "id": "user-123",``````
+
+        "username": "john_doe",
+
+        "firstName": "John",
+
+        "profileImageUrl": "https://..."
+
+      }**Response (201):****Response (201):**
+
+    ],
+
+    "createdAt": "2024-10-20T00:00:00.000Z"```json```json
+
+  }
+
+}{{
+
+```
+
+  "id": "conv-uuid",  "success": true,
+
+### Get User Conversations
+
+  "name": "Project Discussion",  "message": "User registered successfully",
+
+**GET** `/api/v1/chat/conversations?userId=user-123`
+
+  "type": "GROUP_CHAT",  "user": {
+
+Retrieve all conversations for a user.
+
+  "participants": [...],    "id": "user-uuid",
+
+**Query Parameters:**
+
+- `userId` (required): User ID to fetch conversations for  "createdAt": "2024-01-01T00:00:00.000Z"    "email": "student@college.edu",
+
+
+
+**Response (200):**}    "firstName": "John",
+
+```json
+
+{```    "lastName": "Doe",
+
+  "success": true,
+
+  "data": [    "studentId": "STU12345",
+
+    {
+
+      "id": "conv-123",### GET /api/v1/chat/conversations    "verificationStatus": "pending",
+
+      "name": "Project Team",
+
+      "type": "GROUP_CHAT",Get all conversations for a user.    "createdAt": "2024-01-01T00:00:00.000Z"
+
+      "lastMessage": {
+
+        "content": "See you tomorrow!",  }
+
+        "createdAt": "2024-10-20T10:30:00.000Z",
+
+        "senderName": "Jane"**Query Parameters:**}
+
+      },
+
+      "unreadCount": 3,- `userId` (required): User ID```
+
+      "participants": []
+
+    }- `limit`: Number of results (default: 20)
+
+  ]
+
+}- `cursor`: Pagination cursor#### POST /api/auth/login
+
+```
+
+Authenticate user and receive JWT token.
+
+### Send Message
+
+**Response (200):**
+
+**POST** `/api/v1/chat/conversations/:conversationId/messages`
+
+```json**Request Body:**
+
+Send a message to a conversation.
+
+{```json
+
+**Path Parameters:**
+
+- `conversationId`: Conversation ID  "conversations": [...],{
+
+
+
+**Request Body:**  "hasMore": true,  "email": "student@college.edu",
+
+```json
+
+{  "nextCursor": "cursor-string"  "password": "SecurePassword123!"
+
+  "userId": "user-123",
+
+  "content": "Hello everyone!",}}
+
+  "type": "TEXT",
+
+  "replyToId": "msg-456"``````
+
+}
+
+```
+
+
+
+**Response (201):**### GET /api/v1/chat/conversations/:conversationId**Response (200):**
+
+```json
+
+{Get conversation details.```json
+
+  "success": true,
+
+  "data": {{
+
+    "id": "msg-789",
+
+    "content": "Hello everyone!",**Query Parameters:**  "success": true,
+
+    "type": "TEXT",
+
+    "senderId": "user-123",- `userId` (required): User ID  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+
+    "conversationId": "conv-123",
+
+    "status": "SENT",  "user": {
+
+    "createdAt": "2024-10-20T10:35:00.000Z"
+
+  }**Response (200):**    "id": "user-uuid",
+
+}
+
+``````json    "email": "student@college.edu",
+
+
+
+### Get Conversation Messages{    "firstName": "John",
+
+
+
+**GET** `/api/v1/chat/conversations/:conversationId/messages?userId=user-123&limit=50&cursor=msg-100`  "id": "conv-uuid",    "lastName": "Doe",
+
+
+
+Retrieve messages from a conversation with pagination.  "name": "Conversation Name",    "verificationStatus": "verified"
+
+
+
+**Query Parameters:**  "participants": [...],  }
+
+- `userId` (required): User ID requesting messages
+
+- `limit` (optional): Number of messages (default: 50, max: 100)  "lastMessage": {...},}
+
+- `cursor` (optional): Message ID for pagination
+
+  "unreadCount": 5```
+
+**Response (200):**
+
+```json}
+
+{
+
+  "success": true,```#### GET /api/auth/me
+
+  "data": {
+
+    "messages": [Get current user profile (requires authentication).
+
+      {
+
+        "id": "msg-789",### POST /api/v1/chat/conversations/:conversationId/messages
+
+        "content": "Hello!",
+
+        "type": "TEXT",Send a message in a conversation.**Headers:**
+
+        "sender": {
+
+          "id": "user-123",```
+
+          "username": "john_doe",
+
+          "firstName": "John"**Request Body:**Authorization: Bearer <jwt-token>
+
+        },
+
+        "createdAt": "2024-10-20T10:35:00.000Z",```json```
+
+        "isEdited": false
+
+      }{
+
+    ],
+
+    "nextCursor": "msg-700",  "userId": "user-123",**Response (200):**
+
+    "hasMore": true
+
+  }  "content": "Hello everyone!",```json
+
+}
+
+```  "type": "TEXT",{
+
+
+
+### Search Users  "attachments": []  "success": true,
+
+
+
+**GET** `/api/v1/chat/users/search?q=john&userId=user-123`}  "user": {
+
+
+
+Search for users by username, email, or name.```    "id": "user-uuid",
+
+
+
+**Query Parameters:**    "email": "student@college.edu",
+
+- `q` (required): Search query (minimum 2 characters)
+
+- `userId` (required): User ID performing the search**Response (201):**    "firstName": "John",
+
+- `limit` (optional): Results limit (default: 20, max: 50)
+
+```json    "lastName": "Doe",
+
+**Response (200):**
+
+```json{    "studentId": "STU12345",
+
+{
+
+  "success": true,  "id": "msg-uuid",    "verificationStatus": "verified",
+
+  "data": [
+
+    {  "content": "Hello everyone!",    "createdAt": "2024-01-01T00:00:00.000Z"
+
+      "id": "user-456",
+
+      "username": "john_smith",  "senderId": "user-123",  }
+
+      "firstName": "John",
+
+      "lastName": "Smith",  "conversationId": "conv-uuid",}
+
+      "profileImageUrl": "https://...",
+
+      "collegeName": "MIT"  "createdAt": "2024-01-01T00:00:00.000Z"```
+
+    }
+
+  ]}
+
+}
+
+``````#### PUT /api/auth/profile
+
+
+
+---Update user profile (requires authentication).
+
+
+
+## Upload Endpoints (api/upload)### GET /api/v1/chat/conversations/:conversationId/messages
+
+
+
+File upload utilities using AWS S3. Rate limited to 10 requests per 15 minutes.Get messages from a conversation.**Headers:**
+
+
+
+### Generate Signed Upload URL```
+
+
+
+**POST** `/api/upload/sign-url`**Query Parameters:**Authorization: Bearer <jwt-token>
+
+
+
+Generate a pre-signed URL for direct S3 upload.- `userId` (required): User ID```
+
+
+
+**Request Body:**- `limit`: Number of messages (default: 50)
+
+```json
+
+{- `cursor`: Pagination cursor**Request Body:**
+
+  "userId": "user-123",
+
+  "fileName": "profile-photo.jpg",- `before`: Get messages before timestamp```json
+
+  "fileType": "image/jpeg",
+
+  "fileSize": 1024000- `after`: Get messages after timestamp{
+
+}
+
+```  "firstName": "John",
+
+
+
+**Validation:****Response (200):**  "lastName": "Smith",
+
+- `userId`: Required
+
+- `fileName`: Required, must have valid extension```json  "phoneNumber": "+1987654321"
+
+- `fileType`: Required, must be allowed MIME type
+
+- `fileSize`: Required, must be under 10MB{}
+
+
+
+**Response (200):**  "messages": [...],```
+
+```json
+
+{  "hasMore": true,
+
+  "success": true,
+
+  "data": {  "nextCursor": "cursor-string"**Response (200):**
+
+    "uploadUrl": "https://s3.amazonaws.com/...",
+
+    "fileUrl": "https://cdn.example.com/...",}```json
+
+    "key": "uploads/user-123/profile-photo.jpg",
+
+    "expiresIn": 300```{
+
+  }
+
+}  "success": true,
+
+```
+
+### PUT /api/v1/chat/conversations/:conversationId/messages/read  "message": "Profile updated successfully",
+
+### Get Upload Configuration
+
+Mark messages as read.  "user": {
+
+**GET** `/api/upload/config?userId=user-123`
+
+    "id": "user-uuid",
+
+Get allowed file types and size limits.
+
+**Request Body:**    "firstName": "John",
+
+**Response (200):**
+
+```json```json    "lastName": "Smith",
+
+{
+
+  "success": true,{    "phoneNumber": "+1987654321"
+
+  "data": {
+
+    "maxFileSize": 10485760,  "userId": "user-123",  }
+
+    "allowedTypes": ["image/jpeg", "image/png", "image/gif", "video/mp4"],
+
+    "allowedExtensions": [".jpg", ".jpeg", ".png", ".gif", ".mp4"]  "messageIds": ["msg-1", "msg-2"]}
+
+  }
+
+}}```
+
+```
+
+```
+
+---
+
+#### PUT /api/auth/password
+
+## ID Card Verification Endpoints (api/id-card)
+
+**Response (200):**Change user password (requires authentication).
+
+College ID card upload and verification system. Rate limited to 10 requests per 15 minutes (uploads).
+
+```json
+
+### Upload ID Card
+
+{**Headers:**
+
+**POST** `/api/id-card/upload`
+
+  "success": true,```
+
+Upload ID card for verification.
+
+  "markedCount": 2Authorization: Bearer <jwt-token>
+
+**Content-Type:** `multipart/form-data`
+
+}```
+
+**Form Fields:**
+
+- `idCard` (file): ID card image (required, max 10MB)```
+
+- `userId` (string): User ID (required)
+
+- `collegeName` (string): College name (required)**Request Body:**
+
+- `studentIdNumber` (string): Student ID number (required)
+
+- `graduationYear` (number): Expected graduation year (required)### GET /api/v1/chat/unread-count```json
+
+
+
+**Response (201):**Get unread message count for a user.{
+
+```json
+
+{  "currentPassword": "OldPassword123!",
+
+  "success": true,
+
+  "message": "ID card uploaded successfully",**Query Parameters:**  "newPassword": "NewPassword123!"
+
+  "data": {
+
+    "verificationId": "ver-123",- `userId` (required): User ID}
+
+    "status": "PENDING",
+
+    "submittedAt": "2024-10-20T10:00:00.000Z"```
+
+  }
+
+}**Response (200):**
+
+```
+
+```json**Response (200):**
+
+### Check Verification Status
+
+{```json
+
+**GET** `/api/id-card/status?userId=user-123`
+
+  "unreadCount": 15,{
+
+Check ID card verification status for a user.
+
+  "conversationCounts": {  "success": true,
+
+**Response (200):**
+
+```json    "conv-1": 5,  "message": "Password updated successfully"
+
+{
+
+  "success": true,    "conv-2": 10}
+
+  "data": {
+
+    "verificationId": "ver-123",  }```
+
+    "status": "PENDING",
+
+    "collegeName": "MIT",}
+
+    "studentIdNumber": "12345",
+
+    "submittedAt": "2024-10-20T10:00:00.000Z",```#### POST /api/auth/logout
+
+    "reviewedAt": null,
+
+    "rejectionReason": nullLogout user (requires authentication).
+
+  }
+
+}### POST /api/v1/chat/direct-messages
+
+```
+
+Create or get direct message conversation.**Headers:**
+
+### Resubmit ID Card
+
+```
+
+**PUT** `/api/id-card/resubmit`
+
+**Request Body:**Authorization: Bearer <jwt-token>
+
+Resubmit ID card after rejection.
+
+```json```
+
+**Content-Type:** `multipart/form-data`
+
+{
+
+**Form Fields:** Same as upload
+
+  "currentUserId": "user-123",**Response (200):**
+
+**Response (200):**
+
+```json  "userId": "user-456"```json
+
+{
+
+  "success": true,}{
+
+  "message": "ID card resubmitted successfully",
+
+  "data": {```  "success": true,
+
+    "verificationId": "ver-124",
+
+    "status": "PENDING"  "message": "Logged out successfully"
+
+  }
+
+}**Response (200/201):**}
+
+```
+
+```json```
+
+### Get Pending Verifications (Admin)
+
+{
+
+**GET** `/api/id-card/admin/pending?adminUserId=admin-123`
+
+  "conversation": {...},### ID Card Verification Endpoints
+
+Get all pending ID card verifications. Rate limited to 20 requests per 15 minutes.
+
+  "isNew": true
+
+**Response (200):**
+
+```json}#### POST /api/id-card/upload
+
+{
+
+  "success": true,```Upload ID card image for verification (requires authentication).
+
+  "data": [
+
+    {
+
+      "id": "ver-123",
+
+      "user": {---**Headers:**
+
+        "id": "user-456",
+
+        "email": "john@college.edu",```
+
+        "username": "john_doe"
+
+      },## Messaging Endpoints (Express - /api/conversations & /api/chat)Authorization: Bearer <jwt-token>
+
+      "collegeName": "MIT",
+
+      "studentIdNumber": "12345",Content-Type: multipart/form-data
+
+      "idCardImageUrl": "https://...",
+
+      "submittedAt": "2024-10-20T10:00:00.000Z"### GET /api/conversations```
+
+    }
+
+  ]Get all conversations for a user.
+
+}
+
+```**Request Body (Form Data):**
+
+
+
+### Review ID Card (Admin)**Query Parameters:**- `idCard`: Image file (JPG, PNG, GIF - max 10MB)
+
+
+
+**PUT** `/api/id-card/admin/review/:verificationId`- `userId` (required): User ID
+
+
+
+Approve or reject an ID card verification. Rate limited to 20 requests per 15 minutes.- `limit`: Number of results (default: 20)**Response (200):**
+
+
+
+**Request Body:**- `cursor`: Pagination cursor```json
+
+```json
+
+{{
+
+  "adminUserId": "admin-123",
+
+  "action": "approve",### GET /api/conversations/:id/messages  "success": true,
+
+  "rejectionReason": "Unclear image"
+
+}Get messages from a conversation.  "message": "ID card uploaded successfully",
+
+```
+
+  "verification": {
+
+**Response (200):**
+
+```json**Query Parameters:**    "id": "verification-uuid",
+
+{
+
+  "success": true,- `userId` (required): User ID    "status": "pending",
+
+  "message": "Verification approved successfully",
+
+  "data": {- `page`: Page number (default: 1)    "uploadedAt": "2024-01-01T00:00:00.000Z"
+
+    "verificationId": "ver-123",
+
+    "status": "APPROVED",- `limit`: Messages per page (default: 50)  }
+
+    "reviewedAt": "2024-10-20T11:00:00.000Z"
+
+  }}
+
+}
+
+```### POST /api/conversations```
+
+
+
+---Create a new conversation.
+
+
+
+## Socket.IO Real-Time Events#### GET /api/id-card/status
+
+
+
+Connect to Socket.IO for real-time messaging updates. No authentication required - pass userId in connection.**Request Body:**Get ID card verification status (requires authentication).
+
+
+
+### Connection```json
+
+
+
+```javascript{**Headers:**
+
+import io from 'socket.io-client';
+
+  "creatorId": "user-123",```
+
+const socket = io('http://localhost:3001', {
+
+  query: {  "name": "Study Group",Authorization: Bearer <jwt-token>
+
+    userId: 'user-123'
+
+  }  "type": "DIRECT",```
+
+});
+
+```  "participantIds": ["user-456"],
+
+
+
+### Events  "isGroup": false**Response (200):**
+
+
+
+#### Client → Server}```json
+
+
+
+##### `join_conversation````{
+
+
+
+Join a conversation room to receive messages.  "success": true,
+
+
+
+```javascript### GET /api/chat/conversations  "verification": {
+
+socket.emit('join_conversation', {
+
+  userId: 'user-123',List conversations for a user.    "id": "verification-uuid",
+
+  conversationId: 'conv-456'
+
+});    "status": "approved",
+
+```
+
+**Query Parameters:**    "uploadedAt": "2024-01-01T00:00:00.000Z",
+
+##### `leave_conversation`
+
+- `userId` (required): User ID    "reviewedAt": "2024-01-01T01:00:00.000Z",
+
+Leave a conversation room.
+
+- `page`: Page number    "reviewedBy": "admin-uuid",
+
+```javascript
+
+socket.emit('leave_conversation', {- `limit`: Results per page    "comments": "ID verified successfully"
+
+  userId: 'user-123',
+
+  conversationId: 'conv-456'  }
+
+});
+
+```### POST /api/chat/conversations/:id/messages}
+
+
+
+##### `send_message`Send a message.```
+
+
+
+Send a message in real-time.
+
+
+
+```javascript**Request Body:**#### PUT /api/id-card/resubmit
+
+socket.emit('send_message', {
+
+  userId: 'user-123',```jsonResubmit ID card after rejection (requires authentication).
+
+  conversationId: 'conv-456',
+
+  content: 'Hello!',{
+
+  type: 'TEXT'
+
+});  "senderId": "user-123",**Headers:**
+
+```
+
+  "content": "Message text",```
+
+##### `typing_start`
+
+  "type": "TEXT"Authorization: Bearer <jwt-token>
+
+Indicate user is typing.
+
+}Content-Type: multipart/form-data
+
+```javascript
+
+socket.emit('typing_start', {``````
+
+  userId: 'user-123',
+
+  conversationId: 'conv-456'
+
+});
+
+```### GET /api/chat/users/search**Request Body (Form Data):**
+
+
+
+##### `typing_stop`Search for users to message.- `idCard`: Image file (JPG, PNG, GIF - max 10MB)
+
+
+
+Indicate user stopped typing.
+
+
+
+```javascript**Query Parameters:****Response (200):**
+
+socket.emit('typing_stop', {
+
+  userId: 'user-123',- `currentUserId`: Current user ID (to exclude from results)```json
+
+  conversationId: 'conv-456'
+
+});- `query`: Search term{
+
+```
+
+- `limit`: Number of results  "success": true,
+
+##### `mark_message_read`
+
+  "message": "ID card resubmitted successfully",
+
+Mark a message as read.
+
+---  "verification": {
+
+```javascript
+
+socket.emit('mark_message_read', {    "id": "verification-uuid",
+
+  userId: 'user-123',
+
+  messageId: 'msg-789'## ID Card Verification    "status": "pending",
+
+});
+
+```    "uploadedAt": "2024-01-01T00:00:00.000Z"
+
+
+
+#### Server → Client### POST /api/id-card/upload  }
+
+
+
+##### `new_message`Upload ID card for verification.}
+
+
+
+Receive a new message in a conversation.```
+
+
+
+```javascript**Form Data:**
+
+socket.on('new_message', (message) => {
+
+  console.log('New message:', message);- `userId`: User ID#### GET /api/id-card/admin/pending
+
+});
+
+```- `idCard`: Image fileGet pending verifications (admin only).
+
+
+
+##### `user_typing`- `collegeName`: College name
+
+
+
+A user started typing.- `studentIdNumber`: Student ID**Headers:**
+
+
+
+```javascript- `graduationYear`: Graduation year (optional)```
+
+socket.on('user_typing', (data) => {
+
+  console.log(`${data.username} is typing in ${data.conversationId}`);Authorization: Bearer <admin-jwt-token>
+
+});
+
+```**Response (201):**```
+
+
+
+##### `user_stopped_typing````json
+
+
+
+A user stopped typing.{**Response (200):**
+
+
+
+```javascript  "success": true,```json
+
+socket.on('user_stopped_typing', (data) => {
+
+  console.log(`${data.username} stopped typing`);  "verificationId": "verify-uuid",{
+
+});
+
+```  "status": "PENDING"  "success": true,
+
+
+
+##### `message_read`}  "pendingVerifications": [
+
+
+
+A message was read by a user.```    {
+
+
+
+```javascript      "id": "verification-uuid",
+
+socket.on('message_read', (data) => {
+
+  console.log(`Message ${data.messageId} read by ${data.userId}`);### GET /api/id-card/status      "user": {
+
+});
+
+```Get verification status.        "id": "user-uuid",
+
+
+
+##### `error`        "email": "student@college.edu",
+
+
+
+Socket error occurred.**Query Parameters:**        "firstName": "John",
+
+
+
+```javascript- `userId` (required): User ID        "lastName": "Doe"
+
+socket.on('error', (error) => {
+
+  console.error('Socket error:', error.message);      },
+
+});
+
+```**Response (200):**      "uploadedAt": "2024-01-01T00:00:00.000Z",
+
+
+
+---```json      "imageUrl": "/uploads/id-cards/filename.jpg"
+
+
+
+## Error Responses{    }
+
+
+
+All error responses follow this format:  "status": "APPROVED",  ]
+
+
+
+```json  "collegeName": "Example University",}
+
+{
+
+  "success": false,  "verifiedAt": "2024-01-01T00:00:00.000Z"```
+
+  "error": "Error Type",
+
+  "message": "Human-readable error message",}
+
+  "details": {}
+
+}```#### PUT /api/id-card/admin/review/:verificationId
+
+```
+
+Review ID card verification (admin only).
+
+### Common HTTP Status Codes
+
+---
+
+- **200 OK**: Request succeeded
+
+- **201 Created**: Resource created successfully**Headers:**
+
+- **400 Bad Request**: Invalid request parameters or body
+
+- **404 Not Found**: Resource not found## Upload Endpoints```
+
+- **429 Too Many Requests**: Rate limit exceeded
+
+- **500 Internal Server Error**: Server errorAuthorization: Bearer <admin-jwt-token>
+
+
+
+### Validation Errors (400)### POST /api/upload/sign-url```
+
+
+
+```jsonGenerate pre-signed URL for S3 upload.
+
+{
+
+  "success": false,**Request Body:**
+
+  "error": "Validation Error",
+
+  "message": "Request validation failed",**Request Body:**```json
+
+  "details": {
+
+    "userId": "userId is required",```json{
+
+    "content": "content must not be empty"
+
+  }{  "action": "approve",
+
+}
+
+```  "fileName": "image.jpg",  "comments": "ID verified successfully"
+
+
+
+---  "fileType": "image/jpeg",}
+
+
+
+## Best Practices  "folder": "profile-images"```
+
+
+
+### Security Considerations}
+
+
+
+⚠️ **Since this API has no authentication, you must:**```**Response (200):**
+
+
+
+1. **Validate userId**: Always validate that userId exists and is valid```json
+
+2. **Never trust client data**: Implement server-side validation on all inputs
+
+3. **Rate limiting**: Respect rate limits to avoid IP blocks**Response (200):**{
+
+4. **Implement authentication**: Add proper authentication before production deployment
+
+```json  "success": true,
+
+### Performance Tips
+
+{  "message": "Verification reviewed successfully",
+
+1. **Use pagination**: Always use limit and cursor parameters for large datasets
+
+2. **Socket.IO for real-time**: Use Socket.IO for live updates instead of polling  "success": true,  "verification": {
+
+3. **Cache responses**: Cache frequently accessed data on the client
+
+4. **Batch requests**: Combine multiple operations when possible  "uploadUrl": "https://s3.amazonaws.com/...",    "id": "verification-uuid",
+
+
+
+### Development vs Production  "fileUrl": "https://cdn.example.com/..."    "status": "approved",
+
+
+
+**Development:**}    "reviewedAt": "2024-01-01T01:00:00.000Z",
+
+- Rate limits are enforced but generous
+
+- Detailed error messages included```    "comments": "ID verified successfully"
+
+- No HTTPS required for Socket.IO
+
+  }
+
+**Production (Required for deployment):**
+
+- [ ] Implement authentication system---}
+
+- [ ] Enable HTTPS and WSS (secure WebSockets)
+
+- [ ] Tighten rate limits```
+
+- [ ] Add request logging and monitoring
+
+- [ ] Implement proper authorization checks## Socket.IO Events
+
+- [ ] Use environment-specific configuration
+
+## Socket.IO Events
+
+---
+
+### Connection
+
+## Support
+
+Connect to Socket.IO without authentication:The API includes Socket.IO support for real-time features.
+
+For issues or questions:
+
+- Check logs for detailed error messages
+
+- Verify request format matches documentation
+
+- Ensure rate limits are not exceeded```javascript### Connection
+
+- Validate userId exists in database
+
+const socket = io('http://localhost:3000', {```javascript
+
+## API Versioning
+
+  query: { userId: 'user-123' }  // Optional: provide userIdconst socket = io('http://localhost:3001', {
+
+Current version: **v1.0.0**
+
+});  auth: {
+
+Breaking changes will be versioned with major version increments.
+
+```    token: 'your-jwt-token'
+
+  }
+
+### Events});
+
+```
+
+#### join_conversation
+
+Join a conversation room.### Events
+
+
+
+**Emit:**#### join_conversation
+
+```javascriptJoin a conversation room.
+
+socket.emit('join_conversation', {```javascript
+
+  conversationId: 'conv-123',socket.emit('join_conversation', conversationId);
+
+  userId: 'user-123'```
+
+});
+
+```#### leave_conversation
+
+Leave a conversation room.
+
+**Listen:**```javascript
+
+```javascriptsocket.emit('leave_conversation', conversationId);
+
+socket.on('user_joined', (data) => {```
+
+  console.log(data); // { userId, socketId, timestamp }
+
+});## Error Responses
+
+```
+
+All error responses follow this format:
+
+#### leave_conversation
+
+Leave a conversation room.```json
+
+{
+
+**Emit:**  "success": false,
+
+```javascript  "error": "Error type",
+
+socket.emit('leave_conversation', {  "message": "Detailed error message",
+
+  conversationId: 'conv-123',  "timestamp": "2024-01-01T00:00:00.000Z"
+
+  userId: 'user-123'}
+
+});```
+
+```
+
+### Common HTTP Status Codes
+
+#### send_message
+
+Send a real-time message.- **200**: Success
+
+- **201**: Created
+
+**Emit:**- **400**: Bad Request (validation errors, malformed data)
+
+```javascript- **401**: Unauthorized (invalid/missing token)
+
+socket.emit('send_message', {- **403**: Forbidden (insufficient permissions)
+
+  userId: 'user-123',- **404**: Not Found
+
+  conversationId: 'conv-123',- **409**: Conflict (duplicate email, etc.)
+
+  content: 'Hello!',- **413**: Payload Too Large (file size limit)
+
+  type: 'TEXT',- **500**: Internal Server Error
+
+  attachments: []
+
+});## Security
+
+```
+
+### Password Requirements
+
+**Listen:**- Minimum 8 characters
+
+```javascript- At least one uppercase letter
+
+socket.on('new_message', (message) => {- At least one lowercase letter
+
+  console.log(message); // Full message object- At least one number
+
+});- At least one special character
+
+
+
+socket.on('message_sent', (message) => {### File Upload Restrictions
+
+  console.log('Message confirmed:', message);- Maximum file size: 10MB
+
+});- Allowed types: JPG, PNG, GIF
+
+- Files are scanned and validated
+
+socket.on('message_error', (error) => {
+
+  console.error('Message failed:', error);### Rate Limiting
+
+});- Login attempts: 5 per minute per IP
+
+```- File uploads: 5 per hour per user
+
+- Registration: 3 per hour per IP
+
+#### typing_start / typing_stop
+
+Indicate typing status.## Environment Variables
+
+
+
+**Emit:**Key environment variables needed:
+
+```javascript
+
+socket.emit('typing_start', {```bash
+
+  conversationId: 'conv-123',NODE_ENV=development
+
+  userId: 'user-123'PORT=3001
+
+});DATABASE_URL=postgresql://username:password@localhost:5432/database
+
+JWT_SECRET=your-super-secret-key
+
+socket.emit('typing_stop', {FRONTEND_URL=http://localhost:3000
+
+  conversationId: 'conv-123',```
+
+  userId: 'user-123'
+
+});## Development
+
+```
+
+### Starting the Server
+
+**Listen:**```bash
+
+```javascript# Development with auto-restart
+
+socket.on('user_typing', (data) => {npm run start:express:dev
+
+  console.log(data); // { userId, socketId, isTyping }
+
+});# Production
+
+```npm run start:express
+
+```
+
+#### mark_message_read
+
+Mark a message as read.### Database Operations
+
+```bash
+
+**Emit:**# Generate Prisma client
+
+```javascriptnpm run prisma:generate
+
+socket.emit('mark_message_read', {
+
+  messageId: 'msg-123',# Run migrations
+
+  conversationId: 'conv-123',npm run prisma:migrate
+
+  userId: 'user-123'
+
+});# Open database browser
+
+```npm run prisma:studio
+
+```
+
+**Listen:**
+
+```javascript### Testing
+
+socket.on('message_read', (data) => {```bash
+
+  console.log(data); // { messageId, userId, readAt }# Run all tests
+
+});npm test
+
+```
+
+# Run integration tests
+
+---npm run test:e2e
+
+```
+
+## Error Responses
+
+## Support
+
+All endpoints return errors in the following format:
+
+For support and questions, please refer to the project documentation or contact the development team.
+
+```json
+{
+  "success": false,
+  "error": "Error type",
+  "message": "Detailed error message"
+}
+```
+
+### Common Error Codes
+
+- `400` - Bad Request (missing or invalid parameters)
+- `403` - Forbidden (not a member of conversation)
+- `404` - Not Found (resource doesn't exist)
+- `500` - Internal Server Error
+
+---
+
+## Rate Limiting
+
+Rate limiting is applied to prevent abuse:
+- **General endpoints**: 1000 requests per 15 minutes per IP
+- **Socket.IO**: No authentication-based rate limiting
+- **Upload endpoints**: Size limit of 10MB per request
+
+---
+
+## Development
+
+### Environment Variables
+
+Required environment variables:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/db
+
+# Server
+PORT=3001
+NODE_ENV=development
+
+# AWS S3 (for uploads)
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your-key
+AWS_SECRET_ACCESS_KEY=your-secret
+AWS_S3_BUCKET=your-bucket
+
+# Frontend
+FRONTEND_URL=http://localhost:3000
+CORS_ORIGIN=http://localhost:3000
+```
+
+### Running the Server
+
+```bash
+# Install dependencies
+npm install
+
+# Generate Prisma Client
+npm run prisma:generate
+
+# Run migrations
+npm run prisma:migrate
+
+# Start development server
+npm run dev
+
+# Start production server
+npm start
+```
+
+---
+
+## Security Considerations
+
+⚠️ **This API has no authentication**. In production, you should:
+
+1. Implement proper authentication (OAuth, JWT, etc.)
+2. Add rate limiting per user
+3. Validate userId ownership for all operations
+4. Use HTTPS for all communications
+5. Implement proper authorization checks
+6. Add input validation and sanitization
+7. Enable CORS only for trusted origins
+8. Implement request signing or API keys
+
+---
+
+## Support
+
+For issues or questions, please open an issue in the repository.

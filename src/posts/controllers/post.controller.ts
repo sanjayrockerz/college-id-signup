@@ -19,21 +19,27 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Post()
-  // @UseGuards(AuthGuard) // TODO: Implement authentication
   async createPost(
-    @Body() createPostDto: CreatePostDto,
-    @Request() req: any // TODO: Type with proper user interface
+    @Body() createPostDto: CreatePostDto & { userId: string },
+    @Request() req: any
   ): Promise<PostResponseDto> {
-    const userId = req.user?.id || 'temp-user-id'; // TODO: Get from authenticated user
+    // userId provided by upstream service (see docs/scope/no-auth-policy.md)
+    const userId = createPostDto.userId;
+    
+    if (!userId) {
+      throw new BadRequestException('userId is required in request body');
+    }
+    
     return this.postService.createPost(userId, createPostDto);
   }
 
   @Get(':id')
   async getPost(
     @Param('id') postId: string,
-    @Request() req: any
+    @Request() req: any,
+    @Query('userId') userId?: string
   ): Promise<PostResponseDto> {
-    const userId = req.user?.id;
+    // userId is optional for read operations
     const post = await this.postService.getPostById(postId, userId);
     
     if (!post) {
@@ -44,13 +50,18 @@ export class PostController {
   }
 
   @Put(':id')
-  // @UseGuards(AuthGuard)
   async updatePost(
     @Param('id') postId: string,
-    @Body() updatePostDto: UpdatePostDto,
+    @Body() updatePostDto: UpdatePostDto & { userId: string },
     @Request() req: any
   ): Promise<PostResponseDto> {
-    const userId = req.user?.id || 'temp-user-id';
+    // userId provided by upstream service (see docs/scope/no-auth-policy.md)
+    const userId = updatePostDto.userId;
+    
+    if (!userId) {
+      throw new BadRequestException('userId is required in request body');
+    }
+    
     return this.postService.updatePost(postId, userId, updatePostDto);
   }
 

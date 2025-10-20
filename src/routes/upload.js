@@ -2,14 +2,10 @@ const express = require('express');
 const { S3Client } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
-const { authenticateToken } = require('../middleware/auth');
 const crypto = require('crypto');
 const path = require('path');
 
 const router = express.Router();
-
-// Apply authentication middleware to all routes
-router.use(authenticateToken);
 
 // Configure S3 client
 const s3Client = new S3Client({

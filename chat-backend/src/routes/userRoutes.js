@@ -1,12 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { authenticateToken } = require('../middleware/auth');
 const { validateRequest } = require('../middleware/validation');
 const { body, param, query } = require('express-validator');
-
-// Apply authentication to all routes
-router.use(authenticateToken);
 
 // User Profile Routes
 router.get('/profile', userController.getProfile);

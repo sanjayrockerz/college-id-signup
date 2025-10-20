@@ -1,123 +1,243 @@
-# Authentication Middleware
+# Middleware# Authentication Middleware
 
-This directory contains authentication middleware for both HTTP requests (Express) and real-time connections (Socket.IO).
 
-## Files
 
-### HTTP Authentication Middleware
+This directory contains middleware for the College Social Platform API.This directory contains authentication middleware for both HTTP requests (Express) and real-time connections (Socket.IO).
+
+
+
+## Available Middleware## Files
+
+
+
+### Rate Limiting (`rateLimiter.js` / `rateLimiter.ts`)### HTTP Authentication Middleware
+
 - `auth.js` - JavaScript implementation for Express middleware
-- `auth.ts` - TypeScript implementation for Express middleware
 
-### Socket.IO Authentication Middleware
+Rate limiting middleware to protect public API endpoints from abuse. Since the API operates without authentication, rate limits are enforced by IP address.- `auth.ts` - TypeScript implementation for Express middleware
+
+
+
+**Rate Limit Tiers:**### Socket.IO Authentication Middleware
+
 - `socketAuth.js` - JavaScript implementation for Socket.IO middleware
-- `socketAuth.ts` - TypeScript implementation for Socket.IO middleware
 
-## Usage
+| Limiter | Window | Max Requests | Applied To |- `socketAuth.ts` - TypeScript implementation for Socket.IO middleware
 
-### Express/HTTP Middleware
+|---------|--------|--------------|------------|
 
-```javascript
+| `apiLimiter` | 15 min | 100 | All endpoints (default) |## Usage
+
+| `messagingLimiter` | 15 min | 200 | Messaging endpoints |
+
+| `uploadLimiter` | 15 min | 10 | File upload endpoints |### Express/HTTP Middleware
+
+| `adminLimiter` | 15 min | 20 | Admin operations |
+
+| `writeOperationLimiter` | 15 min | 30 | POST/PUT/DELETE requests |```javascript
+
 // JavaScript
-const { authenticateToken } = require('./middleware/auth');
 
-// Apply to specific routes
-app.get('/protected', authenticateToken, (req, res) => {
-  console.log('Authenticated user:', req.user);
+**Usage:**const { authenticateToken } = require('./middleware/auth');
+
+
+
+```javascript// Apply to specific routes
+
+// JavaScriptapp.get('/protected', authenticateToken, (req, res) => {
+
+const { apiLimiter, uploadLimiter, adminLimiter } = require('./middleware/rateLimiter');  console.log('Authenticated user:', req.user);
+
   res.json({ message: 'Access granted', user: req.user });
-});
+
+// Apply general rate limiting to all routes});
+
+app.use(apiLimiter);
 
 // Apply to all routes
-app.use('/api', authenticateToken);
-```
 
-```typescript
+// Apply specific limiters to certain routesapp.use('/api', authenticateToken);
+
+app.use('/api/upload', uploadLimiter, uploadRoutes);```
+
+app.use('/api/admin', adminLimiter, adminRoutes);
+
+``````typescript
+
 // TypeScript
-import { authenticateToken } from './middleware/auth';
 
-// Apply to specific routes
+```typescriptimport { authenticateToken } from './middleware/auth';
+
+// TypeScript
+
+import { apiLimiter, uploadLimiter, adminLimiter } from './middleware/rateLimiter';// Apply to specific routes
+
 app.get('/protected', authenticateToken, (req, res) => {
-  console.log('Authenticated user:', req.user);
-  res.json({ message: 'Access granted', user: req.user });
-});
-```
 
-### Socket.IO Middleware
+// Apply general rate limiting to all routes  console.log('Authenticated user:', req.user);
+
+app.use(apiLimiter);  res.json({ message: 'Access granted', user: req.user });
+
+});
+
+// Apply specific limiters to certain routes```
+
+app.use('/api/upload', uploadLimiter, uploadRoutes);
+
+app.use('/api/admin', adminLimiter, adminRoutes);### Socket.IO Middleware
+
+```
 
 ```javascript
-// JavaScript
+
+**Response Headers:**// JavaScript
+
 const { socketAuthMiddleware } = require('./middleware/socketAuth');
+
+When rate limits are active, the following headers are included in responses:
 
 const io = require('socket.io')(server);
 
-// Apply authentication middleware
-io.use(socketAuthMiddleware);
+- `RateLimit-Limit`: Total requests allowed in the window
 
-io.on('connection', (socket) => {
+- `RateLimit-Remaining`: Requests remaining in current window// Apply authentication middleware
+
+- `RateLimit-Reset`: Timestamp when the limit resetsio.use(socketAuthMiddleware);
+
+
+
+**Error Response (429):**io.on('connection', (socket) => {
+
   console.log('Authenticated user connected:', socket.user);
-  
-  socket.on('message', (data) => {
-    // socket.userId and socket.user are available
-    console.log(`Message from ${socket.user.username}: ${data}`);
-  });
-});
+
+```json  
+
+{  socket.on('message', (data) => {
+
+  "success": false,    // socket.userId and socket.user are available
+
+  "error": "Rate limit exceeded",    console.log(`Message from ${socket.user.username}: ${data}`);
+
+  "message": "Too many requests from this IP address. Please try again later.",  });
+
+  "retryAfter": "in 15 minutes"});
+
+}```
+
 ```
 
 ```typescript
-// TypeScript
+
+## Security Considerations// TypeScript
+
 import { socketAuthMiddleware } from './middleware/socketAuth';
+
+⚠️ **No Authentication:** This API operates without authentication. Rate limiting by IP address is the primary security control.
 
 const io = require('socket.io')(server);
 
-// Apply authentication middleware
-io.use(socketAuthMiddleware);
+**Best Practices:**
 
-io.on('connection', (socket) => {
+1. All endpoints should validate `userId` parameter presence// Apply authentication middleware
+
+2. Server-side validation on all inputs is criticalio.use(socketAuthMiddleware);
+
+3. Monitor rate limit violations for abuse patterns
+
+4. Consider implementing authentication before production deploymentio.on('connection', (socket) => {
+
   console.log('Authenticated user connected:', socket.user);
-  
+
+## Configuration  
+
   socket.on('message', (data) => {
-    // socket.userId and socket.user are available
-    console.log(`Message from ${socket.user.username}: ${data}`);
-  });
-});
+
+Rate limits can be adjusted in `rateLimiter.js` / `rateLimiter.ts` by modifying:    // socket.userId and socket.user are available
+
+- `windowMs`: Time window in milliseconds    console.log(`Message from ${socket.user.username}: ${data}`);
+
+- `max`: Maximum number of requests per window  });
+
+- `message`: Custom error message});
+
 ```
+
+**Example:**
 
 ## Client-Side Authentication
 
-### HTTP Requests
-Include the JWT token in the Authorization header:
-
 ```javascript
-// Fetch API
-fetch('/api/protected', {
-  headers: {
-    'Authorization': `Bearer ${token}`
-  }
+
+const customLimiter = rateLimit({### HTTP Requests
+
+  windowMs: 10 * 60 * 1000, // 10 minutesInclude the JWT token in the Authorization header:
+
+  max: 50, // 50 requests per window
+
+  message: {```javascript
+
+    success: false,// Fetch API
+
+    error: 'Custom rate limit exceeded'fetch('/api/protected', {
+
+  }  headers: {
+
+});    'Authorization': `Bearer ${token}`
+
+```  }
+
 });
+
+## Adding New Middleware
 
 // Axios
-axios.get('/api/protected', {
-  headers: {
-    'Authorization': `Bearer ${token}`
-  }
-});
-```
 
-### Socket.IO Connection
+To add new middleware:axios.get('/api/protected', {
+
+  headers: {
+
+1. Create the middleware file in this directory    'Authorization': `Bearer ${token}`
+
+2. Export the middleware function  }
+
+3. Add documentation to this README});
+
+4. Apply the middleware in your app configuration```
+
+
+
+**Template:**### Socket.IO Connection
+
 Pass the token in the auth object or headers:
 
 ```javascript
-// Method 1: Using auth object (recommended)
-const socket = io('http://localhost:3000', {
-  auth: {
-    token: userToken
+
+// Example: loggerMiddleware.js```javascript
+
+const loggerMiddleware = (req, res, next) => {// Method 1: Using auth object (recommended)
+
+  console.log(`${req.method} ${req.path}`);const socket = io('http://localhost:3000', {
+
+  next();  auth: {
+
+};    token: userToken
+
   }
-});
+
+module.exports = { loggerMiddleware };});
+
+```
 
 // Method 2: Using headers
-const socket = io('http://localhost:3000', {
+
+## See Alsoconst socket = io('http://localhost:3000', {
+
   extraHeaders: {
-    Authorization: `Bearer ${userToken}`
-  }
+
+- [API Documentation](../../API_DOCUMENTATION.md) - Complete API reference with rate limit details    Authorization: `Bearer ${userToken}`
+
+- [Express Rate Limit](https://www.npmjs.com/package/express-rate-limit) - Rate limiting package documentation  }
+
 });
 ```
 

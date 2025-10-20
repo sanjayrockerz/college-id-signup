@@ -6,12 +6,10 @@ const morgan = require('morgan');
 const path = require('path');
 
 const logger = require('./utils/logger');
-const authMiddleware = require('./middleware/auth');
 const errorHandler = require('./middleware/errorHandler');
 const validationMiddleware = require('./middleware/validation');
 
 // Import routes
-const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
 const userRoutes = require('./routes/user');
 const fileRoutes = require('./routes/file');
@@ -73,10 +71,9 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/chat', authMiddleware, chatRoutes);
-app.use('/api/users', authMiddleware, userRoutes);
-app.use('/api/files', authMiddleware, fileRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/files', fileRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

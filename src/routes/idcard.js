@@ -3,7 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { getPrismaClient } = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
+const { adminLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
@@ -45,7 +45,7 @@ const upload = multer({
  * Upload ID Card for Verification
  * POST /api/id-card/upload
  */
-router.post('/upload', authenticateToken, upload.single('idCard'), async (req, res) => {
+router.post('/upload', upload.single('idCard'), async (req, res) => {
   try {
     const userId = req.user.id;
     const { collegeName, studentIdNumber, graduationYear } = req.body;
@@ -151,7 +151,7 @@ router.post('/upload', authenticateToken, upload.single('idCard'), async (req, r
  * Get ID Card Verification Status
  * GET /api/id-card/status
  */
-router.get('/status', authenticateToken, async (req, res) => {
+router.get('/status', async (req, res) => {
   try {
     const userId = req.user.id;
     const prisma = getPrismaClient();
@@ -204,7 +204,7 @@ router.get('/status', authenticateToken, async (req, res) => {
  * Resubmit ID Card (after rejection)
  * PUT /api/id-card/resubmit
  */
-router.put('/resubmit', authenticateToken, upload.single('idCard'), async (req, res) => {
+router.put('/resubmit', upload.single('idCard'), async (req, res) => {
   try {
     const userId = req.user.id;
     const { collegeName, studentIdNumber, graduationYear } = req.body;
@@ -307,7 +307,7 @@ router.put('/resubmit', authenticateToken, upload.single('idCard'), async (req, 
  * Admin: Get All Pending Verifications
  * GET /api/id-card/admin/pending
  */
-router.get('/admin/pending', authenticateToken, async (req, res) => {
+router.get('/admin/pending', adminLimiter, async (req, res) => {
   try {
     // Note: In a real app, you'd check if user has admin role
     // For now, we'll include this endpoint for admin functionality
@@ -353,7 +353,7 @@ router.get('/admin/pending', authenticateToken, async (req, res) => {
  * Admin: Approve/Reject Verification
  * PUT /api/id-card/admin/review/:verificationId
  */
-router.put('/admin/review/:verificationId', authenticateToken, async (req, res) => {
+router.put('/admin/review/:verificationId', adminLimiter, async (req, res) => {
   try {
     const { verificationId } = req.params;
     const { action, rejectionReason } = req.body; // action: 'approve' or 'reject'

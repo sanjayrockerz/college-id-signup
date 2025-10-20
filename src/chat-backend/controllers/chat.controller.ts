@@ -7,13 +7,11 @@ import {
   Param,
   Query,
   Request,
-  UseGuards,
   BadRequestException,
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
 import { ChatService } from '../services/chat.service';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 // Request interfaces
 interface CreateConversationRequest {
@@ -43,7 +41,6 @@ interface AddUserRequest {
 }
 
 @Controller('api/v1/chat')
-@UseGuards(JwtAuthGuard)
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
@@ -56,7 +53,11 @@ export class ChatController {
     @Request() req: any,
     @Body() createConversationDto: CreateConversationRequest
   ) {
-    const userId = req.user.sub;
+    const userId = req.body.userId;
+
+    if (!userId) {
+      throw new BadRequestException('userId is required in request body');
+    }
     
     // Validate request
     if (!createConversationDto.type || !createConversationDto.participantIds) {
@@ -78,9 +79,14 @@ export class ChatController {
   async getUserConversations(
     @Request() req: any,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
-    @Query('cursor') cursor?: string
+    @Query('cursor') cursor?: string,
+    @Query('userId') queryUserId?: string
   ) {
-    const userId = req.user.sub;
+    const userId = queryUserId;
+
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
     
     // Validate limit
     if (limit > 100) {
@@ -97,9 +103,14 @@ export class ChatController {
   @Get('conversations/:conversationId')
   async getConversationDetails(
     @Request() req: any,
-    @Param('conversationId') conversationId: string
+    @Param('conversationId') conversationId: string,
+    @Query('userId') queryUserId?: string
   ) {
-    const userId = req.user.sub;
+    const userId = queryUserId;
+
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
     return await this.chatService.getConversationDetails(conversationId, userId);
   }
 
@@ -111,9 +122,13 @@ export class ChatController {
   async sendMessage(
     @Request() req: any,
     @Param('conversationId') conversationId: string,
-    @Body() sendMessageDto: SendMessageRequest
+    @Body() sendMessageDto: SendMessageRequest & { userId?: string }
   ) {
-    const userId = req.user.sub;
+    const userId = sendMessageDto.userId;
+
+    if (!userId) {
+      throw new BadRequestException('userId is required in request body');
+    }
     
     // Validate request
     if (!sendMessageDto.content?.trim() && (!sendMessageDto.attachments || sendMessageDto.attachments.length === 0)) {
@@ -134,9 +149,14 @@ export class ChatController {
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
     @Query('cursor') cursor?: string,
     @Query('before') before?: string,
-    @Query('after') after?: string
+    @Query('after') after?: string,
+    @Query('userId') queryUserId?: string
   ) {
-    const userId = req.user.sub;
+    const userId = queryUserId;
+
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
     
     // Validate limit
     if (limit > 100) {
@@ -161,9 +181,13 @@ export class ChatController {
   async markMessagesAsRead(
     @Request() req: any,
     @Param('conversationId') conversationId: string,
-    @Body() markReadDto: MarkReadRequest
+    @Body() markReadDto: MarkReadRequest & { userId?: string }
   ) {
-    const userId = req.user.sub;
+    const userId = markReadDto.userId;
+
+    if (!userId) {
+      throw new BadRequestException('userId is required in request body');
+    }
     
     if (!markReadDto.messageIds || !Array.isArray(markReadDto.messageIds)) {
       throw new BadRequestException('messageIds must be an array');
@@ -177,8 +201,12 @@ export class ChatController {
    * GET /api/v1/chat/unread-count
    */
   @Get('unread-count')
-  async getUnreadCount(@Request() req: any) {
-    const userId = req.user.sub;
+  async getUnreadCount(@Request() req: any, @Query('userId') queryUserId?: string) {
+    const userId = queryUserId;
+
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
     const count = await this.chatService.getUnreadCount(userId);
     
     return {
@@ -194,9 +222,13 @@ export class ChatController {
   @Post('direct-messages')
   async createDirectMessage(
     @Request() req: any,
-    @Body() body: { userId: string }
+    @Body() body: { userId: string; currentUserId?: string }
   ) {
-    const currentUserId = req.user.sub;
+    const currentUserId = body.currentUserId;
+
+    if (!currentUserId) {
+      throw new BadRequestException('currentUserId is required in request body');
+    }
     
     if (!body.userId) {
       throw new BadRequestException('userId is required');
@@ -217,9 +249,13 @@ export class ChatController {
   async addUserToConversation(
     @Request() req: any,
     @Param('conversationId') conversationId: string,
-    @Body() addUserDto: AddUserRequest
+    @Body() addUserDto: AddUserRequest & { currentUserId?: string }
   ) {
-    const currentUserId = req.user.sub;
+    const currentUserId = addUserDto.currentUserId;
+
+    if (!currentUserId) {
+      throw new BadRequestException('currentUserId is required in request body');
+    }
     
     if (!addUserDto.userId) {
       throw new BadRequestException('userId is required');
@@ -241,9 +277,14 @@ export class ChatController {
     @Request() req: any,
     @Param('conversationId') conversationId: string,
     @Query('q') query: string,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('userId') queryUserId?: string
   ) {
-    const userId = req.user.sub;
+    const userId = queryUserId;
+
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
     
     if (!query?.trim()) {
       throw new BadRequestException('Search query is required');
@@ -263,9 +304,14 @@ export class ChatController {
   @Get('conversations/:conversationId/stats')
   async getConversationStats(
     @Request() req: any,
-    @Param('conversationId') conversationId: string
+    @Param('conversationId') conversationId: string,
+    @Query('userId') queryUserId?: string
   ) {
-    const userId = req.user.sub;
+    const userId = queryUserId;
+
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
     return await this.chatService.getConversationStats(conversationId, userId);
   }
 

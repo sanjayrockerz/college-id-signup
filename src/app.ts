@@ -1,21 +1,29 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import path from 'path';
 import multer from 'multer';
 import { getPrismaClient } from './config/database';
+import { apiLimiter, uploadLimiter } from './middleware/rateLimiter';
 
 // Import routes
-import authRoutes from './routes/auth';
 import idcardRoutes from './routes/idcard';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+// Security headers
+app.use(helmet());
+
+// CORS
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
+
+// Apply general rate limiting to all requests
+app.use(apiLimiter);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -55,24 +63,16 @@ app.get('/health/database', async (req: Request, res: Response) => {
   }
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/id-card', idcardRoutes);
+// API Routes with rate limiting
+app.use('/api/id-card', uploadLimiter, idcardRoutes);
 
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    message: 'College ID Signup API',
+    message: 'College ID Signup API - Public Access',
     version: '1.0.0',
+    notice: '⚠️ This API operates without authentication. All endpoints are public.',
     endpoints: {
-      auth: {
-        register: 'POST /api/auth/register',
-        login: 'POST /api/auth/login',
-        profile: 'GET /api/auth/me',
-        updateProfile: 'PUT /api/auth/profile',
-        changePassword: 'PUT /api/auth/password',
-        logout: 'POST /api/auth/logout'
-      },
       idCard: {
         upload: 'POST /api/id-card/upload',
         status: 'GET /api/id-card/status',
@@ -164,7 +164,9 @@ process.on('SIGINT', async () => {
 // Start server
 const server = app.listen(PORT, () => {
   console.log(`
-🚀 College ID Signup API Server is running!
+🚀 College Social Platform API Server is running!
+
+⚠️  WARNING: No authentication - All endpoints are public!
 
 📍 URL: http://localhost:${PORT}
 🏥 Health Check: http://localhost:${PORT}/health
@@ -173,15 +175,6 @@ const server = app.listen(PORT, () => {
 
 📋 Available Endpoints:
 ┌─────────────────────────────────────────────────────────────┐
-│ Authentication Endpoints                                    │
-├─────────────────────────────────────────────────────────────┤
-│ POST   /api/auth/register    - Register new user           │
-│ POST   /api/auth/login       - User login                  │
-│ GET    /api/auth/me          - Get current user profile    │
-│ PUT    /api/auth/profile     - Update user profile         │
-│ PUT    /api/auth/password    - Change password             │
-│ POST   /api/auth/logout      - User logout                 │
-├─────────────────────────────────────────────────────────────┤
 │ ID Card Verification Endpoints                             │
 ├─────────────────────────────────────────────────────────────┤
 │ POST   /api/id-card/upload   - Upload ID card for verify   │
@@ -191,6 +184,7 @@ const server = app.listen(PORT, () => {
 │ PUT    /api/id-card/admin/review/:id - Approve/reject      │
 └─────────────────────────────────────────────────────────────┘
 
+🛡️  Security: Rate limiting enabled (100 req/15min general, 10 req/15min uploads)
 🔧 Environment: ${process.env.NODE_ENV || 'development'}
 🕒 Started at: ${new Date().toISOString()}
   `);

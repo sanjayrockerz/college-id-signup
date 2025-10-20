@@ -308,4 +308,19 @@ DB_LOGGING=true
 NODE_ENV=development
 ```
 
+
 This will show all queries, parameters, and execution times in the console.
+
+## Environment Variables
+
+The application uses the following environment variables for configuration:
+
+- `DATABASE_URL`: PostgreSQL connection string (required)
+- `PORT`: Server port (default: 3000)
+- `NODE_ENV`: Environment mode (development/production)
+- `FRONTEND_URL` / `CLIENT_URL`: Frontend origin for CORS
+- `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: AWS S3 configuration
+- `S3_BUCKET_NAME`: S3 bucket for file uploads
+- `REDIS_URL`: Redis connection string for caching
+
+See `.env.example` for a complete list and examples.

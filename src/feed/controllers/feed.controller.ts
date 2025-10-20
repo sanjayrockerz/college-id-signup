@@ -8,7 +8,12 @@ export class FeedController {
 
   @Get()
   async getFeed(@Query() query: any, @Request() req: any): Promise<FeedResponseDto> {
-    const userId = req.user?.id || 'temp-user-id'; // TODO: Get from authenticated user
+    // userId provided by upstream service (see docs/scope/no-auth-policy.md)
+    const userId = query.userId || req.body?.userId;
+    
+    if (!userId) {
+      throw new Error('userId query parameter is required');
+    }
     
     const feedRequest: FeedRequestDto = {
       cursor: query.cursor,
@@ -21,7 +26,12 @@ export class FeedController {
 
   @Get('connections')
   async getConnectionsFeed(@Query() query: any, @Request() req: any): Promise<FeedResponseDto> {
-    const userId = req.user?.id || 'temp-user-id';
+    // userId provided by upstream service (see docs/scope/no-auth-policy.md)
+    const userId = query.userId || req.body?.userId;
+    
+    if (!userId) {
+      throw new Error('userId query parameter is required');
+    }
     
     const feedRequest: FeedRequestDto = {
       cursor: query.cursor,

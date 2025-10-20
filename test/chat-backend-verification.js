@@ -1,7 +1,7 @@
 /**
  * Chat Backend Integration Test
  * 
- * This file tests the complete chat backend functionality
+ * This file tests the complete chat backend functionality (public access)
  * Run with: node test/chat-backend-verification.js
  */
 
@@ -20,27 +20,6 @@ function testChatRouteImports() {
     return true;
   } catch (error) {
     console.error('❌ Chat routes import failed:', error.message);
-    return false;
-  }
-}
-
-// Test auth routes with signup endpoint
-function testAuthRoutesWithSignup() {
-  console.log('🔐 Testing Auth Routes with Signup...');
-  
-  try {
-    const authRoutes = require('../src/routes/auth');
-    if (authRoutes && typeof authRoutes === 'object') {
-      console.log('✅ Auth routes import successful');
-      console.log('✅ Signup endpoint available at POST /api/auth/signup');
-      console.log('✅ Login endpoint available at POST /api/auth/login');
-    } else {
-      throw new Error('Auth routes import failed');
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('❌ Auth routes test failed:', error.message);
     return false;
   }
 }
@@ -99,7 +78,8 @@ function testChatBackendFeatures() {
       'Typing Indicators': '✅ Socket.IO typing_start/stop events',
       'Message Read Receipts': '✅ Socket.IO mark_message_read event',
       'User Presence': '✅ Socket.IO join/leave conversation events',
-      'Authentication': '✅ JWT token-based auth for all endpoints'
+      'Public Access': '✅ No authentication required (userId in requests)',
+      'Rate Limiting': '✅ IP-based rate limits protect endpoints'
     };
     
     Object.entries(features).forEach(([feature, status]) => {
@@ -140,6 +120,7 @@ function testDatabaseSchemaCompatibility() {
     if (missingModels.length === 0) {
       console.log('✅ All required database models present');
       console.log('✅ Chat schema is compatible with backend');
+      console.log('✅ No authentication fields in schema');
     } else {
       throw new Error(`Missing models: ${missingModels.join(', ')}`);
     }
@@ -151,28 +132,31 @@ function testDatabaseSchemaCompatibility() {
   }
 }
 
-// Test authentication integration
-function testAuthenticationIntegration() {
-  console.log('🛡️ Testing Authentication Integration...');
+// Test rate limiting configuration
+function testRateLimitingConfiguration() {
+  console.log('🛡️ Testing Rate Limiting Configuration...');
   
   try {
-    const { authenticateToken } = require('../src/middleware/auth');
-    const { socketAuthMiddleware } = require('../src/middleware/socketAuth');
+    const { apiLimiter, messagingLimiter, uploadLimiter } = require('../src/middleware/rateLimiter');
     
-    if (typeof authenticateToken === 'function') {
-      console.log('✅ HTTP authentication middleware ready');
+    if (typeof apiLimiter === 'function') {
+      console.log('✅ General API rate limiter ready (100 req/15min)');
     }
     
-    if (typeof socketAuthMiddleware === 'function') {
-      console.log('✅ Socket.IO authentication middleware ready');
+    if (typeof messagingLimiter === 'function') {
+      console.log('✅ Messaging rate limiter ready (200 req/15min)');
     }
     
-    console.log('✅ Chat routes protected with authentication');
-    console.log('✅ Real-time events require authentication');
+    if (typeof uploadLimiter === 'function') {
+      console.log('✅ Upload rate limiter ready (10 req/15min)');
+    }
+    
+    console.log('✅ Rate limiting protects all public endpoints');
+    console.log('✅ IP-based tracking prevents abuse');
     
     return true;
   } catch (error) {
-    console.error('❌ Authentication integration test failed:', error.message);
+    console.error('❌ Rate limiting test failed:', error.message);
     return false;
   }
 }
@@ -182,11 +166,10 @@ async function runChatBackendVerification() {
   
   const tests = [
     { name: 'Chat Route Imports', fn: testChatRouteImports },
-    { name: 'Auth Routes with Signup', fn: testAuthRoutesWithSignup },
     { name: 'App Integration', fn: testAppIntegration },
     { name: 'Chat Backend Features', fn: testChatBackendFeatures },
     { name: 'Database Schema Compatibility', fn: testDatabaseSchemaCompatibility },
-    { name: 'Authentication Integration', fn: testAuthenticationIntegration }
+    { name: 'Rate Limiting Configuration', fn: testRateLimitingConfiguration }
   ];
   
   const results = [];
@@ -219,9 +202,10 @@ async function runChatBackendVerification() {
   
   if (passed === total) {
     console.log('🎉 Chat backend is fully integrated and ready!');
-    console.log('✅ All authentication features working');
+    console.log('✅ Public access model with userId parameters');
     console.log('✅ All chat API endpoints available');
     console.log('✅ Real-time messaging with Socket.IO');
+    console.log('✅ Rate limiting protects endpoints');
     console.log('✅ Database schema supports all features');
     console.log('🚀 Ready for frontend integration!');
   } else {

@@ -2,12 +2,8 @@ const express = require('express');
 const router = express.Router();
 const chatController = require('../controllers/chatController');
 const messageController = require('../controllers/messageController');
-const { authenticateToken } = require('../middleware/auth');
 const { validateRequest } = require('../middleware/validation');
 const { body, param, query } = require('express-validator');
-
-// Apply authentication to all routes
-router.use(authenticateToken);
 
 // Chat Management Routes
 router.post('/chats', [

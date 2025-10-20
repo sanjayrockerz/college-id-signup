@@ -3,11 +3,11 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15
-    container_name: college-social-db
+    container_name: chat-backend-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: college_social_db
+      POSTGRES_DB: chat_backend_db
     ports:
       - "5432:5432"
     volumes:
@@ -20,7 +20,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: college-social-redis
+    container_name: chat-backend-redis
     ports:
       - "6379:6379"
     volumes:

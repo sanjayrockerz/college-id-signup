@@ -63,11 +63,16 @@ export class IdCardController {
   async uploadIdCard(
     @UploadedFile() file: Express.Multer.File,
     @Request() req: any,
+    @Query('userId') userId?: string,
     @Query('quality') quality?: 'low' | 'medium' | 'high',
     @Query('dataUsage') dataUsage: 'low' | 'normal' | 'high' = 'normal'
   ): Promise<MobileIdCardUploadResponse> {
     if (!file) {
       throw new BadRequestException('ID card image is required');
+    }
+
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
     }
 
     // Check file size for mobile optimization
@@ -77,7 +82,6 @@ export class IdCardController {
 
     // Mobile network quality detection
     const networkQuality = this.detectNetworkQuality(req);
-    const userId = req.user?.id || 'temp-user-id';
     
     // Optimize image for mobile before processing
     const optimizedImage = await this.mobileOptimizationService.optimizeImageForMobile(
@@ -127,13 +131,16 @@ export class IdCardController {
   async verifyIdCard(
     @Body() verifyData: VerifyIdCardDto,
     @UploadedFile() file: Express.Multer.File,
-    @Request() req: any
+    @Request() req: any,
+    @Query('userId') userId?: string
   ): Promise<IdCardVerificationResult> {
     if (!file) {
       throw new BadRequestException('ID card image is required');
     }
 
-    const userId = req.user?.id || 'temp-user-id';
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
     
     return this.idCardService.verifyIdCard(userId, file, verifyData);
   }
@@ -142,9 +149,12 @@ export class IdCardController {
   async verifyExtractedData(
     @Param('uploadId') uploadId: string,
     @Body() verifyData: VerifyIdCardDto,
-    @Request() req: any
+    @Request() req: any,
+    @Query('userId') userId?: string
   ): Promise<IdCardVerificationResult> {
-    const userId = req.user?.id || 'temp-user-id';
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
     
     // For now, we'll simulate verification with the provided data
     // In a real implementation, you'd retrieve the stored image and re-verify
@@ -158,8 +168,13 @@ export class IdCardController {
   }
 
   @Get('history')
-  async getVerificationHistory(@Request() req: any) {
-    const userId = req.user?.id || 'temp-user-id';
+  async getVerificationHistory(
+    @Request() req: any,
+    @Query('userId') userId?: string
+  ) {
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
     return this.idCardService.getVerificationHistory(userId);
   }
 
@@ -171,11 +186,14 @@ export class IdCardController {
   @Get('mobile/feed')
   async getMobileVerificationHistory(
     @Request() req: any,
+    @Query('userId') userId?: string,
     @Query('limit') limit: number = 10,
     @Query('cursor') cursor?: string,
     @Query('dataUsage') dataUsage: 'low' | 'normal' | 'high' = 'normal'
   ): Promise<MobileVerificationHistoryResponse> {
-    const userId = req.user?.id || 'temp-user-id';
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
     
     // Get history and optimize for mobile
     const history = await this.idCardService.getVerificationHistory(userId);

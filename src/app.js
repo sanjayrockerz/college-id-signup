@@ -4,16 +4,18 @@ const helmet = require('helmet');
 const path = require('path');
 const multer = require('multer');
 const { getPrismaClient } = require('./config/database');
+const { 
+  apiLimiter, 
+  messagingLimiter, 
+  uploadLimiter, 
+  adminLimiter 
+} = require('./middleware/rateLimiter');
 
 // Import routes
-const authRoutes = require('./routes/auth');
 const idcardRoutes = require('./routes/idcard');
 const chatRoutes = require('./routes/chat');
 const conversationsRoutes = require('./routes/conversations');
 const uploadRoutes = require('./routes/upload');
-
-// Import middleware
-const { socketAuthMiddleware } = require('./middleware/socketAuth');
 
 const app = express();
 
@@ -26,6 +28,9 @@ app.use(cors({
   origin: process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
+
+// Apply general rate limiting to all requests
+app.use(apiLimiter);
 
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
@@ -66,12 +71,11 @@ app.get('/health/database', async (req, res) => {
   }
 });
 
-// API Routes (temporarily commented for diagnostics)
-// app.use('/api/auth', authRoutes);
-// app.use('/api/id-card', idcardRoutes);
-// app.use('/api/chat', chatRoutes);
-// app.use('/api/conversations', conversationsRoutes);
-// app.use('/api/upload', uploadRoutes);
+// API Routes with specific rate limiters
+app.use('/api/id-card', idcardRoutes);
+app.use('/api/chat', messagingLimiter, chatRoutes);
+app.use('/api/conversations', messagingLimiter, conversationsRoutes);
+app.use('/api/upload', uploadLimiter, uploadRoutes);
 
 // Error handling middleware (should be after routes)
 app.use((err, req, res, next) => {
@@ -85,18 +89,10 @@ app.use((err, req, res, next) => {
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'College ID Signup API',
+    message: 'College ID Signup API - Public Access',
     version: '1.0.0',
+    notice: '⚠️ This API operates without authentication. All endpoints are public.',
     endpoints: {
-      auth: {
-        register: 'POST /api/auth/register',
-        signup: 'POST /api/auth/signup',
-        login: 'POST /api/auth/login',
-        profile: 'GET /api/auth/me',
-        updateProfile: 'PUT /api/auth/profile',
-        changePassword: 'PUT /api/auth/password',
-        logout: 'POST /api/auth/logout'
-      },
       chat: {
         conversations: 'GET /api/chat/conversations',
         createConversation: 'POST /api/chat/conversations',

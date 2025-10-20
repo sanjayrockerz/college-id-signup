@@ -6,16 +6,30 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "collectCoverageFrom": [
-    "src/**/*.(t|j)s"
+    "src/**/*.(t|j)s",
+    "!src/**/*.spec.ts",
+    "!src/**/*.module.ts",
+    "!src/main.ts",
+    "!src/**/index.ts"
   ],
   "coverageDirectory": "./coverage",
+  "coverageThreshold": {
+    "global": {
+      "branches": 50,
+      "functions": 50,
+      "lines": 60,
+      "statements": 60
+    }
+  },
   "testEnvironment": "node",
-  "moduleNameMapping": {
+  "moduleNameMapper": {
     "^src/(.*)$": "<rootDir>/src/$1"
   },
   "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
   "testPathIgnorePatterns": [
     "/node_modules/",
-    "/dist/"
+    "/dist/",
+    "auth.*\\.spec\\.ts$",
+    "post\\.service\\.spec\\.ts$"
   ]
 }

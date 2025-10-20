@@ -1,7 +1,6 @@
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { getPrismaClient } = require('./config/database');
-const { socketAuthMiddleware } = require('./middleware/socketAuth');
 const { registerSocketHandlers } = require('./socket/handlers');
 const { app } = require('./app');
 
@@ -17,8 +16,7 @@ async function start() {
     }
   });
 
-  // Apply socket auth middleware and register handlers
-  io.use(socketAuthMiddleware);
+  // Register socket handlers (no auth middleware)
   registerSocketHandlers(io);
 
   const httpServer = server.listen(PORT, () => {

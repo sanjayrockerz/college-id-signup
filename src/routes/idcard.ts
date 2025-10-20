@@ -3,23 +3,11 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { getPrismaClient } from '../config/database';
-import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
+// Request type with flexible body/params (no auth context)
 interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    username: string;
-    email: string;
-    isVerified: boolean;
-  };
-  file?: {
-    path: string;
-    filename: string;
-    originalname: string;
-    mimetype: string;
-  };
   body: any;
   params: any;
 }
@@ -47,7 +35,9 @@ const storage = multer.diskStorage({
   filename: (req: AuthRequest, file, cb) => {
     const timestamp = Date.now();
     const ext = path.extname(file.originalname);
-    const filename = `idcard-${req.user?.id}-${timestamp}${ext}`;
+    // Use timestamp + random string for filename (no userId needed)
+    const randomId = Math.random().toString(36).substring(7);
+    const filename = `idcard-${timestamp}-${randomId}${ext}`;
     cb(null, filename);
   }
 });
@@ -73,15 +63,15 @@ const upload = multer({
  * Upload ID Card for Verification
  * POST /api/id-card/upload
  */
-router.post('/upload', authenticateToken, upload.single('idCard'), async (req: AuthRequest & { body: UploadBody }, res: Response) => {
+router.post('/upload', upload.single('idCard'), async (req: AuthRequest & { body: UploadBody }, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.body.userId;
 
     if (!userId) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
-        error: 'Unauthorized',
-        message: 'User ID not found in token'
+        error: 'Bad Request',
+        message: 'userId is required in request body'
       });
     }
 
@@ -188,15 +178,15 @@ router.post('/upload', authenticateToken, upload.single('idCard'), async (req: A
  * Get ID Card Verification Status
  * GET /api/id-card/status
  */
-router.get('/status', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/status', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.query.userId as string;
     
     if (!userId) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
-        error: 'Unauthorized',
-        message: 'User ID not found in token'
+        error: 'Bad Request',
+        message: 'userId is required as query parameter'
       });
     }
 
@@ -250,15 +240,15 @@ router.get('/status', authenticateToken, async (req: AuthRequest, res: Response)
  * Resubmit ID Card (after rejection)
  * PUT /api/id-card/resubmit
  */
-router.put('/resubmit', authenticateToken, upload.single('idCard'), async (req: AuthRequest & { body: UploadBody }, res: Response) => {
+router.put('/resubmit', upload.single('idCard'), async (req: AuthRequest & { body: UploadBody }, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.body.userId;
 
     if (!userId) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
-        error: 'Unauthorized',
-        message: 'User ID not found in token'
+        error: 'Bad Request',
+        message: 'userId is required in request body'
       });
     }
 
@@ -362,7 +352,7 @@ router.put('/resubmit', authenticateToken, upload.single('idCard'), async (req: 
  * Admin: Get All Pending Verifications
  * GET /api/id-card/admin/pending
  */
-router.get('/admin/pending', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/admin/pending', async (req: AuthRequest, res: Response) => {
   try {
     // Note: In a real app, you'd check if user has admin role
     // For now, we'll include this endpoint for admin functionality
@@ -408,17 +398,16 @@ router.get('/admin/pending', authenticateToken, async (req: AuthRequest, res: Re
  * Admin: Approve/Reject Verification
  * PUT /api/id-card/admin/review/:verificationId
  */
-router.put('/admin/review/:verificationId', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.put('/admin/review/:verificationId', async (req: AuthRequest, res: Response) => {
   try {
     const { verificationId } = req.params;
-    const { action, rejectionReason } = req.body as ReviewBody;
-    const reviewerId = req.user?.id;
+    const { action, rejectionReason, reviewerId } = req.body as ReviewBody & { reviewerId?: string };
 
     if (!reviewerId) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
-        error: 'Unauthorized',
-        message: 'User ID not found in token'
+        error: 'Bad Request',
+        message: 'reviewerId is required in request body'
       });
     }
 

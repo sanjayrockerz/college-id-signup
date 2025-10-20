@@ -1,10 +1,42 @@
+/**
+ * Chat Backend Service - Bootstrap
+ * 
+ * TRUST MODEL: This service is identity-agnostic and does NOT implement authentication.
+ * 
+ * - userId is treated as untrusted, optional metadata for message attribution only
+ * - NO identity verification or authorization is performed
+ * - Upstream services MUST handle authentication before calling this backend
+ * - Security relies on: IP-based rate limiting, input validation, network segmentation
+ * 
+ * Production Deployment: Do NOT expose this service directly to public clients.
+ * Always route through an authenticated upstream gateway or API service.
+ * 
+ * Policy: docs/scope/no-auth-policy.md
+ * Integration Guide: docs/scope/upstream-integration.md
+ */
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as fs from 'fs';
+import {
+  requestIdMiddleware,
+  requestLoggingMiddleware,
+  metricsMiddleware,
+  metricsEndpoint
+} from './middleware/logging';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Request ID generation (must be first)
+  app.use(requestIdMiddleware);
+
+  // Request logging with safe redaction
+  app.use(requestLoggingMiddleware);
+
+  // Metrics collection
+  app.use(metricsMiddleware);
 
   // Global validation pipe
   app.useGlobalPipes(new ValidationPipe({
@@ -13,20 +45,29 @@ async function bootstrap() {
     transform: true,
   }));
 
-  // Enable CORS for frontend communication
+  // Production-grade CORS restrictions
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+    exposedHeaders: ['X-Request-ID', 'RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset'],
+    maxAge: 3600
   });
 
-  // Security headers
+  // Security headers (production-grade)
   app.use((req, res, next) => {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
     next();
   });
+
+  // Metrics endpoint (accessible for monitoring)
+  app.use('/metrics', (req, res) => metricsEndpoint(req, res));
 
   // Global prefix for API routes
   app.setGlobalPrefix('api/v1');
@@ -44,13 +85,22 @@ async function bootstrap() {
     console.log(`Application is running on https://localhost:${port}`);
   } else {
     console.log(`Application is running on http://localhost:${port}`);
-    console.log('Available endpoints:');
+    console.log('');
+    console.log('🔍 Monitoring Endpoints:');
+    console.log(`  - Health: http://localhost:${port}/health`);
+    console.log(`  - Metrics: http://localhost:${port}/metrics`);
+    console.log('');
+    console.log('📚 Available API Endpoints:');
+    console.log(`  - Chat: http://localhost:${port}/api/v1/chat`);
     console.log(`  - Feed: http://localhost:${port}/api/v1/feed`);
     console.log(`  - Posts: http://localhost:${port}/api/v1/posts`);
-    console.log(`  - Upload: http://localhost:${port}/api/v1/upload/image`);
+    console.log(`  - Upload: http://localhost:${port}/api/v1/upload`);
     console.log(`  - Users: http://localhost:${port}/api/v1/users`);
     console.log(`  - Connections: http://localhost:${port}/api/v1/connections`);
     console.log(`  - Interactions: http://localhost:${port}/api/v1/interactions`);
+    console.log('');
+    console.log('🛡️  Security: Rate limiting, validation, logging enabled');
+    console.log('📖 Docs: docs/operations/monitoring.md');
   }
 
   await app.listen(port);
