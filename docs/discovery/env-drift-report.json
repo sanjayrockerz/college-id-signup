@@ -1,0 +1,290 @@
+{
+  "generatedAt": "2025-10-20T20:00:00Z",
+  "repository": "college-id-signup-1",
+  "analysis": {
+    "envExampleVariables": 13,
+    "codeReferencedVariables": 13,
+    "drift": {
+      "missingInCode": [
+        {
+          "variable": "CORS_ORIGIN",
+          "definedIn": ".env.example",
+          "usedIn": [],
+          "severity": "major",
+          "impact": "CORS origin configured but not referenced in code - may indicate unused variable or hardcoded value",
+          "recommendation": "Verify CORS configuration in main.ts or app.ts - should use process.env.CORS_ORIGIN"
+        },
+        {
+          "variable": "FRONTEND_URL",
+          "definedIn": ".env.example",
+          "usedIn": [],
+          "severity": "major",
+          "impact": "Frontend URL defined but not used - may indicate hardcoded URL in Socket.IO CORS or redirects",
+          "recommendation": "Search for hardcoded localhost:3000 references and replace with process.env.FRONTEND_URL"
+        },
+        {
+          "variable": "CLIENT_URL",
+          "definedIn": ".env.example",
+          "usedIn": [],
+          "severity": "minor",
+          "impact": "Duplicate of FRONTEND_URL - creates configuration confusion",
+          "recommendation": "Remove CLIENT_URL from .env.example and standardize on FRONTEND_URL"
+        },
+        {
+          "variable": "AWS_REGION",
+          "definedIn": ".env.example",
+          "usedIn": [],
+          "severity": "blocker",
+          "impact": "AWS S3 configuration for file uploads (ID card OCR) - out-of-scope",
+          "recommendation": "Remove AWS_* variables after deleting upload module"
+        },
+        {
+          "variable": "AWS_ACCESS_KEY_ID",
+          "definedIn": ".env.example",
+          "usedIn": [],
+          "severity": "blocker",
+          "impact": "AWS credentials for ID card image upload - out-of-scope",
+          "recommendation": "Remove after upload module deletion"
+        },
+        {
+          "variable": "AWS_SECRET_ACCESS_KEY",
+          "definedIn": ".env.example",
+          "usedIn": [],
+          "severity": "blocker",
+          "impact": "AWS credentials for ID card image upload - out-of-scope",
+          "recommendation": "Remove after upload module deletion"
+        },
+        {
+          "variable": "S3_BUCKET_NAME",
+          "definedIn": ".env.example",
+          "usedIn": [],
+          "severity": "blocker",
+          "impact": "S3 bucket for ID card image storage - out-of-scope",
+          "recommendation": "Remove after upload module deletion"
+        },
+        {
+          "variable": "REDIS_URL",
+          "definedIn": ".env.example",
+          "usedIn": [],
+          "severity": "major",
+          "impact": "Redis not referenced in code - may be planned infrastructure or unused",
+          "recommendation": "If Redis intended for Socket.IO scaling (RedisAdapter), implement code. Otherwise remove from .env.example"
+        }
+      ],
+      "missingInEnvExample": [],
+      "typeInconsistencies": [
+        {
+          "variable": "PORT",
+          "envExampleValue": "3001",
+          "codeUsage": "process.env.PORT (string) → parseInt(process.env.PORT, 10)",
+          "issue": "none",
+          "severity": "low",
+          "recommendation": "Correct usage - parsing string to number"
+        },
+        {
+          "variable": "NODE_ENV",
+          "envExampleValue": "development",
+          "codeUsage": "String comparison (process.env.NODE_ENV === 'production')",
+          "issue": "none",
+          "severity": "low",
+          "recommendation": "Correct usage"
+        }
+      ],
+      "valueInconsistencies": [
+        {
+          "variable": "PRISMA_CLIENT_MODE",
+          "envExampleValue": "mock",
+          "allowedValues": ["mock", "auto", "database"],
+          "issue": "Default 'mock' may hide database issues in development",
+          "severity": "major",
+          "recommendation": "Change default to 'auto' for better development experience - developers should test against real PostgreSQL"
+        }
+      ]
+    },
+    "codeReferences": {
+      "DATABASE_URL": {
+        "files": [
+          "src/config/database.ts",
+          "prisma/schema.prisma"
+        ],
+        "usagePattern": "process.env.DATABASE_URL",
+        "validationPresent": false,
+        "fallback": "none",
+        "severity": "high",
+        "issue": "No validation - app may crash if DATABASE_URL malformed"
+      },
+      "DB_HOST": {
+        "files": ["src/config/database.ts"],
+        "usagePattern": "process.env.DB_HOST || 'localhost'",
+        "validationPresent": false,
+        "fallback": "localhost",
+        "severity": "low",
+        "issue": "none"
+      },
+      "DB_PORT": {
+        "files": ["src/config/database.ts"],
+        "usagePattern": "process.env.DB_PORT || '5432'",
+        "validationPresent": false,
+        "fallback": "5432",
+        "severity": "low",
+        "issue": "none"
+      },
+      "DB_NAME": {
+        "files": ["src/config/database.ts"],
+        "usagePattern": "process.env.DB_NAME || 'chat_backend_db'",
+        "validationPresent": false,
+        "fallback": "chat_backend_db",
+        "severity": "low",
+        "issue": "none"
+      },
+      "DB_USERNAME": {
+        "files": ["src/config/database.ts"],
+        "usagePattern": "process.env.DB_USERNAME || 'postgres'",
+        "validationPresent": false,
+        "fallback": "postgres",
+        "severity": "low",
+        "issue": "none"
+      },
+      "DB_PASSWORD": {
+        "files": ["src/config/database.ts"],
+        "usagePattern": "process.env.DB_PASSWORD",
+        "validationPresent": false,
+        "fallback": "none",
+        "severity": "high",
+        "issue": "No fallback or validation - should fail fast if missing in production"
+      },
+      "DB_SSL": {
+        "files": ["src/config/database.ts"],
+        "usagePattern": "process.env.DB_SSL === 'true'",
+        "validationPresent": false,
+        "fallback": "false (implicit)",
+        "severity": "low",
+        "issue": "none"
+      },
+      "DB_CONNECTION_TIMEOUT": {
+        "files": ["src/config/database.ts"],
+        "usagePattern": "parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) || 10000",
+        "validationPresent": false,
+        "fallback": "10000",
+        "severity": "low",
+        "issue": "none"
+      },
+      "SSL_CERT_PATH": {
+        "files": ["src/config/database.ts"],
+        "usagePattern": "process.env.SSL_CERT_PATH",
+        "validationPresent": false,
+        "fallback": "none",
+        "severity": "medium",
+        "issue": "No validation - file may not exist"
+      },
+      "SSL_KEY_PATH": {
+        "files": ["src/config/database.ts"],
+        "usagePattern": "process.env.SSL_KEY_PATH",
+        "validationPresent": false,
+        "fallback": "none",
+        "severity": "medium",
+        "issue": "No validation - file may not exist"
+      },
+      "PORT": {
+        "files": ["src/main.ts", "src/server.ts"],
+        "usagePattern": "parseInt(process.env.PORT, 10) || 3001",
+        "validationPresent": false,
+        "fallback": "3001",
+        "severity": "low",
+        "issue": "none"
+      },
+      "NODE_ENV": {
+        "files": ["src/main.ts", "src/config/database.ts"],
+        "usagePattern": "process.env.NODE_ENV === 'production'",
+        "validationPresent": false,
+        "fallback": "development (implicit)",
+        "severity": "low",
+        "issue": "none"
+      },
+      "PRISMA_CLIENT_MODE": {
+        "files": ["src/infra/prisma/prisma.service.ts"],
+        "usagePattern": "process.env.PRISMA_CLIENT_MODE || 'mock'",
+        "validationPresent": true,
+        "fallback": "mock",
+        "severity": "medium",
+        "issue": "Mode validation present but default 'mock' may hide database issues"
+      }
+    },
+    "recommendations": {
+      "immediate": [
+        {
+          "action": "Remove AWS S3 variables from .env.example",
+          "variables": ["AWS_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "S3_BUCKET_NAME"],
+          "reason": "Upload module (ID card OCR) is out-of-scope and will be deleted",
+          "phase": "Iteration 4 - Scope Enforcement"
+        },
+        {
+          "action": "Add validation for critical env vars",
+          "variables": ["DATABASE_URL", "DB_PASSWORD"],
+          "reason": "No validation present - app may crash with cryptic errors",
+          "implementation": "Create validateEnv() function in src/config/env-validation.ts"
+        },
+        {
+          "action": "Consolidate frontend URL variables",
+          "variables": ["CORS_ORIGIN", "FRONTEND_URL", "CLIENT_URL"],
+          "reason": "Three variables for same concept - use FRONTEND_URL consistently",
+          "implementation": "Remove CORS_ORIGIN and CLIENT_URL, use FRONTEND_URL everywhere"
+        },
+        {
+          "action": "Implement or remove REDIS_URL",
+          "variables": ["REDIS_URL"],
+          "reason": "Defined but not used - either implement RedisAdapter for Socket.IO or remove",
+          "implementation": "If multi-server scaling needed, implement Socket.IO RedisAdapter. Otherwise delete REDIS_URL."
+        }
+      ],
+      "postRemoval": [
+        {
+          "action": "Change PRISMA_CLIENT_MODE default",
+          "currentDefault": "mock",
+          "newDefault": "auto",
+          "reason": "Developers should test against real PostgreSQL by default",
+          "implementation": "Update .env.example and documentation"
+        },
+        {
+          "action": "Add SSL cert path validation",
+          "variables": ["SSL_CERT_PATH", "SSL_KEY_PATH"],
+          "reason": "Files may not exist - should validate on startup",
+          "implementation": "Check fs.existsSync() in database config initialization"
+        },
+        {
+          "action": "Document env var types in .env.example",
+          "format": "# PORT (number): Server port, default 3001",
+          "reason": "Improve developer experience - clarify expected types and defaults",
+          "implementation": "Add inline comments for each variable"
+        }
+      ]
+    },
+    "securityIssues": [
+      {
+        "variable": "AWS_SECRET_ACCESS_KEY",
+        "issue": "Secret key exposed in .env.example with placeholder 'your_secret_key'",
+        "severity": "low",
+        "recommendation": "Acceptable for example file - ensure real credentials never committed to git"
+      },
+      {
+        "variable": "DB_PASSWORD",
+        "issue": "No default value - good security practice",
+        "severity": "low",
+        "recommendation": "Keep as-is - require explicit password configuration"
+      }
+    ]
+  },
+  "summary": {
+    "totalDriftIssues": 8,
+    "blocker": 4,
+    "major": 4,
+    "minor": 1,
+    "lowSeverity": 0,
+    "criticalActions": [
+      "Remove 4 AWS S3 variables after upload module deletion",
+      "Implement CORS_ORIGIN/FRONTEND_URL usage or remove from .env.example",
+      "Decide on Redis implementation (Socket.IO scaling) or remove REDIS_URL",
+      "Change PRISMA_CLIENT_MODE default from 'mock' to 'auto'"
+    ]
+  }
+}

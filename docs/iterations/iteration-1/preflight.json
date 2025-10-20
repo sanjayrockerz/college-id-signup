@@ -1,0 +1,29 @@
+{
+  "iteration": 1,
+  "objective": "Module Eradication: remove idcard, upload, feed, posts, connections, interactions, and frontend",
+  "branch": "transform/iteration-1-module-eradication",
+  "baseCommit": "95bafe5",
+  "date": "2025-10-20T21:30:00Z",
+  "blastRadiusEstimate": {
+    "filesDeleted": 50,
+    "locRemoved": 12000,
+    "endpointsRemoved": 27
+  },
+  "acceptanceCriteria": [
+    "Zero TypeScript errors (npm run build)",
+    "Zero ESLint errors (npm run lint)",
+    "Server boots successfully (npm run start:dev)",
+    "Health 200 at /health",
+    "Zero imports from idcard|feed|posts|connections|interactions|upload",
+    "Acceptance tests BLOCKER-001..006,014 pass"
+  ],
+  "rollback": {
+    "code": "git revert HEAD~N..HEAD",
+    "notes": "Revert each deletion commit atomically as needed"
+  },
+  "monitoringSignals": [
+    "Server boot failures",
+    "Increased 5xx error rate",
+    "Import/DI errors in NestJS"
+  ]
+}

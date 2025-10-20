@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { getPrismaClient } from '../../config/database';
+import { Injectable } from "@nestjs/common";
+import { getPrismaClient } from "../../config/database";
 
 export interface UpdateUserDto {
   firstName?: string;
@@ -12,7 +12,11 @@ export interface UpdateUserDto {
   graduationYear?: number;
   allowDirectMessages?: boolean;
   showOnlineStatus?: boolean;
-  profileVisibility?: 'PUBLIC' | 'CONNECTIONS_ONLY' | 'CLOSE_FRIENDS_ONLY' | 'PRIVATE';
+  profileVisibility?:
+    | "PUBLIC"
+    | "CONNECTIONS_ONLY"
+    | "CLOSE_FRIENDS_ONLY"
+    | "PRIVATE";
 }
 
 export interface UserResponseDto {
@@ -60,7 +64,7 @@ export class UserRepository {
   async create(userData: any): Promise<any> {
     // TODO: Implement with actual database
     return {
-      id: 'temp-user-id',
+      id: "temp-user-id",
       ...userData,
       createdAt: new Date(),
     };

@@ -6,15 +6,10 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "start": "nest start",
     "start:dev": "nest start --watch",
-    "serve:quick": "node src/simple-server.js",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "start:express": "node src/app.js",
-    "start:express:dev": "nodemon src/app.js",
-    "start:server": "node src/server.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -26,6 +21,15 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force"
+  },
+  "_deprecated_scripts_comment": "Legacy Express scripts removed 2025-10-20. See src/deprecated/README.md for migration info.",
+  "_deprecated_scripts": {
+    "start_old": "node src/server.js",
+    "dev_old": "nodemon src/server.js",
+    "serve:quick_old": "node src/simple-server.js",
+    "start:express_old": "node src/app.js",
+    "start:express:dev_old": "nodemon src/app.js",
+    "start:server_old": "node src/server.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.1",

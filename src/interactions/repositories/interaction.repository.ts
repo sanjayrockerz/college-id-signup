@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { getPrismaClient } from '../../config/database';
+import { Injectable } from "@nestjs/common";
+import { getPrismaClient } from "../../config/database";
 
 @Injectable()
 export class InteractionRepository {
@@ -11,7 +11,7 @@ export class InteractionRepository {
   async create(userId: string, postId: string, type: string) {
     // TODO: Implement after Prisma setup
     return {
-      id: 'temp-id',
+      id: "temp-id",
       userId,
       postId,
       type,
@@ -42,7 +42,7 @@ export class InteractionRepository {
   async createCoolnessRating(userId: string, postId: string, rating: number) {
     // TODO: Implement after Prisma setup
     return {
-      id: 'temp-rating-id',
+      id: "temp-rating-id",
       userId,
       postId,
       rating,
@@ -58,7 +58,7 @@ export class InteractionRepository {
   async updateCoolnessRating(userId: string, postId: string, rating: number) {
     // TODO: Implement after Prisma setup
     return {
-      id: 'temp-rating-id',
+      id: "temp-rating-id",
       userId,
       postId,
       rating,

@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { getPrismaClient } from '../../config/database';
+import { Injectable } from "@nestjs/common";
+import { getPrismaClient } from "../../config/database";
 
 export interface CreateConversationDto {
-  type: 'DIRECT' | 'GROUP';
+  type: "DIRECT" | "GROUP";
   title?: string;
   description?: string;
   participantIds: string[];
@@ -10,7 +10,7 @@ export interface CreateConversationDto {
 
 export interface SendMessageDto {
   content: string;
-  messageType?: 'TEXT' | 'IMAGE' | 'FILE' | 'VOICE';
+  messageType?: "TEXT" | "IMAGE" | "FILE" | "VOICE";
   attachments?: {
     filename: string;
     mimetype: string;
@@ -38,10 +38,10 @@ export class ChatRepository {
    */
   async createConversation(creatorId: string, data: CreateConversationDto) {
     const { participantIds, type, title, description } = data;
-    
+
     // Ensure creator is included in participants
     const allParticipants = Array.from(new Set([creatorId, ...participantIds]));
-    
+
     return await this.db.$transaction(async (tx) => {
       // Create the conversation
       const conversation = await tx.conversation.create({
@@ -54,10 +54,10 @@ export class ChatRepository {
       });
 
       // Add all participants
-      const conversationUsers = allParticipants.map(userId => ({
+      const conversationUsers = allParticipants.map((userId) => ({
         conversationId: conversation.id,
         userId,
-        role: userId === creatorId ? 'ADMIN' : 'MEMBER',
+        role: userId === creatorId ? "ADMIN" : "MEMBER",
         joinedAt: new Date(),
       }));
 
@@ -97,7 +97,11 @@ export class ChatRepository {
   /**
    * Get conversations for a user
    */
-  async getUserConversations(userId: string, limit: number = 20, cursor?: string) {
+  async getUserConversations(
+    userId: string,
+    limit: number = 20,
+    cursor?: string,
+  ) {
     const where: any = {
       participants: {
         some: {
@@ -128,7 +132,7 @@ export class ChatRepository {
           },
         },
         messages: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           take: 1,
           include: {
             sender: {
@@ -149,14 +153,18 @@ export class ChatRepository {
           },
         },
       },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { updatedAt: "desc" },
       take: limit + 1,
     });
 
     const hasMore = conversations.length > limit;
-    const conversationsToReturn = hasMore ? conversations.slice(0, -1) : conversations;
-    const nextCursor = hasMore 
-      ? conversationsToReturn[conversationsToReturn.length - 1].updatedAt.toISOString() 
+    const conversationsToReturn = hasMore
+      ? conversations.slice(0, -1)
+      : conversations;
+    const nextCursor = hasMore
+      ? conversationsToReturn[
+          conversationsToReturn.length - 1
+        ].updatedAt.toISOString()
       : null;
 
     return {
@@ -170,11 +178,11 @@ export class ChatRepository {
    * Send a message in a conversation
    */
   async sendMessage(
-    conversationId: string, 
-    senderId: string, 
-    data: SendMessageDto
+    conversationId: string,
+    senderId: string,
+    data: SendMessageDto,
   ) {
-    const { content, messageType = 'TEXT', attachments = [] } = data;
+    const { content, messageType = "TEXT", attachments = [] } = data;
 
     return await this.db.$transaction(async (tx) => {
       // Verify user is participant in conversation
@@ -186,7 +194,7 @@ export class ChatRepository {
       });
 
       if (!participation) {
-        throw new Error('User is not a participant in this conversation');
+        throw new Error("User is not a participant in this conversation");
       }
 
       // Create the message
@@ -213,7 +221,7 @@ export class ChatRepository {
       // Create attachments if any
       if (attachments.length > 0) {
         await tx.attachment.createMany({
-          data: attachments.map(attachment => ({
+          data: attachments.map((attachment) => ({
             ...attachment,
             messageId: message.id,
           })),
@@ -249,9 +257,9 @@ export class ChatRepository {
    * Get messages from a conversation
    */
   async getMessages(
-    conversationId: string, 
-    userId: string, 
-    options: GetMessagesDto = {}
+    conversationId: string,
+    userId: string,
+    options: GetMessagesDto = {},
   ) {
     const { limit = 50, cursor, before, after } = options;
 
@@ -264,7 +272,7 @@ export class ChatRepository {
     });
 
     if (!participation) {
-      throw new Error('User is not a participant in this conversation');
+      throw new Error("User is not a participant in this conversation");
     }
 
     const where: any = { conversationId };
@@ -305,14 +313,14 @@ export class ChatRepository {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit + 1,
     });
 
     const hasMore = messages.length > limit;
     const messagesToReturn = hasMore ? messages.slice(0, -1) : messages;
-    const nextCursor = hasMore 
-      ? messagesToReturn[messagesToReturn.length - 1].createdAt.toISOString() 
+    const nextCursor = hasMore
+      ? messagesToReturn[messagesToReturn.length - 1].createdAt.toISOString()
       : null;
 
     return {
@@ -325,7 +333,11 @@ export class ChatRepository {
   /**
    * Mark messages as read
    */
-  async markMessagesAsRead(conversationId: string, userId: string, messageIds: string[]) {
+  async markMessagesAsRead(
+    conversationId: string,
+    userId: string,
+    messageIds: string[],
+  ) {
     // Verify user is participant
     const participation = await this.db.conversationUser.findFirst({
       where: {
@@ -335,7 +347,7 @@ export class ChatRepository {
     });
 
     if (!participation) {
-      throw new Error('User is not a participant in this conversation');
+      throw new Error("User is not a participant in this conversation");
     }
 
     // Create read receipts for messages that haven't been read yet
@@ -347,12 +359,14 @@ export class ChatRepository {
       select: { messageId: true },
     });
 
-    const alreadyReadMessageIds = existingReadReceipts.map(r => r.messageId);
-    const unreadMessageIds = messageIds.filter(id => !alreadyReadMessageIds.includes(id));
+    const alreadyReadMessageIds = existingReadReceipts.map((r) => r.messageId);
+    const unreadMessageIds = messageIds.filter(
+      (id) => !alreadyReadMessageIds.includes(id),
+    );
 
     if (unreadMessageIds.length > 0) {
       await this.db.messageRead.createMany({
-        data: unreadMessageIds.map(messageId => ({
+        data: unreadMessageIds.map((messageId) => ({
           messageId,
           userId,
           readAt: new Date(),
@@ -373,7 +387,7 @@ export class ChatRepository {
       select: { conversationId: true },
     });
 
-    const conversationIds = userConversations.map(uc => uc.conversationId);
+    const conversationIds = userConversations.map((uc) => uc.conversationId);
 
     if (conversationIds.length === 0) {
       return 0;
@@ -399,9 +413,9 @@ export class ChatRepository {
    * Add user to conversation (for group chats)
    */
   async addUserToConversation(
-    conversationId: string, 
-    userId: string, 
-    addedByUserId: string
+    conversationId: string,
+    userId: string,
+    addedByUserId: string,
   ) {
     return await this.db.$transaction(async (tx) => {
       // Verify the person adding has admin role
@@ -409,12 +423,12 @@ export class ChatRepository {
         where: {
           conversationId,
           userId: addedByUserId,
-          role: 'ADMIN',
+          role: "ADMIN",
         },
       });
 
       if (!adderParticipation) {
-        throw new Error('Only conversation admins can add users');
+        throw new Error("Only conversation admins can add users");
       }
 
       // Check if user is already in conversation
@@ -426,7 +440,7 @@ export class ChatRepository {
       });
 
       if (existingParticipation) {
-        throw new Error('User is already in this conversation');
+        throw new Error("User is already in this conversation");
       }
 
       // Add user to conversation
@@ -434,7 +448,7 @@ export class ChatRepository {
         data: {
           conversationId,
           userId,
-          role: 'MEMBER',
+          role: "MEMBER",
           joinedAt: new Date(),
         },
         include: {
@@ -459,7 +473,7 @@ export class ChatRepository {
     // Try to find existing direct conversation between these users
     const existingConversation = await this.db.conversation.findFirst({
       where: {
-        type: 'DIRECT',
+        type: "DIRECT",
         participants: {
           every: {
             userId: { in: [user1Id, user2Id] },
@@ -494,7 +508,7 @@ export class ChatRepository {
 
     // Create new direct conversation
     return await this.createConversation(user1Id, {
-      type: 'DIRECT',
+      type: "DIRECT",
       participantIds: [user2Id],
     });
   }

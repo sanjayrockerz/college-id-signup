@@ -1,7 +1,7 @@
 export interface FeedRequestDto {
   cursor?: string;
   limit?: number;
-  type?: 'all' | 'connections' | 'trending';
+  type?: "all" | "connections" | "trending";
 }
 
 export interface FeedResponseDto {

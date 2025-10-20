@@ -1,18 +1,21 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { CreateInteractionDto } from '../dtos/interaction.dto';
-import { InteractionRepository } from '../repositories/interaction.repository';
+import { Injectable, BadRequestException } from "@nestjs/common";
+import { CreateInteractionDto } from "../dtos/interaction.dto";
+import { InteractionRepository } from "../repositories/interaction.repository";
 
 @Injectable()
 export class InteractionService {
   constructor(private readonly interactionRepository: InteractionRepository) {}
 
-  async createInteraction(userId: string, createInteractionDto: CreateInteractionDto): Promise<any> {
+  async createInteraction(
+    userId: string,
+    createInteractionDto: CreateInteractionDto,
+  ): Promise<any> {
     const { type, postId } = createInteractionDto;
 
     // Validate interaction type
-    const validTypes = ['LIKE', 'COMMENT', 'SHARE', 'VIEW'];
+    const validTypes = ["LIKE", "COMMENT", "SHARE", "VIEW"];
     if (!validTypes.includes(type)) {
-      throw new BadRequestException('Invalid interaction type');
+      throw new BadRequestException("Invalid interaction type");
     }
 
     // TODO: Check if post exists
@@ -20,7 +23,7 @@ export class InteractionService {
     // TODO: Implement with actual repository
 
     return {
-      id: 'temp-interaction-id',
+      id: "temp-interaction-id",
       type,
       createdAt: new Date(),
       userId,
@@ -28,7 +31,11 @@ export class InteractionService {
     };
   }
 
-  async removeInteraction(userId: string, postId: string, type: string): Promise<void> {
+  async removeInteraction(
+    userId: string,
+    postId: string,
+    type: string,
+  ): Promise<void> {
     // TODO: Implement with actual repository
   }
 
@@ -42,16 +49,20 @@ export class InteractionService {
     return [];
   }
 
-  async rateCoolness(userId: string, postId: string, rating: number): Promise<any> {
+  async rateCoolness(
+    userId: string,
+    postId: string,
+    rating: number,
+  ): Promise<any> {
     if (rating < 1 || rating > 5) {
-      throw new BadRequestException('Coolness rating must be between 1 and 5');
+      throw new BadRequestException("Coolness rating must be between 1 and 5");
     }
 
     // TODO: Check if user already rated this post
     // TODO: Implement with actual repository
 
     return {
-      id: 'temp-rating-id',
+      id: "temp-rating-id",
       rating,
       createdAt: new Date(),
       userId,

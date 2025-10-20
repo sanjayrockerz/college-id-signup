@@ -14,7 +14,7 @@ export interface IdCardVerificationResult {
     studentIdNumber?: string;
     graduationYear?: number;
   };
-  verificationStatus: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  verificationStatus: "PENDING" | "VERIFIED" | "REJECTED";
   message: string;
 }
 

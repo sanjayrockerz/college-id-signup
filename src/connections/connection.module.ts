@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { ConnectionController } from './controllers/connection.controller';
-import { ConnectionService } from './services/connection.service';
-import { ConnectionRepository } from './repositories/connection.repository';
-import { PrismaModule } from '../infra/prisma/prisma.module';
+import { Module } from "@nestjs/common";
+import { ConnectionController } from "./controllers/connection.controller";
+import { ConnectionService } from "./services/connection.service";
+import { ConnectionRepository } from "./repositories/connection.repository";
+import { PrismaModule } from "../infra/prisma/prisma.module";
 
 @Module({
   imports: [PrismaModule],

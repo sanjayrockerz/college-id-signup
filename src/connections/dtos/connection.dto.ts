@@ -3,7 +3,7 @@ export interface CreateConnectionDto {
 }
 
 export interface UpdateConnectionDto {
-  status: 'ACCEPTED' | 'REJECTED' | 'BLOCKED';
+  status: "ACCEPTED" | "REJECTED" | "BLOCKED";
   isCloseFriend?: boolean;
 }
 

@@ -1,5 +1,5 @@
 export interface CreateInteractionDto {
-  type: 'LIKE' | 'COMMENT' | 'SHARE' | 'VIEW';
+  type: "LIKE" | "COMMENT" | "SHARE" | "VIEW";
   postId: string;
 }
 

@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../infra/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../infra/prisma/prisma.service";
 
 export interface IdCardVerificationData {
   extractedData: {
@@ -14,7 +14,7 @@ export interface IdCardVerificationData {
     graduationYear?: number;
   };
   confidence: number;
-  status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  status: "PENDING" | "VERIFIED" | "REJECTED";
   filePath: string;
 }
 
@@ -22,7 +22,10 @@ export interface IdCardVerificationData {
 export class IdCardRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createVerification(userId: string, data: IdCardVerificationData): Promise<string> {
+  async createVerification(
+    userId: string,
+    data: IdCardVerificationData,
+  ): Promise<string> {
     // TODO: Implement with actual database
     const verificationId = `verification-${Date.now()}`;
     return verificationId;
@@ -38,7 +41,10 @@ export class IdCardRepository {
     return null;
   }
 
-  async updateVerificationStatus(verificationId: string, status: 'PENDING' | 'VERIFIED' | 'REJECTED') {
+  async updateVerificationStatus(
+    verificationId: string,
+    status: "PENDING" | "VERIFIED" | "REJECTED",
+  ) {
     // TODO: Implement with actual database
     return {
       id: verificationId,

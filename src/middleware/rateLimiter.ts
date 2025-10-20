@@ -1,9 +1,9 @@
-import rateLimit from 'express-rate-limit';
-import { Request, Response } from 'express';
+import rateLimit from "express-rate-limit";
+import { Request, Response } from "express";
 
 /**
  * Rate Limiting Configuration for Public API
- * 
+ *
  * Since all endpoints are public without authentication, rate limiting
  * is critical to prevent abuse and ensure fair usage.
  */
@@ -17,19 +17,20 @@ export const apiLimiter = rateLimit({
   max: 100, // Limit each IP to 100 requests per windowMs
   message: {
     success: false,
-    error: 'Too many requests from this IP, please try again later.',
-    retryAfter: '15 minutes'
+    error: "Too many requests from this IP, please try again later.",
+    retryAfter: "15 minutes",
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   handler: (req: Request, res: Response) => {
     res.status(429).json({
       success: false,
-      error: 'Rate limit exceeded',
-      message: 'Too many requests from this IP address. Please try again later.',
-      retryAfter: (req as any).rateLimit?.resetTime || 'in 15 minutes'
+      error: "Rate limit exceeded",
+      message:
+        "Too many requests from this IP address. Please try again later.",
+      retryAfter: (req as any).rateLimit?.resetTime || "in 15 minutes",
     });
-  }
+  },
 });
 
 /**
@@ -41,20 +42,21 @@ export const writeOperationLimiter = rateLimit({
   max: 30, // Limit each IP to 30 write requests per windowMs
   message: {
     success: false,
-    error: 'Too many write operations from this IP, please try again later.',
-    retryAfter: '15 minutes'
+    error: "Too many write operations from this IP, please try again later.",
+    retryAfter: "15 minutes",
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req: Request) => req.method === 'GET' || req.method === 'HEAD', // Only apply to write operations
+  skip: (req: Request) => req.method === "GET" || req.method === "HEAD", // Only apply to write operations
   handler: (req: Request, res: Response) => {
     res.status(429).json({
       success: false,
-      error: 'Write operation rate limit exceeded',
-      message: 'Too many write operations from this IP address. Please try again later.',
-      retryAfter: (req as any).rateLimit?.resetTime || 'in 15 minutes'
+      error: "Write operation rate limit exceeded",
+      message:
+        "Too many write operations from this IP address. Please try again later.",
+      retryAfter: (req as any).rateLimit?.resetTime || "in 15 minutes",
     });
-  }
+  },
 });
 
 /**
@@ -66,19 +68,20 @@ export const uploadLimiter = rateLimit({
   max: 10, // Limit each IP to 10 uploads per windowMs
   message: {
     success: false,
-    error: 'Too many file uploads from this IP, please try again later.',
-    retryAfter: '15 minutes'
+    error: "Too many file uploads from this IP, please try again later.",
+    retryAfter: "15 minutes",
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req: Request, res: Response) => {
     res.status(429).json({
       success: false,
-      error: 'Upload rate limit exceeded',
-      message: 'Too many file uploads from this IP address. Please try again later.',
-      retryAfter: (req as any).rateLimit?.resetTime || 'in 15 minutes'
+      error: "Upload rate limit exceeded",
+      message:
+        "Too many file uploads from this IP address. Please try again later.",
+      retryAfter: (req as any).rateLimit?.resetTime || "in 15 minutes",
     });
-  }
+  },
 });
 
 /**
@@ -90,19 +93,19 @@ export const messagingLimiter = rateLimit({
   max: 200, // Limit each IP to 200 messages per windowMs
   message: {
     success: false,
-    error: 'Too many messages sent from this IP, please try again later.',
-    retryAfter: '15 minutes'
+    error: "Too many messages sent from this IP, please try again later.",
+    retryAfter: "15 minutes",
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req: Request, res: Response) => {
     res.status(429).json({
       success: false,
-      error: 'Messaging rate limit exceeded',
-      message: 'Too many messages sent from this IP address. Please slow down.',
-      retryAfter: (req as any).rateLimit?.resetTime || 'in 15 minutes'
+      error: "Messaging rate limit exceeded",
+      message: "Too many messages sent from this IP address. Please slow down.",
+      retryAfter: (req as any).rateLimit?.resetTime || "in 15 minutes",
     });
-  }
+  },
 });
 
 /**
@@ -114,17 +117,18 @@ export const adminLimiter = rateLimit({
   max: 20, // Limit each IP to 20 admin requests per windowMs
   message: {
     success: false,
-    error: 'Too many admin requests from this IP, please try again later.',
-    retryAfter: '15 minutes'
+    error: "Too many admin requests from this IP, please try again later.",
+    retryAfter: "15 minutes",
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req: Request, res: Response) => {
     res.status(429).json({
       success: false,
-      error: 'Admin rate limit exceeded',
-      message: 'Too many admin operations from this IP address. Please try again later.',
-      retryAfter: (req as any).rateLimit?.resetTime || 'in 15 minutes'
+      error: "Admin rate limit exceeded",
+      message:
+        "Too many admin operations from this IP address. Please try again later.",
+      retryAfter: (req as any).rateLimit?.resetTime || "in 15 minutes",
     });
-  }
+  },
 });

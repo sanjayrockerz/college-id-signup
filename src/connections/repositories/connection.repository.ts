@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { getPrismaClient } from '../../config/database';
+import { Injectable } from "@nestjs/common";
+import { getPrismaClient } from "../../config/database";
 
 @Injectable()
 export class ConnectionRepository {
@@ -11,10 +11,10 @@ export class ConnectionRepository {
   async create(requesterId: string, receiverId: string) {
     // TODO: Implement after Prisma setup
     return {
-      id: 'temp-id',
+      id: "temp-id",
       requesterId,
       receiverId,
-      status: 'PENDING',
+      status: "PENDING",
       isCloseFriend: false,
       createdAt: new Date(),
     };

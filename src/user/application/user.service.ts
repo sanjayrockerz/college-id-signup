@@ -1,5 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { UserRepository, UpdateUserDto, UserResponseDto } from '../data/user.repository';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import {
+  UserRepository,
+  UpdateUserDto,
+  UserResponseDto,
+} from "../data/user.repository";
 
 @Injectable()
 export class UserService {
@@ -8,7 +16,7 @@ export class UserService {
   async getUserById(id: string): Promise<UserResponseDto | null> {
     const user = await this.userRepository.findById(id);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     return this.mapToResponseDto(user);
@@ -24,10 +32,13 @@ export class UserService {
     return user ? this.mapToResponseDto(user) : null;
   }
 
-  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
+  async updateUser(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
     const existingUser = await this.userRepository.findById(id);
     if (!existingUser) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     const updatedUser = await this.userRepository.update(id, updateUserDto);
@@ -37,13 +48,13 @@ export class UserService {
   async checkAnonymousPostLimit(userId: string): Promise<boolean> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Check if it's a new day and reset count if needed
     const today = new Date();
     const lastPostDate = user.lastAnonymousPostDate;
-    
+
     if (!lastPostDate || this.isDifferentDay(today, lastPostDate)) {
       await this.userRepository.resetAnonymousPostCount(userId);
       return true; // Can post
@@ -59,13 +70,13 @@ export class UserService {
   async checkWeeklyPushLimit(userId: string): Promise<boolean> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Check if it's a new week and reset count if needed
     const today = new Date();
     const lastResetDate = user.lastWeeklyReset;
-    
+
     if (this.isNewWeek(today, lastResetDate)) {
       await this.userRepository.resetWeeklyPushCount(userId);
       return true; // Can push
@@ -109,12 +120,15 @@ export class UserService {
     return currentDate.getTime() - lastResetDate.getTime() > weekInMs;
   }
 
-  async verifyCollege(userId: string, collegeData: {
-    verifiedCollegeId: string;
-    collegeName: string;
-    studentIdNumber: string;
-    graduationYear: number;
-  }): Promise<UserResponseDto> {
+  async verifyCollege(
+    userId: string,
+    collegeData: {
+      verifiedCollegeId: string;
+      collegeName: string;
+      studentIdNumber: string;
+      graduationYear: number;
+    },
+  ): Promise<UserResponseDto> {
     const updateData = {
       ...collegeData,
       isVerified: true,

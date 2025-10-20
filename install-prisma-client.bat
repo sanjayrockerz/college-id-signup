@@ -1,4 +1,4 @@
 @echo off
-cd "c:\Users\motis\Downloads\colle\chat-service"
+cd "c:\Users\motis\Downloads\colle\college-id-signup"
 npm install @prisma/client
 pause

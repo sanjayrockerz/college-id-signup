@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { getPrismaClient } from '../../config/database';
+import { Injectable } from "@nestjs/common";
+import { getPrismaClient } from "../../config/database";
 
 @Injectable()
 export class FeedRepository {
@@ -8,7 +8,11 @@ export class FeedRepository {
     return getPrismaClient();
   }
 
-  async getConnectionsPosts(userId: string, limit: number = 10, cursor?: string) {
+  async getConnectionsPosts(
+    userId: string,
+    limit: number = 10,
+    cursor?: string,
+  ) {
     // TODO: Implement after Prisma setup
     return [];
   }

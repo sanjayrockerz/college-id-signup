@@ -2,7 +2,7 @@ export interface CreatePostDto {
   content: string;
   imageUrls?: string[];
   isAnonymous?: boolean;
-  visibility?: 'PUBLIC' | 'CONNECTIONS_ONLY' | 'CLOSE_FRIENDS_ONLY' | 'PRIVATE';
+  visibility?: "PUBLIC" | "CONNECTIONS_ONLY" | "CLOSE_FRIENDS_ONLY" | "PRIVATE";
   allowComments?: boolean;
   allowSharing?: boolean;
 }

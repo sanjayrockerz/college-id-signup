@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { getPrismaClient } from '../../config/database';
-import { CreatePostDto, UpdatePostDto } from '../dtos/post.dto';
+import { Injectable } from "@nestjs/common";
+import { getPrismaClient } from "../../config/database";
+import { CreatePostDto, UpdatePostDto } from "../dtos/post.dto";
 // import { Prisma } from '@prisma/client';
-import { Prisma } from '../../infra/prisma/mock-prisma-client';
+import { Prisma } from "../../infra/prisma/mock-prisma-client";
 
 @Injectable()
 export class PostRepository {
@@ -32,7 +32,7 @@ export class PostRepository {
             interactions: {
               where: {
                 type: {
-                  in: ['LIKE', 'LOVE', 'LAUGH', 'WOW', 'SAD', 'ANGRY'],
+                  in: ["LIKE", "LOVE", "LAUGH", "WOW", "SAD", "ANGRY"],
                 },
               },
             },
@@ -64,7 +64,7 @@ export class PostRepository {
             interactions: {
               where: {
                 type: {
-                  in: ['LIKE', 'LOVE', 'LAUGH', 'WOW', 'SAD', 'ANGRY'],
+                  in: ["LIKE", "LOVE", "LAUGH", "WOW", "SAD", "ANGRY"],
                 },
               },
             },
@@ -82,7 +82,7 @@ export class PostRepository {
     filters?: {
       visibility?: string[];
       authorIds?: string[];
-    }
+    },
   ): Promise<{
     posts: any[];
     hasMore: boolean;
@@ -120,7 +120,7 @@ export class PostRepository {
             interactions: {
               where: {
                 type: {
-                  in: ['LIKE', 'LOVE', 'LAUGH', 'WOW', 'SAD', 'ANGRY'],
+                  in: ["LIKE", "LOVE", "LAUGH", "WOW", "SAD", "ANGRY"],
                 },
               },
             },
@@ -128,14 +128,14 @@ export class PostRepository {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit + 1,
     });
 
     const hasMore = posts.length > limit;
     const postsToReturn = hasMore ? posts.slice(0, -1) : posts;
-    const nextCursor = hasMore 
-      ? postsToReturn[postsToReturn.length - 1].createdAt.toISOString() 
+    const nextCursor = hasMore
+      ? postsToReturn[postsToReturn.length - 1].createdAt.toISOString()
       : null;
 
     return {
@@ -200,8 +200,8 @@ export class PostRepository {
     const connections = await this.db.connection.findMany({
       where: {
         OR: [
-          { requesterId: userId, status: 'ACCEPTED' },
-          { addresseeId: userId, status: 'ACCEPTED' },
+          { requesterId: userId, status: "ACCEPTED" },
+          { addresseeId: userId, status: "ACCEPTED" },
         ],
       },
       select: {
@@ -211,7 +211,7 @@ export class PostRepository {
     });
 
     return connections.map((conn) =>
-      conn.requesterId === userId ? conn.addresseeId : conn.requesterId
+      conn.requesterId === userId ? conn.addresseeId : conn.requesterId,
     );
   }
 
@@ -219,15 +219,15 @@ export class PostRepository {
     const closeFriends = await this.db.connection.findMany({
       where: {
         OR: [
-          { 
-            requesterId: userId, 
-            status: 'ACCEPTED',
-            type: 'CLOSE_FRIEND'
+          {
+            requesterId: userId,
+            status: "ACCEPTED",
+            type: "CLOSE_FRIEND",
           },
-          { 
-            addresseeId: userId, 
-            status: 'ACCEPTED',
-            type: 'CLOSE_FRIEND'
+          {
+            addresseeId: userId,
+            status: "ACCEPTED",
+            type: "CLOSE_FRIEND",
           },
         ],
       },
@@ -238,7 +238,7 @@ export class PostRepository {
     });
 
     return closeFriends.map((conn) =>
-      conn.requesterId === userId ? conn.addresseeId : conn.requesterId
+      conn.requesterId === userId ? conn.addresseeId : conn.requesterId,
     );
   }
 }
