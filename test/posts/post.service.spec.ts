@@ -91,4 +91,4 @@ describe('PostService', () => {
 */
 
 // Placeholder test export to prevent TypeScript errors
-export const postServiceTests = 'Tests commented out - run npm install first';
+export const postServiceTests = "Tests commented out - run npm install first";

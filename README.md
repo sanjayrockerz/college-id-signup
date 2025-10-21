@@ -12,6 +12,72 @@
 
 > 🎉 **v2.0.0 Released**: See [RELEASE_NOTES_v2.0.0.md](RELEASE_NOTES_v2.0.0.md) for breaking changes, migration guide, and new features.
 
+> ⚡ **Architecture Update (2025-10-20)**: Migrated from dual-server (Express + NestJS) to **single NestJS architecture**. All Express routes have been migrated. See [docs/migration/EXPRESS_TO_NESTJS.md](docs/migration/EXPRESS_TO_NESTJS.md) for details.
+
+---
+
+## 🏛️ Governance & Operations (NEW)
+
+**Production-Ready Transformation** (2025-10-20): Comprehensive governance framework established to transform this repository into a production-grade chat transport service. All technical decisions, operational procedures, and quality standards are now documented.
+
+### 📋 Governance Documentation
+
+**Policy & Control**:
+- 📐 [**ADR-001: Scope Boundary**](docs/governance/ADR-001-SCOPE-BOUNDARY.md) - Defines in-scope (chat transport/persistence) vs. out-of-scope (auth, college domain, frontend)
+- 👥 [**Ownership Matrix**](docs/governance/OWNERSHIP-MATRIX.md) - RACI model with Directly Responsible Individuals for all components
+- 🔄 [**Change Control**](docs/governance/CHANGE-CONTROL.md) - 4-tier approval process for deployments and schema changes
+- 🔒 [**Threat Model**](docs/governance/THREAT-MODEL.md) - STRIDE analysis, attack surface mapping, compensating controls for no-auth architecture
+- 🗄️ [**Data Retention**](docs/governance/DATA-RETENTION.md) - GDPR/CCPA compliance, data lifecycle, automated cleanup procedures
+- 🚨 [**Incident Response**](docs/governance/INCIDENT-RESPONSE.md) - Runbooks for error spikes, connection storms, database saturation, cascading failures
+
+### 📊 Observability & Monitoring
+
+**Operational Excellence**:
+- 📈 [**Logging, Metrics, Tracing**](docs/observability/LOGGING-METRICS-TRACING.md) - Winston/Pino structured logging, Prometheus metrics, OpenTelemetry tracing, CloudWatch integration
+- 🔔 [**Alerting Strategy**](docs/observability/ALERTING-STRATEGY.md) - SLO-based alerts, PagerDuty integration, on-call rotation, error budget monitoring
+
+### 🔧 CI/CD & Quality
+
+**Automated Quality Gates**:
+- ⚙️ [**Pipeline Specification**](docs/ci-cd/PIPELINE-SPECIFICATION.md) - Branch protection, TypeScript strict mode, ESLint zero-tolerance, 75% coverage requirement, security scanning (Snyk/Trivy/CodeQL), artifact signing, blue/green deployment, automated rollback
+
+### 📏 Baseline Metrics
+
+**Current System State**:
+- 📊 [**Baseline Metrics Report**](docs/baselines/BASELINE-METRICS.md) - Captured 2025-10-20: File counts, build performance (1.26s), artifact size (1.3MB), test coverage gaps, security vulnerabilities (9), technical debt markers (20+ TODOs), scope compliance analysis
+
+**Key Findings**:
+- ✅ **Build**: Fast and successful (1.26 seconds, 1.3 MB artifact)
+- ✅ **Linting**: Clean (ESLint passes)
+- ⚠️ **Security**: 9 npm vulnerabilities (7 moderate, 2 high) - fix in progress
+- ⚠️ **Test Coverage**: Minimal (44 tests skipped, 1 passed) - comprehensive suite planned
+- ⚠️ **Scope Compliance**: 40% in-scope, 60% out-of-scope code - cleanup in next iteration
+
+### 🎯 Transformation Roadmap
+
+**Iteration 4** (Scope Enforcement):
+- Remove auth module (relocate to API gateway)
+- Remove college domain code (idcard, connections, interactions)
+- Remove social features (feed, posts)
+- Implement banned import detection
+- **Target**: Reduce from 88 files → ~40 files
+
+**Iteration 5** (Quality Infrastructure):
+- Implement structured logging (Winston/Pino)
+- Add Prometheus metrics endpoint
+- Configure OpenTelemetry tracing
+- Write comprehensive test suite (>75% coverage)
+- Fix all security vulnerabilities
+- Set up CI/CD pipeline (GitHub Actions)
+
+**Iteration 6** (Production Hardening):
+- Deploy to staging environment
+- Run load tests (capture performance baselines)
+- Configure PagerDuty integration
+- Set up Grafana dashboards
+- Test incident response runbooks
+- Production deployment with monitoring
+
 ---
 
 ## Scope and Trust Model
@@ -72,13 +138,17 @@ Rate limit headers are included in responses:
 ## Tech Stack
 
 - **Runtime**: Node.js
-- **Frameworks**: NestJS + Express (hybrid architecture)
+- **Framework**: NestJS (TypeScript)
 - **Database**: PostgreSQL with Prisma ORM
 - **Real-time**: Socket.IO
 - **Storage**: AWS S3
 - **API**: REST + WebSocket
+- **Testing**: Jest
+- **Validation**: class-validator + class-transformer
 
 ## Getting Started
+
+> 🚀 **New to this project?** Check out the [Quick Start Guide](docs/setup/QUICK_START.md) to get running in under 5 minutes!
 
 ### Prerequisites
 
@@ -106,8 +176,9 @@ cp .env.example .env
 
 Edit `.env` with your configuration:
 ```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/college_db
+# Prisma / Database
+PRISMA_CLIENT_MODE=auto
+DATABASE_URL=postgresql://postgres:password@localhost:5432/chat_backend_db?schema=public
 
 # Server
 PORT=3001
@@ -120,15 +191,21 @@ AWS_SECRET_ACCESS_KEY=your-secret
 AWS_S3_BUCKET=your-bucket
 
 # Frontend
-FRONTEND_URL=http://localhost:3000
 CORS_ORIGIN=http://localhost:3000
+FRONTEND_URL=http://localhost:3000
+CLIENT_URL=http://localhost:3000
 ```
+
+> 💡 **No Postgres locally?** Set `PRISMA_CLIENT_MODE=mock` to run the API and tests without a database. Switch to `database` once PostgreSQL is provisioned to avoid silent fallbacks.
 
 4. Run database migrations:
 ```bash
+# Only needed for database mode (PRISMA_CLIENT_MODE=database)
 npm run prisma:generate
 npm run prisma:migrate
 ```
+
+> 💡 **Using mock mode?** Skip this step. Mock mode doesn't require migrations or a database connection.
 
 5. (Optional) Seed the database:
 ```bash
@@ -139,14 +216,7 @@ npm run prisma:seed
 
 **Development mode:**
 ```bash
-# Express server
-npm run start:express:dev
-
-# NestJS server
 npm run start:dev
-
-# Simple server (fastest startup)
-npm run serve:quick
 ```
 
 **Production mode:**
@@ -201,7 +271,12 @@ college-id-signup-1/
 
 ## API Documentation
 
-See [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for detailed endpoint documentation.
+Interactive API docs are served in-app:
+
+- UI: http://localhost:3001/docs
+- Spec: http://localhost:3001/docs/openapi.yaml (also at docs/contracts/openapi.yaml)
+
+For additional narrative docs, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).
 
 ### Quick API Examples
 

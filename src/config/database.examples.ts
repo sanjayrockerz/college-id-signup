@@ -4,7 +4,12 @@
  */
 
 // Import the singleton client
-import { prisma, connectDatabase, disconnectDatabase, executeTransaction } from '../config/database';
+import {
+  prisma,
+  connectDatabase,
+  disconnectDatabase,
+  executeTransaction,
+} from "../config/database";
 
 /**
  * Example 1: Basic usage with the singleton
@@ -18,7 +23,7 @@ export async function getUserExample(userId: string) {
       connections: true,
     },
   });
-  
+
   return user;
 }
 
@@ -42,7 +47,7 @@ export async function createUserWithProfileExample(userData: any) {
       data: {
         content: `Welcome ${userData.firstName}! 👋`,
         authorId: user.id,
-        visibility: 'PUBLIC',
+        visibility: "PUBLIC",
       },
     });
 
@@ -53,11 +58,14 @@ export async function createUserWithProfileExample(userData: any) {
 /**
  * Example 3: Chat-related operations
  */
-export async function getOrCreateDirectConversation(userId1: string, userId2: string) {
+export async function getOrCreateDirectConversation(
+  userId1: string,
+  userId2: string,
+) {
   // Check if conversation already exists
   let conversation = await prisma.conversation.findFirst({
     where: {
-      type: 'DIRECT_MESSAGE',
+      type: "DIRECT_MESSAGE",
       AND: [
         {
           conversationUsers: {
@@ -85,12 +93,12 @@ export async function getOrCreateDirectConversation(userId1: string, userId2: st
     conversation = await executeTransaction(async (tx) => {
       const newConversation = await tx.conversation.create({
         data: {
-          type: 'DIRECT_MESSAGE',
+          type: "DIRECT_MESSAGE",
           creatorId: userId1,
           conversationUsers: {
             create: [
-              { userId: userId1, role: 'MEMBER' },
-              { userId: userId2, role: 'MEMBER' },
+              { userId: userId1, role: "MEMBER" },
+              { userId: userId2, role: "MEMBER" },
             ],
           },
         },
@@ -112,7 +120,11 @@ export async function getOrCreateDirectConversation(userId1: string, userId2: st
 /**
  * Example 4: Sending a message in a conversation
  */
-export async function sendMessage(senderId: string, conversationId: string, content: string) {
+export async function sendMessage(
+  senderId: string,
+  conversationId: string,
+  content: string,
+) {
   return await executeTransaction(async (tx) => {
     // Create the message
     const message = await tx.message.create({
@@ -120,7 +132,7 @@ export async function sendMessage(senderId: string, conversationId: string, cont
         content,
         senderId,
         conversationId,
-        type: 'TEXT',
+        type: "TEXT",
       },
       include: {
         sender: {
@@ -156,7 +168,7 @@ export async function initializeApplication() {
   try {
     // Connect to database
     await connectDatabase();
-    console.log('✅ Application database initialized');
+    console.log("✅ Application database initialized");
 
     // Run any migrations or setup tasks here
     // await runMigrations();
@@ -164,7 +176,7 @@ export async function initializeApplication() {
 
     return true;
   } catch (error) {
-    console.error('❌ Failed to initialize application:', error);
+    console.error("❌ Failed to initialize application:", error);
     throw error;
   }
 }
@@ -175,13 +187,13 @@ export async function initializeApplication() {
 export async function shutdownApplication() {
   try {
     // Perform cleanup tasks
-    console.log('🔄 Shutting down application...');
-    
+    console.log("🔄 Shutting down application...");
+
     // Disconnect from database
     await disconnectDatabase();
-    console.log('✅ Application shutdown complete');
+    console.log("✅ Application shutdown complete");
   } catch (error) {
-    console.error('❌ Error during shutdown:', error);
+    console.error("❌ Error during shutdown:", error);
     throw error;
   }
 }
@@ -196,16 +208,16 @@ export async function healthCheckEndpoint() {
     const latency = Date.now() - start;
 
     return {
-      status: 'healthy',
-      database: 'connected',
+      status: "healthy",
+      database: "connected",
       latency: `${latency}ms`,
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
     return {
-      status: 'unhealthy',
-      database: 'disconnected',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      status: "unhealthy",
+      database: "disconnected",
+      error: error instanceof Error ? error.message : "Unknown error",
       timestamp: new Date().toISOString(),
     };
   }
@@ -226,7 +238,7 @@ export async function getUserFeedExample(userId: string, limit = 20) {
             sentConnections: {
               some: {
                 receiverId: userId,
-                status: 'ACCEPTED',
+                status: "ACCEPTED",
               },
             },
           },
@@ -236,14 +248,14 @@ export async function getUserFeedExample(userId: string, limit = 20) {
             receivedConnections: {
               some: {
                 requesterId: userId,
-                status: 'ACCEPTED',
+                status: "ACCEPTED",
               },
             },
           },
         },
       ],
       visibility: {
-        in: ['PUBLIC', 'CONNECTIONS_ONLY'],
+        in: ["PUBLIC", "CONNECTIONS_ONLY"],
       },
     },
     include: {
@@ -267,7 +279,7 @@ export async function getUserFeedExample(userId: string, limit = 20) {
         },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     take: limit,
   });
 }

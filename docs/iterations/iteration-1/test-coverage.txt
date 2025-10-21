@@ -1,0 +1,84 @@
+
+> chat-backend@2.0.0 test:cov
+> jest --coverage
+
+PASS test/socket/handlers.spec.ts
+  ● Console
+
+    console.log
+      🔌 Socket socket-jxk91i5buss connected (userId: user-123)
+
+      at src/socket/handlers.js:2420:13
+          at Array.forEach (<anonymous>)
+
+    console.log
+      ✅ User user-123 joined 0 conversation rooms.
+
+      at src/socket/handlers.js:2466:19
+
+---------------------------------|---------|----------|---------|---------|---------------------------------------------------------------
+File                             | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                             
+---------------------------------|---------|----------|---------|---------|---------------------------------------------------------------
+All files                        |    2.01 |     1.35 |    1.07 |    2.08 |                                                               
+ src                             |       0 |        0 |       0 |       0 |                                                               
+  app.module.js                  |       0 |        0 |       0 |       0 |                                                               
+  main.js                        |       0 |        0 |       0 |       0 |                                                               
+ src/chat-backend/controllers    |       0 |        0 |       0 |       0 |                                                               
+  chat.controller.ts             |       0 |        0 |       0 |       0 | 1-356                                                         
+ src/chat-backend/repositories   |       0 |        0 |       0 |       0 |                                                               
+  chat.repository.ts             |       0 |        0 |       0 |       0 | 1-510                                                         
+ src/chat-backend/services       |       0 |        0 |       0 |       0 |                                                               
+  chat.service.new.ts            |       0 |        0 |       0 |       0 | 1-422                                                         
+  chat.service.ts                |       0 |        0 |       0 |       0 | 1-422                                                         
+ src/common/controllers          |       0 |        0 |       0 |       0 |                                                               
+  health.controller.ts           |       0 |        0 |       0 |       0 | 1-38                                                          
+ src/common/services             |       0 |        0 |       0 |       0 |                                                               
+  database-health.service.ts     |       0 |        0 |       0 |       0 | 1-159                                                         
+  mobile-optimization.service.ts |       0 |        0 |       0 |       0 | 1-581                                                         
+ src/config                      |       0 |        0 |       0 |       0 |                                                               
+  database.examples.ts           |       0 |        0 |       0 |       0 | 7-230                                                         
+  database.js                    |       0 |        0 |       0 |       0 | 1-211                                                         
+  database.ts                    |       0 |        0 |       0 |       0 | 4-361                                                         
+ src/infra/config                |       0 |        0 |       0 |       0 |                                                               
+  database.config.ts             |       0 |        0 |       0 |       0 | 1-58                                                          
+ src/infra/prisma                |       0 |        0 |       0 |       0 |                                                               
+  mock-prisma-client.ts          |       0 |        0 |       0 |       0 | 298-581                                                       
+  prisma.module.js               |       0 |        0 |       0 |       0 |                                                               
+  prisma.service.js              |       0 |        0 |       0 |       0 |                                                               
+  prisma.service.ts              |       0 |        0 |       0 |       0 | 1-211                                                         
+ src/infra/services              |       0 |        0 |       0 |       0 |                                                               
+  database-health.service.ts     |       0 |        0 |       0 |       0 | 1-92                                                          
+ src/middleware                  |       0 |        0 |       0 |       0 |                                                               
+  logging.ts                     |       0 |        0 |       0 |       0 | 2-283                                                         
+  rateLimiter.js                 |       0 |        0 |       0 |       0 | 1-131                                                         
+  rateLimiter.ts                 |       0 |        0 |       0 |       0 | 1-126                                                         
+  validation.ts                  |       0 |        0 |       0 |       0 | 16-473                                                        
+ src/routes                      |       0 |        0 |       0 |       0 |                                                               
+  chat.js                        |       0 |        0 |       0 |       0 | 1-450                                                         
+ src/socket                      |   37.03 |    13.84 |   30.76 |    37.5 |                                                               
+  handlers.js                    |   37.03 |    13.84 |   30.76 |    37.5 | 22,28-35,43-50,68-69,75-76,90-151,156-160,168-172,180-207,212 
+ src/user                        |       0 |        0 |       0 |       0 |                                                               
+  user.module.js                 |       0 |        0 |       0 |       0 |                                                               
+ src/user/application            |       0 |        0 |       0 |       0 |                                                               
+  user.controller.js             |       0 |        0 |       0 |       0 |                                                               
+  user.controller.ts             |       0 |        0 |       0 |       0 | 1-69                                                          
+  user.service.js                |       0 |        0 |       0 |       0 |                                                               
+  user.service.ts                |       0 |        0 |       0 |       0 | 1-137                                                         
+ src/user/data                   |       0 |      100 |       0 |       0 |                                                               
+  user.repository.js             |       0 |        0 |       0 |       0 |                                                               
+  user.repository.ts             |       0 |      100 |       0 |       0 | 1-75                                                          
+ src/user/dtos                   |       0 |        0 |       0 |       0 |                                                               
+  create-user.dto.js             |       0 |        0 |       0 |       0 |                                                               
+ src/utils                       |       0 |      100 |       0 |       0 |                                                               
+  example-usage.js               |       0 |      100 |       0 |       0 | 3-72                                                          
+---------------------------------|---------|----------|---------|---------|---------------------------------------------------------------
+Jest: "global" coverage threshold for statements (60%) not met: 2.01%
+Jest: "global" coverage threshold for branches (50%) not met: 1.35%
+Jest: "global" coverage threshold for lines (60%) not met: 2.08%
+Jest: "global" coverage threshold for functions (50%) not met: 1.07%
+
+Test Suites: 2 skipped, 1 passed, 1 of 3 total
+Tests:       44 skipped, 1 passed, 45 total
+Snapshots:   0 total
+Time:        3.827 s
+Ran all test suites.

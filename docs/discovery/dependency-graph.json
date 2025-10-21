@@ -1,0 +1,325 @@
+{
+  "generatedAt": "2025-10-20T20:00:00Z",
+  "repository": "college-id-signup-1",
+  "analysis": {
+    "circularDependencies": [],
+    "totalModules": 85,
+    "totalDependencies": 142,
+    "maxDepth": 4,
+    "criticalFindings": {
+      "outOfScopeModulesImportedByInScope": [
+        {
+          "outOfScopeModule": "idcard/idcard.module.ts",
+          "importedBy": "app.module.ts",
+          "severity": "blocker",
+          "impact": "Root application module depends on ID card verification - requires removal from app.module.ts imports",
+          "removalSteps": [
+            "Remove IdcardModule from app.module.ts imports array",
+            "Remove import statement for idcard.module.ts",
+            "Delete entire src/idcard/ directory (17 files)"
+          ]
+        },
+        {
+          "outOfScopeModule": "feed/feed.module.ts",
+          "importedBy": "app.module.ts",
+          "severity": "blocker",
+          "impact": "Root application module depends on social feed - requires removal from app.module.ts imports",
+          "removalSteps": [
+            "Remove FeedModule from app.module.ts imports array",
+            "Remove import statement for feed.module.ts",
+            "Delete entire src/feed/ directory (5 files)"
+          ]
+        },
+        {
+          "outOfScopeModule": "posts/post.module.ts",
+          "importedBy": ["app.module.ts", "feed/feed.module.ts"],
+          "severity": "blocker",
+          "impact": "Root module AND feed module depend on posts - must remove feed first, then posts",
+          "removalSteps": [
+            "Remove PostModule from app.module.ts imports array",
+            "Remove PostModule from feed.module.ts imports (will be deleted anyway)",
+            "Delete entire src/posts/ directory (7 files)"
+          ]
+        },
+        {
+          "outOfScopeModule": "connections/connection.module.ts",
+          "importedBy": "app.module.ts",
+          "severity": "blocker",
+          "impact": "Root application module depends on social connections",
+          "removalSteps": [
+            "Remove ConnectionModule from app.module.ts imports array",
+            "Delete entire src/connections/ directory (5 files)"
+          ]
+        },
+        {
+          "outOfScopeModule": "interactions/interaction.module.ts",
+          "importedBy": "app.module.ts",
+          "severity": "blocker",
+          "impact": "Root application module depends on social interactions (likes, comments)",
+          "removalSteps": [
+            "Remove InteractionModule from app.module.ts imports array",
+            "Delete entire src/interactions/ directory (5 files)"
+          ]
+        },
+        {
+          "outOfScopeModule": "upload/upload.module.ts",
+          "importedBy": ["app.module.ts", "idcard/idcard.module.ts"],
+          "severity": "blocker",
+          "impact": "Upload module used for OCR ID card verification - required by idcard module",
+          "removalSteps": [
+            "Remove UploadModule from app.module.ts imports array",
+            "Remove UploadModule from idcard.module.ts (will be deleted anyway)",
+            "Delete entire src/upload/ directory (3 files)"
+          ]
+        },
+        {
+          "outOfScopeModule": "user/user.module.ts",
+          "importedBy": "app.module.ts",
+          "severity": "major",
+          "impact": "User module likely contains college domain logic (verifiedCollegeId, collegeName) - needs refactoring to keep only chat-relevant fields",
+          "removalSteps": [
+            "Audit User entity in Prisma schema - remove college fields (verifiedCollegeId, collegeName, studentIdNumber, etc.)",
+            "Remove college-related methods from user.service.ts",
+            "Keep user.module.ts but strip out college logic",
+            "Update UserModule to minimal chat-only user management"
+          ]
+        }
+      ],
+      "orphanedFiles": [
+        {
+          "path": "src/app.module.js",
+          "imports": [],
+          "importedBy": [],
+          "severity": "minor",
+          "reason": "Legacy JavaScript file - superseded by app.module.ts"
+        },
+        {
+          "path": "src/idcard/idcard.module.js",
+          "imports": [],
+          "importedBy": [],
+          "severity": "minor",
+          "reason": "Legacy JavaScript file - superseded by idcard.module.ts (entire module to be deleted)"
+        },
+        {
+          "path": "src/idcard/idcard.controller.js",
+          "imports": [],
+          "importedBy": [],
+          "severity": "minor",
+          "reason": "Legacy JavaScript file - superseded by idcard.controller.ts"
+        },
+        {
+          "path": "src/idcard/idcard.repository.js",
+          "imports": [],
+          "importedBy": [],
+          "severity": "minor",
+          "reason": "Legacy JavaScript file"
+        },
+        {
+          "path": "src/idcard/idcard.service.js",
+          "imports": [],
+          "importedBy": [],
+          "severity": "minor",
+          "reason": "Legacy JavaScript file"
+        },
+        {
+          "path": "src/infra/prisma/prisma.module.js",
+          "imports": [],
+          "importedBy": [],
+          "severity": "minor",
+          "reason": "Legacy JavaScript file - superseded by prisma.module.ts"
+        },
+        {
+          "path": "src/infra/prisma/prisma.service.js",
+          "imports": [],
+          "importedBy": [],
+          "severity": "minor",
+          "reason": "Legacy JavaScript file"
+        },
+        {
+          "path": "src/main.js",
+          "imports": [],
+          "importedBy": [],
+          "severity": "minor",
+          "reason": "Legacy JavaScript entrypoint - superseded by main.ts"
+        }
+      ],
+      "sharedInfraUsedByOutOfScope": [
+        {
+          "infrastructure": "config/database.ts",
+          "usedBy": [
+            "chat-backend/repositories/chat.repository.ts (IN-SCOPE)",
+            "connections/repositories/connection.repository.ts (OUT-OF-SCOPE)",
+            "feed/repositories/feed.repository.ts (OUT-OF-SCOPE)",
+            "idcard/idcard.repository.ts (OUT-OF-SCOPE)",
+            "interactions/repositories/interaction.repository.ts (OUT-OF-SCOPE)",
+            "posts/repositories/post.repository.ts (OUT-OF-SCOPE)"
+          ],
+          "severity": "low",
+          "impact": "Database config shared by all modules - safe to keep, just remove out-of-scope consumers",
+          "action": "Keep config/database.ts - no changes needed"
+        },
+        {
+          "infrastructure": "infra/prisma/prisma.service.ts",
+          "usedBy": [
+            "common/services/database-health.service.ts (IN-SCOPE)",
+            "common/services/mobile-optimization.service.ts (PARTIALLY IN-SCOPE)",
+            "idcard/idcard.repository.ts (OUT-OF-SCOPE)"
+          ],
+          "severity": "low",
+          "impact": "Prisma service is core infrastructure - keep for chat functionality",
+          "action": "Keep infra/prisma/prisma.service.ts and prisma.module.ts"
+        },
+        {
+          "infrastructure": "common/services/mobile-optimization.service.ts",
+          "usedBy": [
+            "idcard/idcard.controller.ts (OUT-OF-SCOPE)"
+          ],
+          "severity": "minor",
+          "impact": "Mobile optimization service only used by out-of-scope ID card controller",
+          "action": "Evaluate if mobile optimization needed for chat - if not, can be removed"
+        }
+      ]
+    }
+  },
+  "moduleGraph": {
+    "inScope": {
+      "modules": [
+        "src/chat-backend/chat.module.ts",
+        "src/chat-backend/controllers/chat.controller.ts",
+        "src/chat-backend/repositories/chat.repository.ts",
+        "src/chat-backend/services/chat.service.ts",
+        "src/socket/ (handlers, SocketService)",
+        "src/common/common.module.ts",
+        "src/common/controllers/health.controller.ts",
+        "src/common/services/database-health.service.ts",
+        "src/infra/prisma/prisma.module.ts",
+        "src/infra/prisma/prisma.service.ts",
+        "src/config/database.ts",
+        "src/middleware/logging.ts",
+        "src/middleware/validation.ts",
+        "src/middleware/rateLimiter.ts",
+        "src/main.ts",
+        "src/app.module.ts (after cleanup)"
+      ],
+      "dependencies": {
+        "chat.module → chat.controller": true,
+        "chat.module → chat.service": true,
+        "chat.module → chat.repository": true,
+        "chat.controller → chat.service": true,
+        "chat.service → chat.repository": true,
+        "chat.repository → database.ts": true,
+        "app.module → chat.module": true,
+        "app.module → common.module": true,
+        "app.module → prisma.module": true,
+        "main.ts → app.module": true,
+        "common.module → health.controller": true,
+        "common.module → database-health.service": true,
+        "health.controller → database-health.service": true,
+        "database-health.service → prisma.service": true,
+        "prisma.service → database.ts": true
+      }
+    },
+    "outOfScope": {
+      "modules": [
+        "src/idcard/ (17 files - ENTIRE MODULE)",
+        "src/feed/ (5 files - ENTIRE MODULE)",
+        "src/posts/ (7 files - ENTIRE MODULE)",
+        "src/connections/ (5 files - ENTIRE MODULE)",
+        "src/interactions/ (5 files - ENTIRE MODULE)",
+        "src/upload/ (3 files - OCR for ID verification)",
+        "src/user/ (partial - needs college field removal)"
+      ],
+      "dangerousCoupling": [
+        {
+          "from": "app.module.ts",
+          "to": ["idcard.module", "feed.module", "posts.module", "connections.module", "interactions.module", "upload.module", "user.module"],
+          "severity": "blocker",
+          "mitigation": "Remove all out-of-scope module imports from app.module.ts imports array"
+        },
+        {
+          "from": "feed.module.ts",
+          "to": "posts.module.ts",
+          "severity": "blocker",
+          "mitigation": "Delete feed module entirely (out-of-scope)"
+        },
+        {
+          "from": "idcard.module.ts",
+          "to": ["upload.module", "common.module"],
+          "severity": "blocker",
+          "mitigation": "Delete idcard module entirely - upload module can be removed after"
+        }
+      ]
+    }
+  },
+  "removalOrder": [
+    {
+      "phase": 1,
+      "action": "Remove module imports from app.module.ts",
+      "targets": [
+        "IdcardModule",
+        "FeedModule",
+        "PostModule",
+        "ConnectionModule",
+        "InteractionModule",
+        "UploadModule"
+      ],
+      "rationale": "Break dependencies at root level first to prevent compilation errors"
+    },
+    {
+      "phase": 2,
+      "action": "Delete entire module directories",
+      "targets": [
+        "src/idcard/",
+        "src/feed/",
+        "src/posts/",
+        "src/connections/",
+        "src/interactions/",
+        "src/upload/"
+      ],
+      "rationale": "Remove out-of-scope feature modules completely"
+    },
+    {
+      "phase": 3,
+      "action": "Clean up Prisma schema",
+      "targets": [
+        "Remove CollegeVerification model",
+        "Remove college fields from User model (verifiedCollegeId, collegeName, studentIdNumber)",
+        "Remove Upload model",
+        "Remove Post, Connection, Interaction models if present"
+      ],
+      "rationale": "Remove database schema for deleted features"
+    },
+    {
+      "phase": 4,
+      "action": "Refactor User module",
+      "targets": [
+        "Remove college-related service methods",
+        "Keep only chat-relevant user data (id, username, createdAt)"
+      ],
+      "rationale": "Strip college domain logic while preserving user identity for chat"
+    },
+    {
+      "phase": 5,
+      "action": "Delete legacy JavaScript files",
+      "targets": [
+        "src/app.module.js",
+        "src/main.js",
+        "src/idcard/*.js",
+        "src/infra/prisma/*.js"
+      ],
+      "rationale": "Remove orphaned legacy files"
+    },
+    {
+      "phase": 6,
+      "action": "Delete frontend directory",
+      "targets": ["frontend/"],
+      "rationale": "Out-of-scope per governance specification"
+    }
+  ],
+  "riskAssessment": {
+    "low": "No circular dependencies found - clean architecture",
+    "medium": "Shared infrastructure (Prisma, database config) used by both in-scope and out-of-scope modules - ensure in-scope consumers remain functional",
+    "high": "Root app.module.ts imports 7 out-of-scope modules - must remove all imports carefully to avoid breaking build",
+    "critical": "User module contains college domain data mixed with chat identity - requires careful refactoring to preserve userId references in chat/socket code"
+  }
+}

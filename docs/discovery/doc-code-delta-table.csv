@@ -1,0 +1,91 @@
+id,category,documented_contract,actual_implementation,drift_type,severity,notes
+1,endpoint,Not documented,POST /api/v1/idcard/upload,undocumented,blocker,ID card upload endpoint exists in code but not in API_DOCUMENTATION.md - OUT OF SCOPE
+2,endpoint,Not documented,POST /api/v1/idcard/verify,undocumented,blocker,ID card verification endpoint exists in code but not in API_DOCUMENTATION.md - OUT OF SCOPE
+3,endpoint,Not documented,POST /api/v1/idcard/verify/:uploadId,undocumented,blocker,ID card verification by upload ID - OUT OF SCOPE
+4,endpoint,Not documented,GET /api/v1/idcard/history,undocumented,blocker,ID card verification history - OUT OF SCOPE
+5,endpoint,Not documented,GET /api/v1/idcard/verification/:id,undocumented,blocker,Get specific ID card verification - OUT OF SCOPE
+6,endpoint,Not documented,GET /api/v1/idcard/mobile/feed,undocumented,blocker,Mobile optimized ID card feed - OUT OF SCOPE
+7,endpoint,Not documented,GET /api/v1/feed,undocumented,blocker,Social feed endpoint - OUT OF SCOPE
+8,endpoint,Not documented,GET /api/v1/feed/connections,undocumented,blocker,Connection-based feed - OUT OF SCOPE
+9,endpoint,Not documented,GET /api/v1/feed/trending,undocumented,blocker,Trending posts feed - OUT OF SCOPE
+10,endpoint,Not documented,POST /api/v1/posts,undocumented,blocker,Create post endpoint - OUT OF SCOPE
+11,endpoint,Not documented,GET /api/v1/posts/:id,undocumented,blocker,Get single post - OUT OF SCOPE
+12,endpoint,Not documented,PUT /api/v1/posts/:id,undocumented,blocker,Update post - OUT OF SCOPE
+13,endpoint,Not documented,DELETE /api/v1/posts/:id,undocumented,blocker,Delete post - OUT OF SCOPE
+14,endpoint,Not documented,POST /api/v1/posts/:id/view,undocumented,blocker,Increment post view count - OUT OF SCOPE
+15,endpoint,Not documented,GET /api/v1/posts/user/:userId,undocumented,blocker,Get user's posts - OUT OF SCOPE
+16,endpoint,Not documented,POST /api/v1/upload/image,undocumented,blocker,Image upload endpoint (S3) - OUT OF SCOPE
+17,endpoint,Not documented,GET /api/v1/user/me,undocumented,major,Get current user profile - needs college field removal
+18,endpoint,Not documented,GET /api/v1/user/:id,undocumented,major,Get user by ID - needs college field removal
+19,endpoint,Not documented,GET /api/v1/user/username/:username,undocumented,major,Get user by username - needs college field removal
+20,endpoint,Not documented,PUT /api/v1/user/me,undocumented,major,Update user profile - needs college field removal
+21,endpoint,Not documented,PUT /api/v1/user/verify-college,undocumented,blocker,College verification endpoint - OUT OF SCOPE
+22,endpoint,Not documented,GET /api/v1/user/me/limits,undocumented,major,Get user rate limits - verify if college-related
+23,endpoint,Not documented,POST /api/v1/connections,undocumented,blocker,Create social connection - OUT OF SCOPE
+24,endpoint,Not documented,GET /api/v1/connections,undocumented,blocker,Get user connections - OUT OF SCOPE
+25,endpoint,Not documented,PUT /api/v1/connections/:id,undocumented,blocker,Update connection status - OUT OF SCOPE
+26,endpoint,Not documented,DELETE /api/v1/connections/:id,undocumented,blocker,Delete connection - OUT OF SCOPE
+27,endpoint,Not documented,POST /api/v1/connections/:id/close-friend,undocumented,blocker,Mark as close friend - OUT OF SCOPE
+28,endpoint,Not documented,GET /api/v1/connections/stats,undocumented,blocker,Connection statistics - OUT OF SCOPE
+29,endpoint,Not documented,POST /api/v1/interactions,undocumented,blocker,Create interaction (like/comment) - OUT OF SCOPE
+30,endpoint,Not documented,DELETE /api/v1/interactions/:postId/:type,undocumented,blocker,Remove interaction - OUT OF SCOPE
+31,endpoint,Not documented,GET /api/v1/interactions/post/:postId,undocumented,blocker,Get post interactions - OUT OF SCOPE
+32,endpoint,Not documented,GET /api/v1/interactions/user,undocumented,blocker,Get user interactions - OUT OF SCOPE
+33,endpoint,Not documented,POST /api/v1/interactions/coolness/:postId,undocumented,blocker,Coolness voting system - OUT OF SCOPE
+34,endpoint,Not documented,GET /api/v1/interactions/coolness/:postId,undocumented,blocker,Get coolness votes - OUT OF SCOPE
+35,endpoint,POST /api/v1/chat/conversations,POST /api/v1/chat/conversations,match,low,Documented and implemented correctly
+36,endpoint,GET /api/v1/chat/conversations,GET /api/v1/chat/conversations,match,low,Documented and implemented correctly
+37,endpoint,Not documented,GET /api/v1/chat/conversations/:conversationId,undocumented,minor,Get single conversation - should document
+38,endpoint,Not documented,POST /api/v1/chat/conversations/:conversationId/messages,undocumented,minor,Send message alternate route - should document or remove
+39,endpoint,Not documented,GET /api/v1/chat/conversations/:conversationId/messages,undocumented,minor,Get messages alternate route - should document or remove
+40,endpoint,Not documented,PUT /api/v1/chat/conversations/:conversationId/messages/read,undocumented,minor,Mark messages as read - should document
+41,endpoint,Not documented,GET /api/v1/chat/unread-count,undocumented,minor,Get unread message count - should document
+42,endpoint,Not documented,POST /api/v1/chat/direct-messages,undocumented,minor,Create direct message shortcut - should document or remove
+43,endpoint,Not documented,POST /api/v1/chat/conversations/:conversationId/participants,undocumented,minor,Add participant to conversation - should document
+44,endpoint,Not documented,GET /api/v1/chat/conversations/:conversationId/search,undocumented,minor,Search within conversation - should document
+45,endpoint,Not documented,GET /api/v1/chat/conversations/:conversationId/stats,undocumented,minor,Conversation statistics - should document
+46,endpoint,Not documented,GET /api/v1/chat/health,undocumented,minor,Chat service health check - should document
+47,endpoint,GET /health,GET /health,match,low,Documented and implemented correctly
+48,endpoint,GET /health/database,GET /health/database,match,low,Documented and implemented correctly
+49,socket_event,Not documented,connect,undocumented,major,Socket.IO connection event not documented
+50,socket_event,Not documented,join_conversation,undocumented,major,Join conversation event not documented
+51,socket_event,Not documented,send_message,undocumented,major,Real-time message send not documented
+52,socket_event,Not documented,typing_indicator,undocumented,major,Typing indicator event not documented
+53,socket_event,Not documented,mark_as_read,undocumented,major,Mark as read via Socket.IO not documented
+54,socket_event,Not documented,leave_conversation,undocumented,major,Leave conversation event not documented
+55,socket_event,Not documented,disconnect,undocumented,major,Disconnect handling not documented
+56,socket_event,Not documented,new_message (broadcast),undocumented,major,New message broadcast not documented
+57,socket_event,Not documented,user_typing (broadcast),undocumented,major,User typing broadcast not documented
+58,socket_event,Not documented,message_read (broadcast),undocumented,major,Message read broadcast not documented
+59,env_var,DATABASE_URL documented,DATABASE_URL implemented,match,low,Correctly documented and used
+60,env_var,PORT documented,PORT implemented,match,low,Correctly documented and used
+61,env_var,NODE_ENV documented,NODE_ENV implemented,match,low,Correctly documented and used
+62,env_var,CORS_ORIGIN documented,Not used in code,missing_implementation,major,Documented but not referenced - hardcoded or unused
+63,env_var,FRONTEND_URL documented,Not used in code,missing_implementation,major,Documented but not referenced
+64,env_var,CLIENT_URL documented,Not used in code,missing_implementation,minor,Duplicate variable - consolidation needed
+65,env_var,AWS_REGION documented,Not used in code,out_of_scope,blocker,S3 configuration for ID card upload - OUT OF SCOPE
+66,env_var,AWS_ACCESS_KEY_ID documented,Not used in code,out_of_scope,blocker,S3 credentials - OUT OF SCOPE
+67,env_var,AWS_SECRET_ACCESS_KEY documented,Not used in code,out_of_scope,blocker,S3 credentials - OUT OF SCOPE
+68,env_var,S3_BUCKET_NAME documented,Not used in code,out_of_scope,blocker,S3 bucket for ID cards - OUT OF SCOPE
+69,env_var,REDIS_URL documented,Not used in code,missing_implementation,major,Redis for Socket.IO scaling - planned but not implemented
+70,env_var,Not documented,DB_HOST,undocumented,minor,Database host env var not documented in .env.example
+71,env_var,Not documented,DB_PORT,undocumented,minor,Database port env var not documented
+72,env_var,Not documented,DB_NAME,undocumented,minor,Database name env var not documented
+73,env_var,Not documented,DB_USERNAME,undocumented,minor,Database username env var not documented
+74,env_var,Not documented,DB_PASSWORD,undocumented,minor,Database password env var not documented
+75,env_var,Not documented,DB_SSL,undocumented,minor,Database SSL env var not documented
+76,env_var,Not documented,DB_CONNECTION_TIMEOUT,undocumented,minor,Database timeout env var not documented
+77,env_var,Not documented,SSL_CERT_PATH,undocumented,minor,SSL certificate path env var not documented
+78,env_var,Not documented,SSL_KEY_PATH,undocumented,minor,SSL key path env var not documented
+79,schema,Message model documented,Message model implemented,assumed_match,low,Needs manual verification - Prisma schema not fully audited
+80,schema,Conversation model documented,Conversation model implemented,assumed_match,low,Needs manual verification
+81,schema,User model documented,User has college fields (verifiedCollegeId collegeName studentIdNumber),drift,blocker,User model contains college-domain fields not in chat scope
+82,schema,Not documented,CollegeVerification model,undocumented,blocker,College verification model exists - OUT OF SCOPE
+83,schema,Not documented,Upload model,undocumented,blocker,Upload model for S3 images - OUT OF SCOPE
+84,schema,Not documented,Post model,undocumented,blocker,Post model for social features - OUT OF SCOPE
+85,schema,Not documented,Connection model,undocumented,blocker,Connection model for social graph - OUT OF SCOPE
+86,schema,Not documented,Interaction model,undocumented,blocker,Interaction model for likes/comments - OUT OF SCOPE
+87,rate_limit,Read operations: 60 req/15min documented,Implementation unknown,missing_verification,major,Rate limit config exists in code but limits not verified
+88,rate_limit,Write operations: 30 req/15min documented,Implementation unknown,missing_verification,major,Rate limit config exists in code but limits not verified
+89,validation,Message content max 10000 chars documented,Implementation unknown,missing_verification,major,Validation middleware exists but max size not verified
+90,validation,Conversation name max 100 chars documented,Implementation unknown,missing_verification,major,Validation not verified in tests

@@ -38,7 +38,7 @@ export interface MobilePostDto {
 export interface MobileConnectionDto {
   id: string;
   user: MobileUserDto;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'BLOCKED';
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "BLOCKED";
   isCloseFriend: boolean;
   mutualFriends?: number; // Pre-calculated
 }

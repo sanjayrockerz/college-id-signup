@@ -1,0 +1,25 @@
+Excerpt from prisma/schema.prisma showing residual college verification fields:
+
+model User {
+  id              String  @id @default(cuid())
+  email           String  @unique
+  username        String  @unique
+  firstName       String?
+  lastName        String?
+  bio             String?
+  profileImageUrl String?
+  isActive        Boolean @default(true)
+
+  // College verification
+  verifiedCollegeId String?
+  collegeName       String?
+  studentIdNumber   String?
+  graduationYear    Int?
+
+  // Social features (still present)
+  anonymousPostsToday   Int       @default(0)
+  weeklyPushesUsed      Int       @default(0)
+  lastAnonymousPostDate DateTime?
+  lastWeeklyReset       DateTime  @default(now())
+  ...
+}

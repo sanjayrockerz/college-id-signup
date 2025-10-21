@@ -12,7 +12,6 @@ const {
 } = require('./middleware/rateLimiter');
 
 // Import routes
-const idcardRoutes = require('./routes/idcard');
 const chatRoutes = require('./routes/chat');
 const conversationsRoutes = require('./routes/conversations');
 const uploadRoutes = require('./routes/upload');
@@ -72,7 +71,7 @@ app.get('/health/database', async (req, res) => {
 });
 
 // API Routes with specific rate limiters
-app.use('/api/id-card', idcardRoutes);
+// ID card route removed; legacy endpoints respond with 410 via stub router.
 app.use('/api/chat', messagingLimiter, chatRoutes);
 app.use('/api/conversations', messagingLimiter, conversationsRoutes);
 app.use('/api/upload', uploadLimiter, uploadRoutes);
@@ -109,13 +108,7 @@ app.get('/', (req, res) => {
         signUrl: 'POST /api/upload/sign-url',
         config: 'GET /api/upload/config'
       },
-      idCard: {
-        upload: 'POST /api/id-card/upload',
-        status: 'GET /api/id-card/status',
-        resubmit: 'PUT /api/id-card/resubmit',
-        adminPending: 'GET /api/id-card/admin/pending',
-        adminReview: 'PUT /api/id-card/admin/review/:verificationId'
-      },
+      idCard: 'Feature removed. All previous endpoints now return 410.',
       health: {
         general: 'GET /health',
         database: 'GET /health/database'

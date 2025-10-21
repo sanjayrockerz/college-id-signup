@@ -1,0 +1,234 @@
+{
+    "metrics": {
+        "http_req_sending": {
+            "p(99)": 0.08900999999999995,
+            "max": 0.706,
+            "avg": 0.021250212765957874,
+            "min": 0.002,
+            "med": 0.018,
+            "p(75)": 0.026,
+            "p(90)": 0.038,
+            "p(95)": 0.048
+        },
+        "http_req_waiting": {
+            "p(99)": 33.49123999999999,
+            "max": 63.999,
+            "avg": 10.732494255319134,
+            "min": 1.481,
+            "med": 9.1675,
+            "p(75)": 13.983,
+            "p(90)": 19.9674,
+            "p(95)": 23.811149999999998
+        },
+        "iterations": {
+            "count": 4700,
+            "rate": 39.11953186871415
+        },
+        "vus_max": {
+            "value": 20,
+            "min": 20,
+            "max": 20
+        },
+        "http_reqs": {
+            "count": 4700,
+            "rate": 39.11953186871415
+        },
+        "http_req_duration": {
+            "avg": 10.789027872340466,
+            "min": 1.496,
+            "med": 9.225000000000001,
+            "p(75)": 14.0395,
+            "p(90)": 20.037900000000004,
+            "p(95)": 23.8473,
+            "p(99)": 33.52155999999999,
+            "max": 64.028
+        },
+        "http_req_blocked": {
+            "p(99)": 0.024,
+            "max": 1.046,
+            "avg": 0.008214255319149143,
+            "min": 0,
+            "med": 0.005,
+            "p(75)": 0.006,
+            "p(90)": 0.009,
+            "p(95)": 0.012
+        },
+        "iteration_duration": {
+            "p(99)": 534.25164459,
+            "max": 564.669583,
+            "avg": 511.1769821538289,
+            "min": 501.61825,
+            "med": 509.6800835,
+            "p(75)": 514.4548025,
+            "p(90)": 520.4019128000001,
+            "p(95)": 524.30444555
+        },
+        "checks": {
+            "passes": 14100,
+            "fails": 0,
+            "value": 1
+        },
+        "http_req_tls_handshaking": {
+            "min": 0,
+            "med": 0,
+            "p(75)": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 0,
+            "avg": 0
+        },
+        "send_status_total": {
+            "count": 3302,
+            "rate": 27.48355196393492
+        },
+        "latency_send": {
+            "p(90)": 22,
+            "p(95)": 26,
+            "p(99)": 37,
+            "max": 64,
+            "avg": 12.88885523924894,
+            "min": 2,
+            "med": 12,
+            "p(75)": 16,
+            "thresholds": {
+                "p(99)<500": false,
+                "p(50)<150": false,
+                "p(95)<250": false
+            }
+        },
+        "history_error_rate": {
+            "passes": 0,
+            "fails": 1398,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(95)": 23.8473,
+            "p(99)": 33.52155999999999,
+            "max": 64.028,
+            "avg": 10.789027872340466,
+            "min": 1.496,
+            "med": 9.225000000000001,
+            "p(75)": 14.0395,
+            "p(90)": 20.037900000000004
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 4700,
+            "value": 0
+        },
+        "latency_history": {
+            "med": 6,
+            "p(75)": 8,
+            "p(90)": 9,
+            "p(95)": 11,
+            "p(99)": 16,
+            "max": 37,
+            "avg": 6.124463519313305,
+            "min": 1,
+            "thresholds": {
+                "p(50)<200": false,
+                "p(95)<350": false,
+                "p(99)<600": false
+            }
+        },
+        "send_error_rate": {
+            "passes": 0,
+            "fails": 3302,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_req_connecting": {
+            "p(99)": 0,
+            "max": 0.407,
+            "avg": 0.0014129787234042556,
+            "min": 0,
+            "med": 0,
+            "p(75)": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "vus": {
+            "value": 20,
+            "min": 20,
+            "max": 20
+        },
+        "http_req_receiving": {
+            "min": 0.007,
+            "med": 0.02,
+            "p(75)": 0.046,
+            "p(90)": 0.082,
+            "p(95)": 0.102,
+            "p(99)": 0.153,
+            "max": 1.033,
+            "avg": 0.035283404255319305
+        },
+        "data_sent": {
+            "count": 1560105,
+            "rate": 12985.229205540487
+        },
+        "history_status_total": {
+            "rate": 11.63597990477923,
+            "count": 1398
+        },
+        "data_received": {
+            "count": 24605740,
+            "rate": 204801.0702304882
+        }
+    },
+    "root_group": {
+        "checks": {
+            "send status ok": {
+                "passes": 3302,
+                "fails": 0,
+                "name": "send status ok",
+                "path": "::send status ok",
+                "id": "48d96e21318dced6ff07bf972873a3e3"
+            },
+            "send latency p95 target": {
+                "name": "send latency p95 target",
+                "path": "::send latency p95 target",
+                "id": "71774df1795fc07facde7c8e74c4d53c",
+                "passes": 3302,
+                "fails": 0
+            },
+            "send latency p99 target": {
+                "passes": 3302,
+                "fails": 0,
+                "name": "send latency p99 target",
+                "path": "::send latency p99 target",
+                "id": "17280388be010c70f4ee65a0ed651fcb"
+            },
+            "history status ok": {
+                "name": "history status ok",
+                "path": "::history status ok",
+                "id": "d3087e86f13da57f72c134dd6f190f2b",
+                "passes": 1398,
+                "fails": 0
+            },
+            "history latency p95 target": {
+                "passes": 1398,
+                "fails": 0,
+                "name": "history latency p95 target",
+                "path": "::history latency p95 target",
+                "id": "344ec2dc4b33ac5504e6f74af6cede91"
+            },
+            "history latency p99 target": {
+                "path": "::history latency p99 target",
+                "id": "1bd74475f852970541869a0679a05c37",
+                "passes": 1398,
+                "fails": 0,
+                "name": "history latency p99 target"
+            }
+        },
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {}
+    }
+}

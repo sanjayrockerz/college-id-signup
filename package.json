@@ -6,15 +6,10 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "start": "nest start",
     "start:dev": "nest start --watch",
-    "serve:quick": "node src/simple-server.js",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "start:express": "node src/app.js",
-    "start:express:dev": "nodemon src/app.js",
-    "start:server": "node src/server.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -25,7 +20,21 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:studio": "prisma studio",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "prepare": "husky install",
+    "openapi:lint": "@redocly/cli lint docs/contracts/openapi.yaml",
+    "perf:seed-data": "ts-node --transpile-only scripts/performance/db-analysis/seed-performance-data.ts",
+    "perf:query-analyzer": "ts-node --transpile-only scripts/performance/db-analysis/query-analyzer.ts",
+    "perf:index-stats": "python3 scripts/performance/db-analysis/psql_timeout_runner.py --no-pager --on-error-stop --timeout ${PSQL_TIMEOUT:-30} --dsn \"${DATABASE_URL}\" --file scripts/performance/db-analysis/index-stats.sql"
+  },
+  "_deprecated_scripts_comment": "Legacy Express scripts removed 2025-10-20. See src/deprecated/README.md for migration info.",
+  "_deprecated_scripts": {
+    "start_old": "node src/server.js",
+    "dev_old": "nodemon src/server.js",
+    "serve:quick_old": "node src/simple-server.js",
+    "start:express_old": "node src/app.js",
+    "start:express:dev_old": "nodemon src/app.js",
+    "start:server_old": "node src/server.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.1",
@@ -73,7 +82,17 @@
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.1.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix"
+    ],
+    "**/*.{ts,js,json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

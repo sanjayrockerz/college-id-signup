@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Chat Backend Coverage Snapshot</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; color: #222; }
+    h1 { font-size: 24px; margin-bottom: 8px; }
+    p { margin: 4px 0; }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f5f5f5; }
+    .fail { color: #c0392b; font-weight: bold; }
+    .warn { color: #d35400; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Chat Backend Coverage Snapshot</h1>
+  <p><strong>Generated:</strong> 2025-10-21</p>
+  <p><strong>Global Coverage:</strong> Statements 1.88% · Branches 1.33% · Lines 1.95% · Functions 1.02%</p>
+  <p class="fail">Global thresholds (Statements ≥60%, Branches ≥50%, Lines ≥60%, Functions ≥50%) were not met.</p>
+
+  <h2>Module Coverage Matrix</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Module</th>
+        <th>File</th>
+        <th>Lines %</th>
+        <th>Branches %</th>
+        <th>Functions %</th>
+        <th>Statements %</th>
+        <th>Critical Path Coverage</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Chat Service</td>
+        <td>src/chat-backend/services/chat.service.ts</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">message-send / receive / pagination / reconnect uncovered</td>
+        <td>Integration suite skipped under Prisma mock mode.</td>
+      </tr>
+      <tr>
+        <td>Chat Controller</td>
+        <td>src/chat-backend/controllers/chat.controller.ts</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">All REST input validation paths untested</td>
+        <td>Routes lack active coverage; integration tests skipped.</td>
+      </tr>
+      <tr>
+        <td>Socket Handlers</td>
+        <td>src/socket/handlers.js</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">Connect, reconnect, broadcast flows untested</td>
+        <td>Only one guard assertion covered by unit tests.</td>
+      </tr>
+      <tr>
+        <td>Validation Middleware</td>
+        <td>src/middleware/validation.ts</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">Payload validation and error shaping unverified</td>
+        <td>No automated tests reach validation layer.</td>
+      </tr>
+      <tr>
+        <td>Logging Middleware</td>
+        <td>src/middleware/logging.ts</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">0</td>
+        <td class="fail">Request/error logging flows untested</td>
+        <td>Requires instrumentation-focused tests.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Critical Path Assessment</h2>
+  <ul>
+    <li class="fail">Message send pipeline: <strong>Not covered</strong></li>
+    <li class="fail">Message receive/history pagination: <strong>Not covered</strong></li>
+    <li class="fail">Socket reconnect flow: <strong>Not covered</strong></li>
+    <li class="fail">REST input validation &amp; error handling: <strong>Not covered</strong></li>
+  </ul>
+
+  <p class="warn">Action Required: Enable real database mode for integration suites or provide deterministic mocks so the REST/Socket tests execute. Add focused unit and e2e tests around critical chat flows and middleware.</p>
+</body>
+</html>

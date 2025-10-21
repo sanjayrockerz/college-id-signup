@@ -1,0 +1,62 @@
+{
+  "profiles": {
+    "smoke": {
+      "description": "Quick validation run to ensure endpoints respond correctly under minimal load.",
+      "vuCount": 5,
+      "duration": "1m",
+      "thresholds": {
+        "send_p95": "<500",
+        "history_p95": "<600",
+        "errorRate": "<5%",
+        "throughput": ">=50/min"
+      }
+    },
+    "load": {
+      "description": "Baseline load profile matching primary service SLOs.",
+      "vuCount": 50,
+      "duration": "10m",
+      "thresholds": {
+        "send_p95": "<250",
+        "history_p95": "<300",
+        "errorRate": "<1%",
+        "throughput": ">=400/min"
+      }
+    },
+    "stress": {
+      "description": "High-pressure scenario approaching saturation to assess system degradation.",
+      "vuCount": 100,
+      "duration": "15m",
+      "thresholds": {
+        "send_p95": "<450",
+        "history_p95": "<500",
+        "errorRate": "<3%",
+        "throughput": ">=600/min"
+      }
+    },
+    "soak": {
+      "description": "Extended reliability run validating sustained load performance and resource stability.",
+      "vuCount": 30,
+      "duration": "2h",
+      "thresholds": {
+        "send_p95": "<300",
+        "history_p95": "<350",
+        "errorRate": "<1%",
+        "throughput": ">=200/min"
+      }
+    }
+  },
+  "environments": {
+    "local": {
+      "baseUrl": "http://localhost:3001",
+      "databaseUrl": "postgresql://postgres:password@localhost:5432/chat_backend_db"
+    },
+    "staging": {
+      "baseUrl": "https://staging.api.college-chat.example",
+      "databaseUrl": "postgresql://staging_user:staging_password@staging-db.example:5432/chat_backend_db"
+    },
+    "production": {
+      "baseUrl": "https://api.college-chat.example",
+      "databaseUrl": "postgresql://prod_user:prod_password@prod-db.example:5432/chat_backend_db"
+    }
+  }
+}

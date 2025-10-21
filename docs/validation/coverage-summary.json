@@ -1,0 +1,87 @@
+{
+  "generatedAt": "2025-10-21T00:00:00Z",
+  "overall": {
+    "statementsPercent": 1.88,
+    "branchesPercent": 1.33,
+    "linesPercent": 1.95,
+    "functionsPercent": 1.02,
+    "thresholds": {
+      "statements": 60,
+      "branches": 50,
+      "lines": 60,
+      "functions": 50
+    },
+    "meetsThresholds": false,
+    "notes": "Global Jest coverage thresholds failed (statements/branches/lines/functions all < 2%)."
+  },
+  "moduleCoverage": [
+    {
+      "module": "Chat Service",
+      "path": "src/chat-backend/services/chat.service.ts",
+      "linesPercent": 0,
+      "branchesPercent": 0,
+      "functionsPercent": 0,
+      "statementsPercent": 0,
+      "criticalPaths": ["message-send", "message-receive", "pagination", "socket-reconnect"],
+      "criticalPathCovered": false,
+      "notes": "No automated tests executed against chat service implementations."
+    },
+    {
+      "module": "Chat Controller",
+      "path": "src/chat-backend/controllers/chat.controller.ts",
+      "linesPercent": 0,
+      "branchesPercent": 0,
+      "functionsPercent": 0,
+      "statementsPercent": 0,
+      "criticalPaths": ["input-validation", "error-handling"],
+      "criticalPathCovered": false,
+      "notes": "Controller routes remain untested in current run because integration suite skipped when Prisma mock mode is active."
+    },
+    {
+      "module": "Socket Handlers",
+      "path": "src/socket/handlers.js",
+      "linesPercent": 0,
+      "branchesPercent": 0,
+      "functionsPercent": 0,
+      "statementsPercent": 0,
+      "criticalPaths": ["socket-connect", "socket-reconnect", "message-broadcast"],
+      "criticalPathCovered": false,
+      "notes": "Unit test only covers non-member guard; all real-time flows uncovered."
+    },
+    {
+      "module": "Validation Middleware",
+      "path": "src/middleware/validation.ts",
+      "linesPercent": 0,
+      "branchesPercent": 0,
+      "functionsPercent": 0,
+      "statementsPercent": 0,
+      "criticalPaths": ["payload-validation", "error-formatting"],
+      "criticalPathCovered": false,
+      "notes": "Validation logic lacks runtime tests; all scenarios unverified."
+    },
+    {
+      "module": "Logging Middleware",
+      "path": "src/middleware/logging.ts",
+      "linesPercent": 0,
+      "branchesPercent": 0,
+      "functionsPercent": 0,
+      "statementsPercent": 0,
+      "criticalPaths": ["request-logging", "error-logging"],
+      "criticalPathCovered": false,
+      "notes": "No test instrumentation around logging stack."
+    }
+  ],
+  "criticalPathSummary": [
+    {"path": "message-send", "covered": false},
+    {"path": "message-receive", "covered": false},
+    {"path": "history-pagination", "covered": false},
+    {"path": "socket-reconnect", "covered": false},
+    {"path": "input-validation", "covered": false},
+    {"path": "error-handling", "covered": false}
+  ],
+  "gaps": [
+    "Integration suites for REST and Socket APIs are skipped under mock Prisma mode; no coverage recorded.",
+    "Critical chat flows (send/receive/pagination/reconnect) lack any automated verification.",
+    "Middleware and validation layers remain untested, leaving error handling unverified."
+  ]
+}

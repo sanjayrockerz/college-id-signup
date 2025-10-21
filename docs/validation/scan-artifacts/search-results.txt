@@ -1,0 +1,189 @@
+=== AUTH & ID-CARD RESIDUALS ===
+
+Path: src/idcard/idcard.controller.ts (lines 1-116)
+Snippet:
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  UploadedFile,
+  UseInterceptors,
+  Request,
+  Query,
+  BadRequestException,
+  PayloadTooLargeException,
+} from "@nestjs/common";
+...
+@Controller("idcard")
+export class IdCardController {
+  constructor(
+    private readonly idCardService: IdCardService,
+    private readonly mobileOptimizationService: MobileOptimizationService,
+  ) {}
+
+  @Post("upload")
+  @UseInterceptors(
+    FileInterceptor("idcard", {
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+      },
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/^image\/(jpeg|png|webp)$/)) {
+          cb(
+            new BadRequestException("Only JPEG, PNG, and WebP images allowed"),
+            false,
+          );
+        } else {
+          cb(null, true);
+        }
+      },
+    }),
+  )
+  async uploadIdCard(
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req: any,
+    @Query("userId") userId?: string,
+...
+
+Path: src/routes/idcard.ts (lines 1-90)
+Snippet:
+import { Router, Request, Response } from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { getPrismaClient } from "../config/database";
+...
+router.post(
+  "/upload",
+  upload.single("idCard"),
+  async (req: AuthRequest & { body: UploadBody }, res: Response) => {
+    try {
+      const userId = req.body.userId;
+      ...
+      const existingVerification = await prisma.idCardVerification.findFirst({
+        where: {
+          userId: userId,
+          status: {
+            in: ["PENDING", "APPROVED"],
+          },
+        },
+      });
+
+Path: src/routes/idcard.js (lines 1-60)
+Snippet:
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { getPrismaClient } = require('../config/database');
+const { adminLimiter } = require('../middleware/rateLimiter');
+...
+router.post('/upload', upload.single('idCard'), async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { collegeName, studentIdNumber, graduationYear } = req.body;
+    ...
+
+Path: src/middleware/validation.ts (lines 418-452)
+Snippet:
+export function validateIdCardVerification(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  const { collegeName, studentIdNumber, graduationYear } = req.body;
+
+  if (
+    !collegeName ||
+    typeof collegeName !== "string" ||
+    collegeName.trim().length === 0
+  ) {
+    sendValidationError(
+      res,
+      "collegeName is required and must be a non-empty string",
+    );
+    return;
+  }
+  ...
+
+Path: prisma/schema.prisma (lines 15-32)
+Snippet:
+model User {
+  id              String  @id @default(cuid())
+  email           String  @unique
+  username        String  @unique
+  firstName       String?
+  lastName        String?
+  bio             String?
+  profileImageUrl String?
+  isActive        Boolean @default(true)
+
+  // College verification
+  verifiedCollegeId String?
+  collegeName       String?
+  studentIdNumber   String?
+  graduationYear    Int?
+  ...
+
+Path: docs/ID_CARD_VERIFICATION.md (lines 1-40, 110-140)
+Snippet:
+# ID Card Verification Module
+...
+- **IdCardService**: Verification logic, fuzzy matching
+- **IdCardRepository**: Database access for verification records
+...
+
+=== COLLEGE DOMAIN EVIDENCE ===
+
+Path: src/routes/idcard.ts (lines 80-150)
+Snippet:
+      const { collegeName, studentIdNumber, graduationYear } = req.body;
+      ...
+        return res.status(400).json({
+          success: false,
+          error: "Missing required fields",
+          message: "College name and student ID number are required",
+        });
+...
+      const verification = await prisma.idCardVerification.create({
+        data: {
+          userId,
+          collegeName,
+          studentIdNumber,
+          graduationYear,
+...
+
+Path: prisma/schema.prisma (lines 15-32)
+Snippet:
+  verifiedCollegeId String?
+  collegeName       String?
+  studentIdNumber   String?
+  graduationYear    Int?
+
+Path: src/config/README.md (lines 3-8, 120-128)
+Snippet:
+This directory contains the singleton Prisma client implementation for the college chat application.
+...
+DB_NAME=college_chat_db
+
+=== FRONTEND REFERENCES ===
+
+Path: README.md (lines 193-206)
+Snippet:
+# Frontend
+FRONTEND_URL=http://localhost:3000
+
+Path: .env.example (lines 14-25)
+Snippet:
+# Frontend origin for CORS
+CORS_ORIGIN=http://localhost:3000
+FRONTEND_URL=http://localhost:3000
+CLIENT_URL=http://localhost:3000
+
+Path: DEPLOYMENT_PLAN.md (lines 269-280)
+Snippet:
+#### Step 3.3: Update Frontend
+Coordinate with frontend team to:
+- Deploy the updated client that removes auth flows

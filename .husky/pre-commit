@@ -1,0 +1,38 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Enforce lint and format on staged files
+npx --no-install lint-staged
+STATUS=$?
+if [ $STATUS -ne 0 ]; then
+  echo "❌ lint-staged failed"
+  exit $STATUS
+fi
+
+# Block auth/college/frontend patterns in source imports
+if grep -RIE --line-number "from ['\"]/.*\/(auth|college|idcard|campus|student)" src/ 2>/dev/null; then
+  echo "❌ ERROR: Auth/college imports detected. This violates ADR-001."
+  exit 1
+fi
+
+# Block college-domain schema in Prisma
+if grep -RIE --line-number "^(model|interface) (College|Campus|Student|IdCard)" prisma/schema.prisma 2>/dev/null; then
+  echo "❌ ERROR: College-domain schema detected. This violates ADR-001."
+  exit 1
+fi
+
+# Block frontend directories
+if ls client/ frontend/ public/ views/ 1>/dev/null 2>&1; then
+  echo "❌ ERROR: Frontend directories detected. This violates ADR-001."
+  exit 1
+fi
+
+# Validate OpenAPI spec quickly (optional in pre-commit; CI will enforce)
+if [ -f docs/contracts/openapi.yaml ]; then
+  npx --yes @redocly/cli@latest lint docs/contracts/openapi.yaml || {
+    echo "❌ OpenAPI spec lint failed (Redocly)."
+    exit 1
+  }
+fi
+
+exit 0

@@ -104,14 +104,6 @@ router.get('/:userId', [
   validateRequest
 ], userController.getUserDetails);
 
-// College Verification
-router.post('/verify-college', [
-  body('collegeId').isString().withMessage('College ID required'),
-  body('studentId').isString().withMessage('Student ID required'),
-  body('documents').optional().isArray(),
-  validateRequest
-], userController.verifyCollege);
-
 router.get('/college/:collegeId/members', [
   param('collegeId').isString().withMessage('College ID required'),
   query('limit').optional().isInt({ min: 1, max: 100 }),

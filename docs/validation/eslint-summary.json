@@ -1,0 +1,12 @@
+{
+  "totalErrors": 0,
+  "totalWarnings": 11,
+  "ruleCounts": {
+    "prettier/prettier|warning": 11
+  },
+  "fileCounts": {
+    "/Users/harishraghave/Desktop/colleging/college-id-signup-1/src/docs/registerDocs.ts": 9,
+    "/Users/harishraghave/Desktop/colleging/college-id-signup-1/src/main.ts": 1,
+    "/Users/harishraghave/Desktop/colleging/college-id-signup-1/src/user/application/user.service.ts": 1
+  }
+}

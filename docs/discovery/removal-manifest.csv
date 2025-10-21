@@ -1,0 +1,236 @@
+id,category,type,path,name,references,severity,notes
+1,auth,file,src/routes/idcard.ts,AuthRequest interface,"Used in 7 endpoints",major,Interface named AuthRequest but no actual auth logic
+2,auth,symbol,src/routes/idcard.ts,AuthRequest,"7 function signatures",major,Misleading name - should be renamed or removed
+3,auth,file,src/posts/controllers/post.controller.ts,@UseGuards import,"Imported but commented out",minor,Dead import - @UseGuards never used
+4,auth,symbol,src/posts/controllers/post.controller.ts,"// @UseGuards(AuthGuard)","3 commented decorators",minor,Commented-out auth guards - indicates removed functionality
+5,auth,config,src/middleware/logging.ts,authorization header redaction,"PII redaction list",minor,Header redaction without auth system
+6,college,file,src/routes/idcard.ts,ID card verification routes,"4 endpoints",blocker,Entire ID card upload/verification system
+7,college,symbol,src/routes/idcard.ts,collegeName,"40+ references",blocker,College name field in User model and validation
+8,college,symbol,src/routes/idcard.ts,studentIdNumber,"40+ references",blocker,Student ID field throughout codebase
+9,college,route,/api/idcard/upload,ID card upload endpoint,1 route,blocker,Upload college ID card images
+10,college,route,/api/idcard/status,Check verification status,1 route,blocker,Check ID verification status
+11,college,route,/api/idcard/verify,Verify ID card,1 route,blocker,Manual verification endpoint
+12,college,route,/api/idcard/admin/pending,Admin pending verifications,1 route,blocker,Admin endpoint for pending IDs
+13,college,route,/api/idcard/admin/verify,Admin verify endpoint,1 route,blocker,Admin approval endpoint
+14,college,schema,prisma/schema.prisma,verifiedCollegeId field,User model,blocker,College verification field in User
+15,college,schema,prisma/schema.prisma,collegeName field,User model,blocker,College name in User model
+16,college,schema,prisma/schema.prisma,studentIdNumber field,User model,blocker,Student ID in User model
+17,college,file,src/idcard/idcard.controller.ts,IdCardController,Module,blocker,NestJS controller for ID verification
+18,college,file,src/idcard/idcard.service.ts,IdCardService,Module,blocker,Business logic for ID verification
+19,college,file,src/idcard/idcard.repository.ts,IdCardRepository,Module,blocker,Data access for ID cards
+20,college,file,src/idcard/idcard.module.ts,IdCardModule,Module,blocker,NestJS module declaration
+21,college,file,src/idcard/dtos/verify-idcard.dto.ts,VerifyIdCardDto,DTOs,blocker,Data transfer objects for verification
+22,college,file,src/idcard/idcard.controller.js,Legacy JS controller,Module,blocker,JavaScript version of controller
+23,college,file,src/idcard/idcard.service.js,Legacy JS service,Module,blocker,JavaScript version of service
+24,college,file,src/idcard/idcard.repository.js,Legacy JS repository,Module,blocker,JavaScript version of repository
+25,college,file,src/idcard/idcard.module.js,Legacy JS module,Module,blocker,JavaScript version of module
+26,college,symbol,src/upload/upload.service.ts,extractStudentInfo,"OCR extraction logic",blocker,Extracts student name and college from images
+27,college,symbol,src/upload/upload.service.ts,calculateConfidence,"Confidence scoring",blocker,Validates extracted college data
+28,college,symbol,src/idcard/idcard.service.ts,fuzzyMatch,"String matching for verification",blocker,Matches extracted vs manual college data
+29,college,symbol,src/middleware/validation.ts,validateIdCardUpload,Validation middleware,blocker,Validates college name and student ID
+30,college,env,process.env,COLLEGE_*,Environment config,major,Potential college-related env vars (not found)
+31,college,doc,README.md,"College ID Signup API",Title and description,blocker,Repository named for college domain
+32,college,doc,README.md,"College Verification section",Feature documentation,blocker,Documents ID card verification feature
+33,college,doc,src/app.ts,"College ID Signup API",Startup banner,major,Server startup message references college
+34,college,doc,src/app.ts,"College Social Platform API",Startup banner,blocker,Platform described as college-specific
+35,college,symbol,src/infra/prisma/mock-prisma-client.ts,verifiedCollegeId mock field,Mock data,blocker,Mock Prisma client includes college fields
+36,college,symbol,src/infra/prisma/mock-prisma-client.ts,collegeName mock field,Mock data,blocker,Mock User model with college name
+37,college,symbol,src/infra/prisma/mock-prisma-client.ts,studentIdNumber mock field,Mock data,blocker,Mock User model with student ID
+38,college,symbol,src/common/services/mobile-optimization.service.ts,collegeName optimization,User DTO,major,Mobile optimization includes college data
+39,college,symbol,src/common/dtos/mobile-optimized.dto.ts,collegeName field,DTO,major,Mobile DTO exposes college name
+40,college,symbol,src/user/application/user.controller.ts,verifyCollege endpoint,Route,blocker,PUT /user/verify-college endpoint
+41,college,symbol,src/user/application/user.service.ts,verifyCollege method,Service method,blocker,Business logic for college verification
+42,college,symbol,src/user/data/user.repository.ts,verifiedCollegeId field,Repository,blocker,User repository handles college fields
+43,college,symbol,src/user/data/user.repository.ts,collegeName field,Repository,blocker,College name in repository interface
+44,college,symbol,src/user/data/user.repository.ts,studentIdNumber field,Repository,blocker,Student ID in repository interface
+45,college,config,src/infra/config/database.config.ts,college_chat_db,Database name,blocker,Default database name implies college domain
+46,frontend,directory,frontend/,React application,6 files,blocker,Entire React frontend application
+47,frontend,file,frontend/package.json,Frontend dependencies,Node package,blocker,React and Vite dependencies
+48,frontend,file,frontend/tsconfig.json,TypeScript config,Build config,blocker,Frontend TypeScript configuration
+49,frontend,file,frontend/src/App.tsx,Main React component,Component,blocker,Root application component
+50,frontend,file,frontend/src/components/FileUpload.tsx,File upload component,Component,blocker,React component for file uploads
+51,frontend,file,frontend/README.md,Frontend documentation,Documentation,major,Instructions for running frontend
+52,frontend,config,package.json,client scripts,NPM scripts,minor,Potential frontend build scripts (verify)
+53,auth,route,/api/auth/**,Auth routes pattern,Route pattern,major,Route pattern in docs (not implemented)
+54,auth,route,/verify/**,Verification routes,Route pattern,blocker,ID verification routes (college domain)
+55,college,route,/college/**,College routes pattern,Route pattern,major,Potential college routes (documented but may not exist)
+56,college,route,/campus/**,Campus routes pattern,Route pattern,major,Potential campus routes (documented but may not exist)
+57,college,route,/student/**,Student routes pattern,Route pattern,major,Potential student routes (documented but may not exist)
+58,college,test,coverage/lcov-report/src/idcard/,ID card test coverage,Test reports,blocker,Test coverage for ID card module
+59,college,symbol,src/config/database.examples.ts,authorId examples,Example code,minor,Post author examples (social feature - not college but out-of-scope)
+60,auth,symbol,src/main.ts,Authorization header,CORS config,minor,Authorization in allowed headers (no auth implemented)
+61,auth,doc,src/main.ts,Authentication policy comment,Code comment,major,Documents no-auth policy
+62,college,symbol,src/routes/conversations.js,Legacy conversation routes,Express routes,minor,Legacy Express routes (migrated to NestJS)
+63,college,symbol,src/routes/chat.js,Legacy chat routes,Express routes,minor,Legacy Express routes (migrated to NestJS)
+64,college,symbol,src/routes/upload.js,Legacy upload routes,Express routes,minor,Legacy Express routes (needs review)
+65,college,module,src/feed/,Feed module,Directory,blocker,Social feed - out of scope per ADR-001
+66,college,file,src/feed/feed.module.ts,FeedModule,NestJS module,blocker,Feed feature module
+67,college,file,src/feed/controllers/feed.controller.ts,FeedController,Controller,blocker,Feed endpoints
+68,college,file,src/feed/services/feed.service.ts,FeedService,Service,blocker,Feed business logic
+69,college,file,src/feed/repositories/feed.repository.ts,FeedRepository,Repository,blocker,Feed data access
+70,college,file,src/feed/dtos/feed.dto.ts,Feed DTOs,DTOs,blocker,Feed data transfer objects
+71,college,symbol,src/feed/services/feed.service.ts,author field,Post relationship,blocker,Post author tracking (social feature)
+72,college,module,src/posts/,Posts module,Directory,blocker,Social posts - out of scope per ADR-001
+73,college,file,src/posts/post.module.ts,PostModule,NestJS module,blocker,Post feature module
+74,college,file,src/posts/controllers/post.controller.ts,PostController,Controller,blocker,Post CRUD endpoints
+75,college,file,src/posts/services/post.service.ts,PostService,Service,blocker,Post business logic
+76,college,file,src/posts/repositories/post.repository.ts,PostRepository,Repository,blocker,Post data access
+77,college,file,src/posts/repositories/post.repository.new.ts,PostRepository (new),Repository,blocker,Alternative post repository implementation
+78,college,file,src/posts/dtos/post.dto.ts,Post DTOs,DTOs,blocker,Post data transfer objects
+79,college,symbol,src/posts/repositories/post.repository.ts,authorId field,Post schema,blocker,Post author tracking
+80,college,symbol,src/posts/dtos/post.dto.ts,author field,DTO,blocker,Post author in response DTOs
+81,college,module,src/connections/,Connections module,Directory,blocker,Social connections - out of scope per ADR-001
+82,college,file,src/connections/connection.module.ts,ConnectionModule,NestJS module,blocker,Connection feature module
+83,college,file,src/connections/controllers/connection.controller.ts,ConnectionController,Controller,blocker,Connection management endpoints
+84,college,file,src/connections/services/connection.service.ts,ConnectionService,Service,blocker,Connection business logic
+85,college,file,src/connections/repositories/connection.repository.ts,ConnectionRepository,Repository,blocker,Connection data access
+86,college,file,src/connections/dtos/connection.dto.ts,Connection DTOs,DTOs,blocker,Connection data transfer objects
+87,college,module,src/interactions/,Interactions module,Directory,blocker,Social interactions - out of scope per ADR-001
+88,college,file,src/interactions/interaction.module.ts,InteractionModule,NestJS module,blocker,Interaction feature module
+89,college,file,src/interactions/controllers/interaction.controller.ts,InteractionController,Controller,blocker,Interaction endpoints (likes/comments)
+90,college,file,src/interactions/services/interaction.service.ts,InteractionService,Service,blocker,Interaction business logic
+91,college,file,src/interactions/repositories/interaction.repository.ts,InteractionRepository,Repository,blocker,Interaction data access
+92,college,file,src/interactions/dtos/interaction.dto.ts,Interaction DTOs,DTOs,blocker,Interaction data transfer objects
+93,college,module,src/user/,User module,Directory,major,User module partially in-scope (data models only)
+94,college,file,src/user/application/user.controller.ts,UserController,Controller,major,User management endpoints - verify which are needed
+95,college,file,src/user/application/user.service.ts,UserService,Service,major,User business logic - verify which is needed
+96,college,file,src/user/data/user.repository.ts,UserRepository,Repository,minor,User data access - may need for message attribution
+97,college,symbol,src/user/application/user.controller.ts,getCurrentUser,Endpoint,major,GET /user/current - not needed in chat-only service
+98,college,symbol,src/user/application/user.controller.ts,updateCurrentUser,Endpoint,major,PUT /user/current - not needed in chat-only service
+99,college,file,src/user/dtos/create-user.dto.ts,CreateUserDto,DTO,major,User creation DTO - verify if needed
+100,college,file,src/user/user.module.ts,UserModule,NestJS module,major,User module - verify chat dependencies
+101,college,file,src/user/user.module.js,UserModule (JS),Legacy module,major,JavaScript version of user module
+102,college,file,src/user/application/user.controller.js,UserController (JS),Legacy controller,major,JavaScript version of controller
+103,college,file,src/user/application/user.service.js,UserService (JS),Legacy service,major,JavaScript version of service
+104,college,file,src/user/data/user.repository.js,UserRepository (JS),Legacy repository,major,JavaScript version of repository
+105,college,file,src/user/dtos/create-user.dto.js,CreateUserDto (JS),Legacy DTO,major,JavaScript version of DTO
+106,college,service,src/common/services/mobile-optimization.service.ts,MobileOptimizationService,Service,major,Mobile optimization - verify if needed for chat
+107,college,service,src/common/services/ml-anomaly-detection.service.ts,MLAnomalyDetectionService,Service,major,ML anomaly detection - may be useful for abuse detection
+108,college,service,src/common/services/device-fingerprinting.service.ts,DeviceFingerprintingService,Service,minor,Device fingerprinting - useful for abuse prevention
+109,college,service,src/common/services/gdpr-compliance.service.ts,GDPRComplianceService,Service,minor,GDPR utilities - needed per governance docs
+110,college,service,src/common/services/rate-limiter.service.ts,RateLimiterService,Service,minor,Rate limiting - needed per docs
+111,college,service,src/common/services/database-health.service.ts,DatabaseHealthService,Service,minor,Health checks - needed for ops
+112,college,file,src/common/dtos/mobile.dto.ts,Mobile DTOs,DTOs,major,Mobile-specific DTOs - verify necessity
+113,college,file,src/common/dtos/mobile-optimized.dto.ts,MobileOptimizedDto,DTOs,major,Mobile optimization DTOs - verify necessity
+114,college,file,src/common/utils/file-validation.util.ts,File validation utilities,Utilities,minor,File validation - may be needed for attachments
+115,college,file,src/middleware/validation.ts,Validation middleware,Middleware,major,Includes ID card validation - needs cleanup
+116,college,symbol,src/middleware/validation.ts,validateIdCardUpload function,Middleware function,blocker,ID card upload validation
+117,college,file,src/middleware/rateLimiter.ts,Rate limiter middleware,Middleware,minor,Express rate limiter - keep for chat
+118,college,file,src/middleware/rateLimiter.js,Rate limiter (JS),Legacy middleware,minor,JavaScript version
+119,college,file,src/middleware/logging.ts,Logging middleware,Middleware,minor,Request logging - keep for ops
+120,college,module,src/upload/,Upload module,Directory,major,File upload - partially needed for message attachments
+121,college,file,src/upload/upload.module.ts,UploadModule,NestJS module,major,Upload feature - verify attachment dependencies
+122,college,file,src/upload/upload.controller.ts,UploadController,Controller,major,Upload endpoints - verify which are needed
+123,college,file,src/upload/upload.service.ts,UploadService,Service,major,Upload logic - includes OCR for ID cards (remove)
+124,college,file,src/upload/delete.service.ts,DeleteService,Service,minor,File deletion - may be needed for attachments
+125,college,file,src/upload/view-worker.service.ts,ViewWorkerService,Service,major,View tracking - social feature (out of scope)
+126,college,symbol,src/upload/upload.service.ts,performOCR method,OCR logic,blocker,OCR for ID card text extraction
+127,college,symbol,src/upload/upload.service.ts,extractStudentInfo method,Data extraction,blocker,Extracts student/college info from images
+128,college,symbol,src/upload/upload.service.ts,calculateConfidence method,Confidence scoring,blocker,Confidence calculation for ID verification
+129,college,file,src/config/database.ts,Database configuration,Config,minor,Database config - keep for chat
+130,college,file,src/config/database.js,Database config (JS),Legacy config,minor,JavaScript version
+131,college,file,src/config/database.examples.ts,Database examples,Documentation,minor,Example code - verify relevance
+132,college,file,src/utils/example-usage.js,Example usage code,Documentation,minor,Legacy examples - likely removable
+133,college,file,src/socket/handlers.js,Socket.IO handlers,Real-time,minor,Socket handlers - IN SCOPE (keep for chat)
+134,college,file,src/app.ts,Express application,Server,major,Express app - needs cleanup of college references
+135,college,file,src/app.module.ts,NestJS root module,Module,minor,Root module - needs cleanup to remove out-of-scope imports
+136,college,file,src/app.module.js,NestJS root module (JS),Legacy module,minor,JavaScript version of root module
+137,college,file,src/main.ts,NestJS bootstrap,Bootstrap,minor,Main entry point - IN SCOPE (keep)
+138,college,file,src/main.js,NestJS bootstrap (JS),Legacy bootstrap,minor,JavaScript version of bootstrap
+139,college,file,src/server.js,Legacy server,Server,minor,Legacy server file - verify if used
+140,college,file,src/simple-server.js,Simple server,Server,minor,Simple server implementation
+141,college,schema,prisma/schema.prisma,Post model,Database model,blocker,Social post model - out of scope
+142,college,schema,prisma/schema.prisma,Interaction model,Database model,blocker,Social interaction model - out of scope
+143,college,schema,prisma/schema.prisma,Connection model,Database model,blocker,Social connection model - out of scope
+144,college,schema,prisma/schema.prisma,Feed model,Database model,blocker,Feed model - out of scope
+145,college,symbol,src/infra/prisma/mock-prisma-client.ts,Post mock model,Mock data,blocker,Mock data for posts
+146,college,symbol,src/infra/prisma/mock-prisma-client.ts,author relationship,Mock data,blocker,Post author relationship in mocks
+147,college,test,test/auth-system-verification.js,Auth verification tests,Test,major,Tests for auth system (doesn't exist)
+148,college,test,test/chat-backend-verification.js,Chat backend tests,Test,minor,Chat verification tests - IN SCOPE (keep)
+149,college,test,test/auth.integration.test.js,Auth integration tests,Test,major,Integration tests for auth (doesn't exist)
+150,college,doc,API_DOCUMENTATION.md,API documentation,Documentation,major,Needs cleanup of out-of-scope endpoints
+151,college,doc,AUTHENTICATION_COMPLETE.md,Auth documentation,Documentation,blocker,Documents non-existent auth system
+152,college,doc,ID_CARD_VERIFICATION.md,ID card docs,Documentation,blocker,Documents ID verification feature
+153,college,doc,CHAT_IMPLEMENTATION_COMPLETE.md,Chat docs,Documentation,minor,Chat documentation - IN SCOPE (keep)
+154,college,doc,DATABASE_SETUP.md,Database docs,Documentation,minor,Database setup - needs schema cleanup
+155,college,config,docker-compose.yml,Docker config,Deployment,minor,Docker setup - verify database name
+156,college,config,package.json,Package metadata,Config,blocker,Name: college-id-signup (should be chat-backend)
+157,college,config,package.json,Description,Metadata,blocker,Description references college signup
+158,college,env,DATABASE_URL,Database connection,Config,minor,Connection string - verify database name
+159,college,env,DB_NAME,Database name,Config,blocker,Default: college_chat_db (college reference)
+160,college,env,CORS_ORIGIN,CORS configuration,Config,minor,May reference college frontend
+161,college,env,FRONTEND_URL,Frontend URL,Config,major,References frontend (out of scope)
+162,college,env,CLIENT_URL,Client URL,Config,major,References client (out of scope)
+163,college,env,AWS_S3_BUCKET,S3 bucket,Config,minor,May contain college-specific bucket name
+164,auth,symbol,src/infra/prisma/mock-prisma-client.ts,authorId field,Mock model,major,Post author ID in mock model
+165,auth,symbol,src/infra/prisma/mock-prisma-client.ts,author relationship,Mock model,major,Author relationship in mock model
+166,college,file,src/infra/services/database-health.service.ts,Database health service,Service,minor,Health check - keep but verify college schema deps
+167,college,file,src/infra/config/database.config.ts,Database config,Config,minor,Database configuration - verify college references
+168,college,file,src/infra/prisma/prisma.service.ts,Prisma service,Service,minor,Prisma client service - IN SCOPE (keep)
+169,college,file,src/infra/prisma/prisma.module.ts,Prisma module,Module,minor,Prisma module - IN SCOPE (keep)
+170,college,file,src/infra/prisma/mock-prisma-client.ts,Mock Prisma client,Service,minor,Mock client - IN SCOPE but needs cleanup
+171,college,file,src/infra/prisma/prisma.service.js,Prisma service (JS),Legacy service,minor,JavaScript version
+172,college,file,src/infra/prisma/prisma.module.js,Prisma module (JS),Legacy module,minor,JavaScript version
+173,college,file,chat-backend/server.js,Chat backend server,Server,minor,Standalone chat server - verify if used
+174,college,file,chat-backend/src/app.js,Chat app,Server,minor,Chat application file
+175,college,directory,chat-backend/,Chat backend directory,Module,minor,Separate chat backend - may duplicate src/chat-backend
+176,college,config,chat-backend/package.json,Chat backend package,Config,minor,Separate package.json for chat
+177,frontend,doc,frontend/README.md,Frontend README,Documentation,blocker,Frontend documentation
+178,college,doc,README.md,Repository README,Documentation,major,Main README - needs major cleanup
+179,college,doc,MOBILE_OPTIMIZATION_REPORT.md,Mobile optimization report,Documentation,major,Report on mobile features (out of scope)
+180,college,doc,FINAL_STATUS_COMPLETE.md,Status report,Documentation,minor,Status documentation
+181,college,doc,IMPLEMENTATION_COMPLETE.md,Implementation report,Documentation,minor,Implementation status
+182,college,doc,CONVERSATIONS_IMPLEMENTATION.md,Conversations docs,Documentation,minor,Conversation feature docs - IN SCOPE (keep)
+183,college,doc,CONVERSATIONS_STATUS.md,Conversations status,Documentation,minor,Conversation status - IN SCOPE (keep)
+184,college,doc,DATABASE_STATUS.md,Database status,Documentation,minor,Database status report
+185,college,doc,DATABASE_STATUS_BACKUP.md,Database backup status,Documentation,minor,Backup documentation
+186,college,doc,DATABASE_CONNECTION_GUIDE.md,Connection guide,Documentation,minor,Database connection guide - IN SCOPE (keep)
+187,college,doc,ERRORS_RESOLVED.md,Error resolution log,Documentation,minor,Error tracking
+188,college,doc,UPLOAD_ROUTER_STATUS.md,Upload router status,Documentation,major,Upload feature status (includes ID cards)
+189,college,script,setup.bat,Windows setup script,Script,minor,Setup automation
+190,college,script,setup.sh,Unix setup script,Script,minor,Setup automation
+191,college,script,npm-install.bat,NPM install script,Script,minor,Install automation
+192,college,script,install-prisma-client.bat,Prisma install script,Script,minor,Prisma installation
+193,college,script,generate-prisma.bat,Prisma generation script,Script,minor,Prisma code generation
+194,college,config,jest.config.json,Jest configuration,Test config,minor,Test runner config - IN SCOPE (keep)
+195,college,config,tsconfig.json,TypeScript config,Build config,minor,TypeScript configuration - IN SCOPE (keep)
+196,college,file,test-middleware.js,Middleware test,Test,minor,Middleware testing - verify relevance
+197,college,file,prisma/seed.js,Database seed script,Seed,major,May include college-specific seed data
+198,college,file,prisma/seed.ts,Database seed script (TS),Seed,major,TypeScript seed script
+199,college,schema,prisma/schema.prisma,Conversation model,Database model,minor,Conversation model - IN SCOPE (keep)
+200,college,schema,prisma/schema.prisma,Message model,Database model,minor,Message model - IN SCOPE (keep)
+201,college,schema,prisma/schema.prisma,MessageRead model,Database model,minor,Message read receipts - IN SCOPE (keep)
+202,college,schema,prisma/schema.prisma,Attachment model,Database model,minor,Message attachments - IN SCOPE (keep)
+203,college,schema,prisma/schema.prisma,ConversationUser model,Database model,minor,Conversation participants - IN SCOPE (keep)
+204,college,symbol,src/chat-backend/chat.module.ts,ChatModule,NestJS module,minor,Chat module - IN SCOPE (keep)
+205,college,symbol,src/chat-backend/controllers/chat.controller.ts,ChatController,Controller,minor,Chat controller - IN SCOPE (keep)
+206,college,symbol,src/chat-backend/services/chat.service.ts,ChatService,Service,minor,Chat service - IN SCOPE (keep)
+207,college,symbol,src/chat-backend/services/chat.service.new.ts,ChatService (new),Service,minor,Alternative chat service implementation
+208,college,symbol,src/chat-backend/repositories/chat.repository.ts,ChatRepository,Repository,minor,Chat repository - IN SCOPE (keep)
+209,college,file,src/common/controllers/health.controller.ts,Health controller,Controller,minor,Health check endpoint - IN SCOPE (keep)
+210,college,config,.env.example,Environment template,Config,major,Environment variables template - needs cleanup
+211,auth,symbol,src/main.ts,no-auth policy comment,Documentation,minor,Documents trust model - keep but verify messaging
+212,college,symbol,src/app.ts,College references in startup,Server,blocker,Startup messages reference college
+213,college,directory,coverage/,Test coverage reports,Reports,minor,Test coverage directory - safe to ignore
+214,college,directory,dist/,Build output,Build artifacts,minor,Compiled output - safe to ignore
+215,college,directory,node_modules/,Dependencies,Dependencies,minor,Node modules - safe to ignore
+216,frontend,dependency,package.json,frontend scripts,Scripts,major,Verify no frontend build scripts in root package.json
+217,college,dependency,package.json,Upload dependencies,Dependencies,major,Verify upload/OCR dependencies (sharp tesseract.js)
+218,college,dependency,package.json,S3 dependencies,Dependencies,minor,AWS SDK - may be needed for attachments
+219,college,route,/api/upload/,Upload endpoints,Route pattern,major,File upload routes - verify attachment needs
+220,college,route,/api/user/,User endpoints,Route pattern,major,User management endpoints - verify what's needed
+221,college,route,/api/feed/,Feed endpoints,Route pattern,blocker,Social feed endpoints - out of scope
+222,college,route,/api/posts/,Post endpoints,Route pattern,blocker,Social post endpoints - out of scope
+223,college,route,/api/connections/,Connection endpoints,Route pattern,blocker,Social connection endpoints - out of scope
+224,college,route,/api/interactions/,Interaction endpoints,Route pattern,blocker,Social interaction endpoints - out of scope
+225,college,doc,docs/governance/ADR-001-SCOPE-BOUNDARY.md,Scope definition,Governance,minor,Defines scope boundary - IN SCOPE (reference doc)
+226,college,doc,docs/governance/OWNERSHIP-MATRIX.md,Ownership matrix,Governance,minor,RACI matrix - IN SCOPE (reference doc)
+227,college,doc,docs/governance/CHANGE-CONTROL.md,Change control,Governance,minor,Change process - IN SCOPE (reference doc)
+228,college,doc,docs/governance/THREAT-MODEL.md,Threat model,Governance,minor,Security analysis - IN SCOPE (reference doc)
+229,college,doc,docs/governance/DATA-RETENTION.md,Data retention,Governance,minor,GDPR compliance - IN SCOPE (reference doc)
+230,college,doc,docs/governance/INCIDENT-RESPONSE.md,Incident response,Governance,minor,Runbooks - IN SCOPE (reference doc)
+231,college,doc,docs/observability/LOGGING-METRICS-TRACING.md,Observability spec,Governance,minor,Logging specs - IN SCOPE (reference doc)
+232,college,doc,docs/observability/ALERTING-STRATEGY.md,Alerting strategy,Governance,minor,Alert specs - IN SCOPE (reference doc)
+233,college,doc,docs/ci-cd/PIPELINE-SPECIFICATION.md,CI/CD spec,Governance,minor,Pipeline specs - IN SCOPE (reference doc)
+234,college,doc,docs/baselines/BASELINE-METRICS.md,Baseline metrics,Governance,minor,Metrics baseline - IN SCOPE (reference doc)
+235,college,doc,docs/GOVERNANCE-VALIDATION.md,Validation report,Governance,minor,Validation - IN SCOPE (reference doc)

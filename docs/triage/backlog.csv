@@ -1,0 +1,89 @@
+id,title,category,domain,severity,scope,module,impact-area,dependencies,effort-estimate,acceptance-criteria-ref
+BLOCKER-001,Remove src/idcard/ module (ID card verification),college,stability,blocker,code,idcard,server-boot,app.module.ts,L,acceptance-tests/BLOCKER-001.sh
+BLOCKER-002,Remove src/feed/ module (social feed),college,stability,blocker,code,feed,server-boot,app.module.ts,M,acceptance-tests/BLOCKER-002.sh
+BLOCKER-003,Remove src/posts/ module (social posts),college,stability,blocker,code,posts,server-boot,"app.module.ts,feed.module.ts",M,acceptance-tests/BLOCKER-003.sh
+BLOCKER-004,Remove src/connections/ module (social graph),college,stability,blocker,code,connections,server-boot,app.module.ts,M,acceptance-tests/BLOCKER-004.sh
+BLOCKER-005,Remove src/interactions/ module (likes/comments),college,stability,blocker,code,interactions,server-boot,app.module.ts,M,acceptance-tests/BLOCKER-005.sh
+BLOCKER-006,Remove src/upload/ module (OCR for ID cards),college,stability,blocker,code,upload,server-boot,"app.module.ts,idcard.module.ts",M,acceptance-tests/BLOCKER-006.sh
+BLOCKER-007,Drop User.verifiedCollegeId from schema,college,correctness,blocker,schema,user,database-schema,prisma-migrate,M,acceptance-tests/BLOCKER-007.sh
+BLOCKER-008,Drop User.collegeName from schema,college,correctness,blocker,schema,user,database-schema,prisma-migrate,M,acceptance-tests/BLOCKER-008.sh
+BLOCKER-009,Drop User.studentIdNumber from schema,college,correctness,blocker,schema,user,database-schema,prisma-migrate,M,acceptance-tests/BLOCKER-009.sh
+BLOCKER-010,Drop Post model from schema,college,correctness,blocker,schema,posts,database-schema,prisma-migrate,S,acceptance-tests/BLOCKER-010.sh
+BLOCKER-011,Drop Connection model from schema,college,correctness,blocker,schema,connections,database-schema,prisma-migrate,S,acceptance-tests/BLOCKER-011.sh
+BLOCKER-012,Drop Interaction model from schema,college,correctness,blocker,schema,interactions,database-schema,prisma-migrate,S,acceptance-tests/BLOCKER-012.sh
+BLOCKER-013,Drop Feed model from schema,college,correctness,blocker,schema,feed,database-schema,prisma-migrate,S,acceptance-tests/BLOCKER-013.sh
+BLOCKER-014,Delete frontend/ directory (React app),frontend,stability,blocker,code,frontend,server-boot,none,S,acceptance-tests/BLOCKER-014.sh
+BLOCKER-015,Remove college references from package.json name/description,college,debt,blocker,config,root,branding,none,S,acceptance-tests/BLOCKER-015.sh
+BLOCKER-016,Rename database from college_chat_db,college,correctness,blocker,config,infra,database-connection,none,M,acceptance-tests/BLOCKER-016.sh
+BLOCKER-017,Remove /api/idcard/** routes (6 endpoints),college,stability,blocker,code,idcard,api-surface,BLOCKER-001,S,acceptance-tests/BLOCKER-017.sh
+BLOCKER-018,Remove /api/feed/** routes (3 endpoints),college,stability,blocker,code,feed,api-surface,BLOCKER-002,S,acceptance-tests/BLOCKER-018.sh
+BLOCKER-019,Remove /api/posts/** routes (6 endpoints),college,stability,blocker,code,posts,api-surface,BLOCKER-003,S,acceptance-tests/BLOCKER-019.sh
+BLOCKER-020,Remove /api/connections/** routes (6 endpoints),college,stability,blocker,code,connections,api-surface,BLOCKER-004,S,acceptance-tests/BLOCKER-020.sh
+BLOCKER-021,Remove /api/interactions/** routes (6 endpoints),college,stability,blocker,code,interactions,api-surface,BLOCKER-005,S,acceptance-tests/BLOCKER-021.sh
+BLOCKER-022,Remove college references from startup messages,college,debt,blocker,code,main,branding,none,S,acceptance-tests/BLOCKER-022.sh
+BLOCKER-023,Delete ID_CARD_VERIFICATION.md documentation,college,debt,blocker,docs,docs,documentation,BLOCKER-001,S,acceptance-tests/BLOCKER-023.sh
+BLOCKER-024,Delete AUTHENTICATION_COMPLETE.md documentation,auth,debt,blocker,docs,docs,documentation,none,S,acceptance-tests/BLOCKER-024.sh
+BLOCKER-025,Remove AWS S3 env vars from .env.example,college,debt,blocker,config,root,environment,BLOCKER-006,S,acceptance-tests/BLOCKER-025.sh
+MAJOR-001,Refactor User module - remove college endpoints,college,stability,major,code,user,api-surface,"BLOCKER-007,BLOCKER-008,BLOCKER-009",M,acceptance-tests/MAJOR-001.sh
+MAJOR-002,Fix 2 high severity npm vulnerabilities,security,security,major,deps,root,dependencies,none,M,acceptance-tests/MAJOR-002.sh
+MAJOR-003,Fix 7 moderate npm vulnerabilities,security,security,major,deps,root,dependencies,none,S,acceptance-tests/MAJOR-003.sh
+MAJOR-004,Enable 44 skipped integration tests,testing,correctness,major,tests,test,test-coverage,database-setup,L,acceptance-tests/MAJOR-004.sh
+MAJOR-005,Remove college references from README.md,college,debt,major,docs,docs,documentation,"BLOCKER-001,BLOCKER-002,BLOCKER-003",M,acceptance-tests/MAJOR-005.sh
+MAJOR-006,Remove college references from API_DOCUMENTATION.md,college,debt,major,docs,docs,api-documentation,"BLOCKER-017,BLOCKER-018,BLOCKER-019",M,acceptance-tests/MAJOR-006.sh
+MAJOR-007,Consolidate CORS env vars (3 vars to 1),config,debt,major,config,root,environment,none,S,acceptance-tests/MAJOR-007.sh
+MAJOR-008,Implement or remove REDIS_URL (Socket.IO scaling),config,debt,major,config,socket,environment,none,M,acceptance-tests/MAJOR-008.sh
+MAJOR-009,Add Helmet for HTTP security headers,security,security,major,code,main,http-security,none,S,acceptance-tests/MAJOR-009.sh
+MAJOR-010,Validate rate limiting is enforced,security,security,major,tests,middleware,rate-limiting,MAJOR-004,M,acceptance-tests/MAJOR-010.sh
+MAJOR-011,Validate input validation is enforced,security,correctness,major,tests,middleware,input-validation,MAJOR-004,M,acceptance-tests/MAJOR-011.sh
+MAJOR-012,Document 12 undocumented in-scope chat endpoints,documentation,debt,major,docs,docs,api-documentation,none,M,acceptance-tests/MAJOR-012.sh
+MAJOR-013,Document 9 undocumented Socket.IO events,documentation,debt,major,docs,docs,api-documentation,none,M,acceptance-tests/MAJOR-013.sh
+MAJOR-014,Remove FRONTEND_URL and CLIENT_URL env vars,frontend,debt,major,config,root,environment,BLOCKER-014,S,acceptance-tests/MAJOR-014.sh
+MAJOR-015,Remove mobile optimization service (college-specific),college,debt,major,code,common,services,BLOCKER-001,S,acceptance-tests/MAJOR-015.sh
+MAJOR-016,Clean up validation middleware (remove ID card validation),college,stability,major,code,middleware,validation,BLOCKER-001,S,acceptance-tests/MAJOR-016.sh
+MAJOR-017,Remove author tracking from mock Prisma client,college,debt,major,code,infra,mocks,"BLOCKER-010,BLOCKER-003",S,acceptance-tests/MAJOR-017.sh
+MAJOR-018,Delete legacy JavaScript files (8 orphaned files),legacy,debt,major,code,multiple,code-quality,none,S,acceptance-tests/MAJOR-018.sh
+MAJOR-019,Remove chat-backend/ duplicate directory,legacy,debt,major,code,chat-backend,code-quality,none,M,acceptance-tests/MAJOR-019.sh
+MAJOR-020,Update seed scripts - remove college data,college,correctness,major,code,prisma,database-seed,"BLOCKER-007,BLOCKER-008,BLOCKER-009",M,acceptance-tests/MAJOR-020.sh
+MINOR-001,Add DB_* env vars to .env.example documentation,config,debt,minor,docs,docs,environment,none,S,acceptance-tests/MINOR-001.sh
+MINOR-002,Change PRISMA_CLIENT_MODE default from mock to auto,config,debt,minor,config,root,environment,none,S,acceptance-tests/MINOR-002.sh
+MINOR-003,Remove authorization header from CORS allowed headers,auth,debt,minor,code,main,http-configuration,none,S,acceptance-tests/MINOR-003.sh
+MINOR-004,Remove commented @UseGuards decorators,auth,debt,minor,code,posts,code-quality,BLOCKER-003,S,acceptance-tests/MINOR-004.sh
+MINOR-005,Clean up governance docs references to college,college,debt,minor,docs,docs,documentation,none,M,acceptance-tests/MINOR-005.sh
+MINOR-006,Remove MOBILE_OPTIMIZATION_REPORT.md,college,debt,minor,docs,docs,documentation,MAJOR-015,S,acceptance-tests/MINOR-006.sh
+MINOR-007,Remove UPLOAD_ROUTER_STATUS.md,college,debt,minor,docs,docs,documentation,BLOCKER-006,S,acceptance-tests/MINOR-007.sh
+MINOR-008,Clean up Docker Compose database name,college,debt,minor,config,root,deployment,BLOCKER-016,S,acceptance-tests/MINOR-008.sh
+MINOR-009,Remove legacy Express routes (conversations.js chat.js),legacy,debt,minor,code,routes,code-quality,none,S,acceptance-tests/MINOR-009.sh
+MINOR-010,Add conversationId+createdAt composite index,performance,performance,minor,schema,message,query-performance,none,S,acceptance-tests/MINOR-010.sh
+MINOR-011,Add conversationId+userId+isRead composite index,performance,performance,minor,schema,message,query-performance,none,S,acceptance-tests/MINOR-011.sh
+MINOR-012,Optimize N+1 queries in getConversations,performance,performance,minor,code,chat,query-performance,MAJOR-004,M,acceptance-tests/MINOR-012.sh
+MINOR-013,Optimize N+1 queries in getMessages,performance,performance,minor,code,chat,query-performance,MAJOR-004,M,acceptance-tests/MINOR-013.sh
+MINOR-014,Add structured logging with correlation IDs,observability,stability,minor,code,middleware,logging,none,M,acceptance-tests/MINOR-014.sh
+MINOR-015,Add Prometheus metrics for chat operations,observability,stability,minor,code,chat,monitoring,none,M,acceptance-tests/MINOR-015.sh
+MINOR-016,Remove example-usage.js legacy file,legacy,debt,minor,code,utils,code-quality,none,S,acceptance-tests/MINOR-016.sh
+MINOR-017,Remove database.examples.ts legacy file,legacy,debt,minor,code,config,code-quality,none,S,acceptance-tests/MINOR-017.sh
+MINOR-018,Clean up test-middleware.js file,legacy,debt,minor,code,test,code-quality,none,S,acceptance-tests/MINOR-018.sh
+MINOR-019,Archive discovery and triage docs to history/,documentation,debt,minor,docs,docs,documentation,none,S,acceptance-tests/MINOR-019.sh
+MINOR-020,Create production runbook for deployment,documentation,debt,minor,docs,docs,operations,none,M,acceptance-tests/MINOR-020.sh
+PERF-001,Set p95 latency SLO at 250ms for message history,performance,performance,major,tests,chat,slo-definition,MAJOR-004,S,acceptance-tests/PERF-001.sh
+PERF-002,Benchmark concurrent connection handling (100 clients),performance,performance,major,tests,socket,performance-testing,MAJOR-004,M,acceptance-tests/PERF-002.sh
+PERF-003,Benchmark message throughput (1000 msg/sec),performance,performance,major,tests,chat,performance-testing,MAJOR-004,M,acceptance-tests/PERF-003.sh
+PERF-004,Add database query monitoring (slow query log),performance,performance,minor,code,infra,observability,MINOR-014,M,acceptance-tests/PERF-004.sh
+SEC-001,Verify Prisma SQL injection protection,security,security,minor,tests,infra,security-testing,MAJOR-004,S,acceptance-tests/SEC-001.sh
+SEC-002,Add XSS response header sanitization,security,security,minor,code,main,http-security,MAJOR-009,S,acceptance-tests/SEC-002.sh
+SEC-003,Configure Socket.IO max payload size,security,security,minor,code,socket,dos-prevention,none,S,acceptance-tests/SEC-003.sh
+SEC-004,Configure Socket.IO connection limits,security,security,minor,code,socket,dos-prevention,none,S,acceptance-tests/SEC-004.sh
+SEC-005,Add message content size validation (10KB limit),security,correctness,minor,code,chat,input-validation,MAJOR-011,S,acceptance-tests/SEC-005.sh
+SEC-006,Set up Snyk vulnerability scanning in CI/CD,security,security,minor,config,ci-cd,automation,none,M,acceptance-tests/SEC-006.sh
+DOC-001,Create OpenAPI spec for REST endpoints,documentation,debt,major,docs,docs,api-documentation,MAJOR-012,L,acceptance-tests/DOC-001.sh
+DOC-002,Document Socket.IO event contracts,documentation,debt,major,docs,docs,api-documentation,MAJOR-013,M,acceptance-tests/DOC-002.sh
+DOC-003,Update CHANGELOG.md with removal summary,documentation,debt,minor,docs,docs,changelog,none,S,acceptance-tests/DOC-003.sh
+DOC-004,Create migration guide for external clients,documentation,debt,major,docs,docs,migration-guide,"BLOCKER-017,BLOCKER-018,BLOCKER-019",M,acceptance-tests/DOC-004.sh
+TEST-001,Achieve 75% code coverage minimum,testing,correctness,major,tests,test,test-coverage,MAJOR-004,L,acceptance-tests/TEST-001.sh
+TEST-002,Add smoke test battery (REST + Socket.IO),testing,stability,major,tests,test,smoke-testing,MAJOR-004,L,acceptance-tests/TEST-002.sh
+TEST-003,Add database migration rollback tests,testing,stability,major,tests,infra,migration-safety,"BLOCKER-007,BLOCKER-008,BLOCKER-009",M,acceptance-tests/TEST-003.sh
+TEST-004,Add concurrent user load tests (50 RPS),testing,performance,major,tests,chat,load-testing,MAJOR-004,M,acceptance-tests/TEST-004.sh
+DEBT-001,Consolidate duplicate chat implementations,legacy,debt,major,code,chat,code-quality,MAJOR-019,L,acceptance-tests/DEBT-001.sh
+DEBT-002,Remove unused services (ML anomaly detection),legacy,debt,minor,code,common,code-quality,none,S,acceptance-tests/DEBT-002.sh
+DEBT-003,Remove unused services (device fingerprinting),legacy,debt,minor,code,common,code-quality,none,S,acceptance-tests/DEBT-003.sh
+DEBT-004,Verify GDPR compliance service is used,compliance,correctness,minor,code,common,compliance,none,M,acceptance-tests/DEBT-004.sh
+DEBT-005,Remove view tracking service (social feature),college,debt,minor,code,upload,code-quality,BLOCKER-006,S,acceptance-tests/DEBT-005.sh

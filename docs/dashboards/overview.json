@@ -1,0 +1,12 @@
+{
+  "title": "Chat Backend Overview",
+  "panels": [
+    { "type": "stat", "title": "Req/s", "target": "rate(http_requests_total[5m])" },
+    { "type": "graph", "title": "p95 latency", "target": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))" },
+    { "type": "graph", "title": "Error rate %", "target": "sum(rate(http_requests_failed_total[5m])) / sum(rate(http_requests_total[5m])) * 100" },
+    { "type": "graph", "title": "Connection count", "target": "socket_connections" },
+    { "type": "graph", "title": "DB query time", "target": "histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket[5m])) by (le))" },
+    { "type": "graph", "title": "CPU %", "target": "node_cpu_seconds_total" },
+    { "type": "graph", "title": "Memory", "target": "node_memory_MemAvailable_bytes" }
+  ]
+}

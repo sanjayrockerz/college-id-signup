@@ -1,0 +1,50 @@
+{
+  "total": 117,
+  "byFamily": {
+    "unused-declaration": 114,
+    "incomplete-control-flow": 1,
+    "missing-import": 2
+  },
+  "topFiles": [
+    [
+      "src/infra/prisma/mock-prisma-client.ts",
+      69
+    ],
+    [
+      "src/chat-backend/controllers/chat.controller.ts",
+      10
+    ],
+    [
+      "src/user/data/user.repository.ts",
+      8
+    ],
+    [
+      "src/app.ts",
+      6
+    ],
+    [
+      "src/chat-backend/services/chat.service.new.ts",
+      5
+    ],
+    [
+      "src/chat-backend/services/chat.service.ts",
+      5
+    ],
+    [
+      "src/main.ts",
+      4
+    ],
+    [
+      "src/common/services/mobile-optimization.service.ts",
+      3
+    ],
+    [
+      "src/middleware/logging.ts",
+      2
+    ],
+    [
+      "src/upload/upload.module.ts",
+      2
+    ]
+  ]
+}
