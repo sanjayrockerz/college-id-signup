@@ -19,6 +19,10 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import * as fs from "fs";
+import * as path from "path";
+import { ExpressAdapter } from "@nestjs/platform-express";
+import express from "express";
+import { registerDocsRoutes } from "./docs/registerDocs";
 import {
   requestIdMiddleware,
   requestLoggingMiddleware,
@@ -27,7 +31,8 @@ import {
 } from "./middleware/logging";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const server = express();
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   // Request ID generation (must be first)
   app.use(requestIdMiddleware);
@@ -79,8 +84,8 @@ async function bootstrap() {
     next();
   });
 
-  // Metrics endpoint (accessible for monitoring)
-  app.use("/metrics", (req, res) => metricsEndpoint(req, res));
+  // Serve OpenAPI and Redoc at /docs
+  registerDocsRoutes(server);
 
   // Global prefix for API routes
   app.setGlobalPrefix("api/v1");
@@ -112,7 +117,8 @@ async function bootstrap() {
     console.log(`  - Users: http://localhost:${port}/api/v1/users`);
     console.log("");
     console.log("🛡️  Security: Rate limiting, validation, logging enabled");
-    console.log("📖 Docs: docs/operations/monitoring.md");
+    console.log("📖 API Docs UI: http://localhost:" + port + "/docs");
+    console.log("📄 OpenAPI Spec: http://localhost:" + port + "/docs/openapi.yaml");
   }
 
   await app.listen(port);

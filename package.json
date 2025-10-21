@@ -20,7 +20,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:studio": "prisma studio",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "prepare": "husky install",
+    "openapi:lint": "@redocly/cli lint docs/contracts/openapi.yaml"
   },
   "_deprecated_scripts_comment": "Legacy Express scripts removed 2025-10-20. See src/deprecated/README.md for migration info.",
   "_deprecated_scripts": {
@@ -77,7 +79,17 @@
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.1.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix"
+    ],
+    "**/*.{ts,js,json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

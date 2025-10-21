@@ -1,0 +1,37 @@
+name: Monthly Health Audit
+on:
+  schedule:
+    - cron: '0 6 1 * *' # 06:00 UTC on the 1st of every month
+  workflow_dispatch:
+
+jobs:
+  health-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Run guardrails
+        run: |
+          set -e
+          if grep -RIE --line-number "from ['\"]/.*\/(auth|college|idcard|campus|student)" src/ 2>/dev/null; then
+            echo "❌ ERROR: Auth/college imports detected." && exit 1; fi
+          if grep -RIE --line-number "^(model|interface) (College|Campus|Student|IdCard)" prisma/schema.prisma 2>/dev/null; then
+            echo "❌ ERROR: College-domain schema detected." && exit 1; fi
+          if [ -d client ] || [ -d frontend ] || [ -d public ] || [ -d views ]; then
+            echo "❌ ERROR: Frontend directories detected." && exit 1; fi
+          npx --yes @redocly/cli@latest lint docs/contracts/openapi.yaml
+      - name: Collect technical health metrics
+        run: |
+          echo "files=$(git ls-files | wc -l)" >> audit.env
+          echo "js_ts_lines=$(git ls-files "*.ts" "*.js" | xargs wc -l | tail -1 | awk '{print $1}')" >> audit.env
+          echo "deps=$(cat package.json | jq -r '.dependencies | keys | length')" >> audit.env
+          echo "dev_deps=$(cat package.json | jq -r '.devDependencies | keys | length')" >> audit.env
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-audit
+          path: audit.env

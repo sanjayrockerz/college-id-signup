@@ -216,14 +216,7 @@ npm run prisma:seed
 
 **Development mode:**
 ```bash
-# Express server
-npm run start:express:dev
-
-# NestJS server
 npm run start:dev
-
-# Simple server (fastest startup)
-npm run serve:quick
 ```
 
 **Production mode:**
@@ -278,7 +271,12 @@ college-id-signup-1/
 
 ## API Documentation
 
-See [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for detailed endpoint documentation.
+Interactive API docs are served in-app:
+
+- UI: http://localhost:3001/docs
+- Spec: http://localhost:3001/docs/openapi.yaml (also at docs/contracts/openapi.yaml)
+
+For additional narrative docs, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).
 
 ### Quick API Examples
 
