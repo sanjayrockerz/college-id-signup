@@ -1,0 +1,211 @@
+{
+  "generatedAt": "2025-10-21T05:36:00Z",
+  "runs": [
+    {
+      "name": "jest-forced-integrations",
+      "type": "full",
+      "command": "FORCE_PRISMA_INTEGRATION=true npx jest --coverage --verbose --runInBand",
+      "status": "failed",
+      "exitCode": 1,
+      "durationSeconds": 102.07,
+      "environment": {
+        "PRISMA_CLIENT_MODE": "mock",
+        "FORCE_PRISMA_INTEGRATION": "true"
+      },
+      "summary": {
+        "passed": 1,
+        "failed": 44,
+        "skipped": 0,
+        "total": 45,
+        "error": "Chat HTTP routes responded with 404 and Socket.IO handshake timed out under mock Prisma mode."
+      },
+      "tests": [
+        {
+          "file": "test/chat-api.integration.spec.ts",
+          "title": "POST /api/v1/chat/conversations should create a direct conversation with userId in body",
+          "status": "failed",
+          "details": "Expected 201 Created, received 404 Not Found.",
+          "durationMs": 10
+        },
+        {
+          "file": "test/socket-api.integration.spec.ts",
+          "title": "beforeEach hook establishing socket connections",
+          "status": "failed",
+          "details": "Exceeded Jest 5s timeout waiting for both clients to connect.",
+          "durationMs": 5000
+        },
+        {
+          "file": "test/socket/handlers.spec.ts",
+          "title": "socket handlers rejects send_message for non-member sockets",
+          "status": "passed",
+          "durationMs": 2
+        }
+      ],
+      "coverage": {
+        "statements": 12.59,
+        "branches": 3.86,
+        "lines": 11.51,
+        "functions": 7.96
+      },
+      "notes": [
+        "Integration describe blocks no longer skipped via FORCE_PRISMA_INTEGRATION=true.",
+        "AppModule served with Prisma mock; API prefix/security middleware not applied in test harness, yielding 404 responses.",
+        "Socket gateway not initialised by Nest test harness; clients never reach connect-ready state."
+      ]
+    },
+    {
+      "name": "jest-unit-run-with-coverage",
+      "type": "unit",
+      "command": "npx jest --coverage --verbose --runInBand",
+      "status": "failed",
+      "exitCode": 1,
+      "durationSeconds": 1.622,
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 44,
+        "total": 45,
+        "error": "Global coverage thresholds unmet (statements 1.88%, branches 1.33%, lines 1.95%, functions 1.02%)."
+      },
+      "tests": [
+        {
+          "file": "test/socket/handlers.spec.ts",
+          "title": "socket handlers rejects send_message for non-member sockets",
+          "status": "passed",
+          "durationMs": 8
+        }
+      ],
+      "skippedSuites": [
+        {
+          "file": "test/chat-api.integration.spec.ts",
+          "reason": "describe.skip activated when Prisma mock client is in use."
+        },
+        {
+          "file": "test/socket-api.integration.spec.ts",
+          "reason": "describe.skip activated when Prisma mock client is in use."
+        }
+      ],
+      "coverage": {
+        "statements": 1.88,
+        "branches": 1.33,
+        "lines": 1.95,
+        "functions": 1.02
+      }
+    },
+    {
+      "name": "jest-unit-run-2",
+      "type": "unit",
+      "command": "npx jest --runInBand --verbose",
+      "status": "passed",
+      "exitCode": 0,
+      "durationSeconds": 0.87,
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 44,
+        "total": 45
+      },
+      "tests": [
+        {
+          "file": "test/socket/handlers.spec.ts",
+          "title": "socket handlers rejects send_message for non-member sockets",
+          "status": "passed",
+          "durationMs": 11
+        }
+      ]
+    },
+    {
+      "name": "jest-unit-run-3",
+      "type": "unit",
+      "command": "npx jest --runInBand --verbose",
+      "status": "passed",
+      "exitCode": 0,
+      "durationSeconds": 0.769,
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 44,
+        "total": 45
+      },
+      "tests": [
+        {
+          "file": "test/socket/handlers.spec.ts",
+          "title": "socket handlers rejects send_message for non-member sockets",
+          "status": "passed",
+          "durationMs": 10
+        }
+      ]
+    },
+    {
+      "name": "jest-e2e-run-1",
+      "type": "e2e",
+      "command": "npm run test:e2e -- --runInBand --verbose",
+      "status": "passed",
+      "exitCode": 0,
+      "durationSeconds": 0.658,
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "total": 1
+      },
+      "tests": [
+        {
+          "file": "test/docs.e2e-spec.ts",
+          "title": "OpenAPI docs endpoint (integration) GET /docs/openapi.yaml returns 200 and YAML content-type",
+          "status": "passed",
+          "durationMs": 9
+        }
+      ]
+    },
+    {
+      "name": "jest-e2e-run-2",
+      "type": "e2e",
+      "command": "npm run test:e2e -- --runInBand --verbose",
+      "status": "passed",
+      "exitCode": 0,
+      "durationSeconds": 0.625,
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "total": 1
+      },
+      "tests": [
+        {
+          "file": "test/docs.e2e-spec.ts",
+          "title": "OpenAPI docs endpoint (integration) GET /docs/openapi.yaml returns 200 and YAML content-type",
+          "status": "passed",
+          "durationMs": 18
+        }
+      ]
+    },
+    {
+      "name": "jest-e2e-run-3",
+      "type": "e2e",
+      "command": "npm run test:e2e -- --runInBand --verbose",
+      "status": "passed",
+      "exitCode": 0,
+      "durationSeconds": 0.639,
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "total": 1
+      },
+      "tests": [
+        {
+          "file": "test/docs.e2e-spec.ts",
+          "title": "OpenAPI docs endpoint (integration) GET /docs/openapi.yaml returns 200 and YAML content-type",
+          "status": "passed",
+          "durationMs": 8
+        }
+      ]
+    }
+  ],
+  "flakeAnalysis": {
+    "repeatRuns": 4,
+    "flaky": false,
+    "notes": "Integration suites now execute (forced) but fail consistently due to missing API wiring/socket bootstrapping under Prisma mock mode. Unit/socket handler spec remains stable across prior runs."
+  }
+}

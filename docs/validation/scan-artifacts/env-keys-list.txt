@@ -1,0 +1,12 @@
+Environment variables referencing frontend or client domains:
+
+.env.example:
+  CORS_ORIGIN=http://localhost:3000
+  FRONTEND_URL=http://localhost:3000
+  CLIENT_URL=http://localhost:3000
+
+README.md:
+  FRONTEND_URL=http://localhost:3000
+
+DEPLOYMENT_PLAN.md:
+  References to coordinating frontend deployment (Step 3.3 Update Frontend)

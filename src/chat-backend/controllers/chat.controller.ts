@@ -80,7 +80,7 @@ export class ChatController {
    */
   @Get("conversations")
   async getUserConversations(
-    @Request() req: any,
+    @Request() _req: any,
     @Query("limit", new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query("cursor") cursor?: string,
     @Query("userId") queryUserId?: string,
@@ -105,7 +105,7 @@ export class ChatController {
    */
   @Get("conversations/:conversationId")
   async getConversationDetails(
-    @Request() req: any,
+    @Request() _req: any,
     @Param("conversationId") conversationId: string,
     @Query("userId") queryUserId?: string,
   ) {
@@ -126,7 +126,7 @@ export class ChatController {
    */
   @Post("conversations/:conversationId/messages")
   async sendMessage(
-    @Request() req: any,
+    @Request() _req: any,
     @Param("conversationId") conversationId: string,
     @Body() sendMessageDto: SendMessageRequest & { userId?: string },
   ) {
@@ -157,7 +157,7 @@ export class ChatController {
    */
   @Get("conversations/:conversationId/messages")
   async getMessages(
-    @Request() req: any,
+    @Request() _req: any,
     @Param("conversationId") conversationId: string,
     @Query("limit", new DefaultValuePipe(50), ParseIntPipe) limit: number,
     @Query("cursor") cursor?: string,
@@ -192,7 +192,7 @@ export class ChatController {
    */
   @Put("conversations/:conversationId/messages/read")
   async markMessagesAsRead(
-    @Request() req: any,
+    @Request() _req: any,
     @Param("conversationId") conversationId: string,
     @Body() markReadDto: MarkReadRequest & { userId?: string },
   ) {
@@ -219,7 +219,7 @@ export class ChatController {
    */
   @Get("unread-count")
   async getUnreadCount(
-    @Request() req: any,
+    @Request() _req: any,
     @Query("userId") queryUserId?: string,
   ) {
     const userId = queryUserId;
@@ -241,7 +241,7 @@ export class ChatController {
    */
   @Post("direct-messages")
   async createDirectMessage(
-    @Request() req: any,
+    @Request() _req: any,
     @Body() body: { userId: string; currentUserId?: string },
   ) {
     const currentUserId = body.currentUserId;
@@ -272,7 +272,7 @@ export class ChatController {
    */
   @Post("conversations/:conversationId/participants")
   async addUserToConversation(
-    @Request() req: any,
+    @Request() _req: any,
     @Param("conversationId") conversationId: string,
     @Body() addUserDto: AddUserRequest & { currentUserId?: string },
   ) {
@@ -301,7 +301,7 @@ export class ChatController {
    */
   @Get("conversations/:conversationId/search")
   async searchMessages(
-    @Request() req: any,
+    @Request() _req: any,
     @Param("conversationId") conversationId: string,
     @Query("q") query: string,
     @Query("limit", new DefaultValuePipe(20), ParseIntPipe) limit: number,
@@ -335,7 +335,7 @@ export class ChatController {
    */
   @Get("conversations/:conversationId/stats")
   async getConversationStats(
-    @Request() req: any,
+    @Request() _req: any,
     @Param("conversationId") conversationId: string,
     @Query("userId") queryUserId?: string,
   ) {

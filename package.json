@@ -22,7 +22,10 @@
     "prisma:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
     "prepare": "husky install",
-    "openapi:lint": "@redocly/cli lint docs/contracts/openapi.yaml"
+    "openapi:lint": "@redocly/cli lint docs/contracts/openapi.yaml",
+    "perf:seed-data": "ts-node --transpile-only scripts/performance/db-analysis/seed-performance-data.ts",
+    "perf:query-analyzer": "ts-node --transpile-only scripts/performance/db-analysis/query-analyzer.ts",
+    "perf:index-stats": "python3 scripts/performance/db-analysis/psql_timeout_runner.py --no-pager --on-error-stop --timeout ${PSQL_TIMEOUT:-30} --dsn \"${DATABASE_URL}\" --file scripts/performance/db-analysis/index-stats.sql"
   },
   "_deprecated_scripts_comment": "Legacy Express scripts removed 2025-10-20. See src/deprecated/README.md for migration info.",
   "_deprecated_scripts": {

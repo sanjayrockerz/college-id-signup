@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/47</span>
+                <span class='fraction'>0/45</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/47</span>
+                <span class='fraction'>0/45</span>
             </div>
         
             
@@ -238,14 +238,7 @@
 <a name='L173'></a><a href='#L173'>173</a>
 <a name='L174'></a><a href='#L174'>174</a>
 <a name='L175'></a><a href='#L175'>175</a>
-<a name='L176'></a><a href='#L176'>176</a>
-<a name='L177'></a><a href='#L177'>177</a>
-<a name='L178'></a><a href='#L178'>178</a>
-<a name='L179'></a><a href='#L179'>179</a>
-<a name='L180'></a><a href='#L180'>180</a>
-<a name='L181'></a><a href='#L181'>181</a>
-<a name='L182'></a><a href='#L182'>182</a>
-<a name='L183'></a><a href='#L183'>183</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L176'></a><a href='#L176'>176</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -259,7 +252,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -319,21 +311,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -342,6 +326,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -441,7 +427,6 @@ const {
 } = <span class="cstat-no" title="statement not covered" >require('./middleware/rateLimiter');</span>
 &nbsp;
 // Import routes
-const idcardRoutes = <span class="cstat-no" title="statement not covered" >require('./routes/idcard');</span>
 const chatRoutes = <span class="cstat-no" title="statement not covered" >require('./routes/chat');</span>
 const conversationsRoutes = <span class="cstat-no" title="statement not covered" >require('./routes/conversations');</span>
 const uploadRoutes = <span class="cstat-no" title="statement not covered" >require('./routes/upload');</span>
@@ -501,7 +486,7 @@ const app = <span class="cstat-no" title="statement not covered" >express();</sp
 });
 &nbsp;
 // API Routes with specific rate limiters
-<span class="cstat-no" title="statement not covered" >app.use('/api/id-card', idcardRoutes);</span>
+// ID card route removed; legacy endpoints respond with 410 via stub router.
 <span class="cstat-no" title="statement not covered" >app.use('/api/chat', messagingLimiter, chatRoutes);</span>
 <span class="cstat-no" title="statement not covered" >app.use('/api/conversations', messagingLimiter, conversationsRoutes);</span>
 <span class="cstat-no" title="statement not covered" >app.use('/api/upload', uploadLimiter, uploadRoutes);</span>
@@ -538,13 +523,7 @@ const app = <span class="cstat-no" title="statement not covered" >express();</sp
         signUrl: 'POST /api/upload/sign-url',
         config: 'GET /api/upload/config'
       },
-      idCard: {
-        upload: 'POST /api/id-card/upload',
-        status: 'GET /api/id-card/status',
-        resubmit: 'PUT /api/id-card/resubmit',
-        adminPending: 'GET /api/id-card/admin/pending',
-        adminReview: 'PUT /api/id-card/admin/review/:verificationId'
-      },
+      idCard: 'Feature removed. All previous endpoints now return 410.',
       health: {
         general: 'GET /health',
         database: 'GET /health/database'
@@ -616,7 +595,7 @@ const app = <span class="cstat-no" title="statement not covered" >express();</sp
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-20T13:32:16.768Z
+                at 2025-10-21T06:23:06.227Z
             </div>
         <script src="../prettify.js"></script>
         <script>

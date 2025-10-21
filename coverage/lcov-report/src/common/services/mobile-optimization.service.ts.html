@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">4.13% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/147</span>
+                <span class='fraction'>6/145</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/74</span>
+                <span class='fraction'>0/73</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">2.56% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/39</span>
+                <span class='fraction'>1/39</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">3.1% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/131</span>
+                <span class='fraction'>4/129</span>
             </div>
         
             
@@ -643,12 +643,8 @@
 <a name='L578'></a><a href='#L578'>578</a>
 <a name='L579'></a><a href='#L579'>579</a>
 <a name='L580'></a><a href='#L580'>580</a>
-<a name='L581'></a><a href='#L581'>581</a>
-<a name='L582'></a><a href='#L582'>582</a>
-<a name='L583'></a><a href='#L583'>583</a>
-<a name='L584'></a><a href='#L584'>584</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L581'></a><a href='#L581'>581</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -682,10 +678,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -785,8 +781,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1229,9 +1223,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Injectable, Logger } from "@nestjs/common";</span>
-<span class="cstat-no" title="statement not covered" >import { PrismaService } from "../../infra/prisma/prisma.service";</span>
-<span class="cstat-no" title="statement not covered" >import sharp from "sharp";</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Injectable, Logger } from "@nestjs/common";
+import sharp from "sharp";
 import {
   MobileUserDto,
   MobileFeedDto,
@@ -1265,10 +1258,10 @@ export interface MobilePaginationOptions {
 }
 &nbsp;
 @Injectable()
-export class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >MobileOptimizationService<span class="cstat-no" title="statement not covered" > </span>{</span></span>
-  private readonly <span class="cstat-no" title="statement not covered" >logger = new Logger(MobileOptimizationService.name);</span>
+export class MobileOptimizationService {
+  private readonly logger = new Logger(MobileOptimizationService.name);
 &nbsp;
-<span class="fstat-no" title="function not covered" >  constructor(private readonly <span class="cstat-no" title="statement not covered" >p</span>risma: P</span>rismaService) {}
+  constructor() {}
 &nbsp;
   /**
    * Optimize images for mobile consumption based on network quality and data usage preferences
@@ -1380,13 +1373,11 @@ export class <span class="cstat-no" title="statement not covered" ><span class="
     options: {
       batchSize?: number;
       delayBetweenBatches?: number;
-      maxConcurrency?: number;
     } = <span class="branch-0 cbranch-no" title="branch not covered" >{},</span>
   ): Promise&lt;R[]&gt; {
     const {
       batchSize = <span class="branch-0 cbranch-no" title="branch not covered" >3,</span> // Conservative batch size for mobile
       delayBetweenBatches = <span class="branch-0 cbranch-no" title="branch not covered" >100,</span> // Battery-friendly delay
-      maxConcurrency = <span class="branch-0 cbranch-no" title="branch not covered" >2,</span> // Limit concurrent operations
     } = <span class="cstat-no" title="statement not covered" >options;</span>
 &nbsp;
     const results: R[] = <span class="cstat-no" title="statement not covered" >[];</span>
@@ -1819,7 +1810,7 @@ export class <span class="cstat-no" title="statement not covered" ><span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-20T15:51:07.218Z
+                at 2025-10-21T06:23:06.227Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

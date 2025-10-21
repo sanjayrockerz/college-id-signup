@@ -16,6 +16,58 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
 }
 
+const isMockPrismaMode = () => process.env.PRISMA_CLIENT_MODE === "mock";
+
+interface MockConversationRecord {
+  id: string;
+  type: "DIRECT" | "GROUP";
+  title?: string;
+  description?: string;
+  participantIds: string[];
+  createdById: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface MockMessageRecord {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  messageType: "TEXT" | "IMAGE" | "FILE" | "VOICE";
+  createdAt: Date;
+}
+
+const mockChatStore = {
+  conversations: new Map<string, MockConversationRecord>(),
+  messages: new Map<string, MockMessageRecord[]>(),
+};
+
+let mockIdCounter = 0;
+const nextMockId = (prefix: string) => `${prefix}-${++mockIdCounter}`;
+
+const serializeMockConversation = (conversation: MockConversationRecord) => ({
+  id: conversation.id,
+  type: conversation.type,
+  title: conversation.title,
+  description: conversation.description,
+  participants: conversation.participantIds.map((userId) => ({
+    userId,
+  })),
+  participantIds: conversation.participantIds,
+  createdById: conversation.createdById,
+  createdAt: conversation.createdAt,
+  updatedAt: conversation.updatedAt,
+});
+
+const serializeMockMessage = (message: MockMessageRecord) => ({
+  id: message.id,
+  content: message.content,
+  messageType: message.messageType,
+  senderId: message.senderId,
+  createdAt: message.createdAt,
+});
+
 export interface ChatServiceInterface {
   createConversation(userId: string, data: CreateConversationDto): Promise<any>;
   getUserConversations(
@@ -46,11 +98,295 @@ export interface ChatServiceInterface {
 export class ChatService implements ChatServiceInterface {
   constructor(private readonly chatRepository: ChatRepository) {}
 
+  private createConversationMock(
+    userId: string,
+    data: CreateConversationDto,
+  ) {
+    const participants = Array.from(new Set([userId, ...data.participantIds]));
+
+    if (data.type === "DIRECT") {
+      const existing = [...mockChatStore.conversations.values()].find(
+        (conversation) =>
+          conversation.type === "DIRECT" &&
+          participants.length === conversation.participantIds.length &&
+          participants.every((id) =>
+            conversation.participantIds.includes(id),
+          ),
+      );
+
+      if (existing) {
+        return {
+          success: true,
+          conversation: serializeMockConversation(existing),
+          message: "Direct conversation ready",
+        };
+      }
+    }
+
+    const now = new Date();
+    const conversation: MockConversationRecord = {
+      id: nextMockId("mock-conv"),
+      type: data.type,
+      title: data.title,
+      description: data.description,
+      participantIds: participants,
+      createdById: userId,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    mockChatStore.conversations.set(conversation.id, conversation);
+    mockChatStore.messages.set(conversation.id, []);
+
+    return {
+      success: true,
+      conversation: serializeMockConversation(conversation),
+      message:
+        data.type === "DIRECT"
+          ? "Direct conversation ready"
+          : "Conversation created successfully",
+    };
+  }
+
+  private getUserConversationsMock(
+    userId: string,
+    limit: number,
+    cursor?: string,
+  ) {
+    const conversations = [...mockChatStore.conversations.values()].filter(
+      (conversation) => conversation.participantIds.includes(userId),
+    );
+
+    let sorted = conversations.sort(
+      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
+    );
+
+    if (cursor) {
+      const cursorDate = new Date(cursor);
+      if (!Number.isNaN(cursorDate.getTime())) {
+        sorted = sorted.filter((conversation) =>
+          conversation.updatedAt < cursorDate,
+        );
+      }
+    }
+
+    const page = sorted.slice(0, limit);
+    const hasMore = sorted.length > page.length;
+    const nextCursor = hasMore
+      ? page[page.length - 1].updatedAt.toISOString()
+      : null;
+
+    return {
+      success: true,
+      data: {
+        conversations: page.map(serializeMockConversation),
+        hasMore,
+        nextCursor,
+      },
+    };
+  }
+
+  private assertMockConversationParticipant(
+    conversationId: string,
+    userId: string,
+  ) {
+    const conversation = mockChatStore.conversations.get(conversationId);
+
+    if (!conversation || !conversation.participantIds.includes(userId)) {
+      throw new ForbiddenException(
+        "You are not a participant in this conversation",
+      );
+    }
+
+    return conversation;
+  }
+
+  private sendMessageMock(
+    conversationId: string,
+    userId: string,
+    data: SendMessageDto,
+  ) {
+    const conversation = this.assertMockConversationParticipant(
+      conversationId,
+      userId,
+    );
+
+    const message: MockMessageRecord = {
+      id: nextMockId("mock-msg"),
+      conversationId,
+      senderId: userId,
+      content: data.content,
+      messageType: data.messageType ?? "TEXT",
+      createdAt: new Date(),
+    };
+
+    const existingMessages = mockChatStore.messages.get(conversationId);
+    if (existingMessages) {
+      existingMessages.unshift(message);
+    } else {
+      mockChatStore.messages.set(conversationId, [message]);
+    }
+
+    conversation.updatedAt = new Date();
+
+    return {
+      success: true,
+      message: serializeMockMessage(message),
+      timestamp: message.createdAt.toISOString(),
+    };
+  }
+
+  private getMessagesMock(
+    conversationId: string,
+    userId: string,
+    options: GetMessagesDto = {},
+  ) {
+    const conversation = this.assertMockConversationParticipant(
+      conversationId,
+      userId,
+    );
+
+    const messages = [...(mockChatStore.messages.get(conversationId) ?? [])];
+
+    let filtered = messages;
+
+    if (options.after) {
+      filtered = filtered.filter((message) => message.createdAt > options.after);
+    }
+
+    if (options.before) {
+      filtered = filtered.filter(
+        (message) => message.createdAt < options.before,
+      );
+    }
+
+    if (options.cursor) {
+      const cursorDate = new Date(options.cursor);
+      if (!Number.isNaN(cursorDate.getTime())) {
+        filtered = filtered.filter((message) => message.createdAt < cursorDate);
+      }
+    }
+
+    const limit = options.limit ?? 50;
+    const page = filtered.slice(0, limit);
+    const hasMore = filtered.length > page.length;
+    const nextCursor = hasMore
+      ? page[page.length - 1].createdAt.toISOString()
+      : null;
+
+    // Ensure conversation updatedAt reflects latest message retrieval
+    conversation.updatedAt = new Date();
+
+    return {
+      success: true,
+      data: {
+        messages: page.map(serializeMockMessage),
+        hasMore,
+        nextCursor,
+      },
+    };
+  }
+
+  private markMessagesAsReadMock(
+    conversationId: string,
+    userId: string,
+    messageIds: string[],
+  ) {
+    this.assertMockConversationParticipant(conversationId, userId);
+
+    const availableMessages = mockChatStore.messages.get(conversationId) ?? [];
+    const uniqueRequested = Array.from(new Set(messageIds));
+    const marked = uniqueRequested.filter((messageId) =>
+      availableMessages.some((message) => message.id === messageId),
+    ).length;
+
+    return {
+      success: true,
+      markedAsRead: marked,
+      message: `Marked ${marked} messages as read`,
+    };
+  }
+
+  private getUnreadCountMock(userId: string) {
+    let count = 0;
+
+    for (const conversation of mockChatStore.conversations.values()) {
+      if (!conversation.participantIds.includes(userId)) {
+        continue;
+      }
+
+      const messages = mockChatStore.messages.get(conversation.id) ?? [];
+      count += messages.filter((message) => message.senderId !== userId).length;
+    }
+
+    return count;
+  }
+
+  private getConversationDetailsMock(
+    conversationId: string,
+    userId: string,
+  ) {
+    const conversation = mockChatStore.conversations.get(conversationId);
+
+    if (!conversation || !conversation.participantIds.includes(userId)) {
+      throw new NotFoundException(
+        "Conversation not found or you are not a participant",
+      );
+    }
+
+    return {
+      success: true,
+      conversation: serializeMockConversation(conversation),
+    };
+  }
+
+  private addUserToConversationMock(
+    conversationId: string,
+    userId: string,
+    addedByUserId: string,
+  ) {
+    const conversation = mockChatStore.conversations.get(conversationId);
+
+    if (!conversation) {
+      throw new NotFoundException("Conversation not found");
+    }
+
+    if (!conversation.participantIds.includes(addedByUserId)) {
+      throw new ForbiddenException(
+        "Only conversation participants can add users",
+      );
+    }
+
+    if (conversation.participantIds.includes(userId)) {
+      throw new BadRequestException("User is already in this conversation");
+    }
+
+    conversation.participantIds.push(userId);
+    conversation.updatedAt = new Date();
+
+    return {
+      success: true,
+      participant: {
+        user: {
+          id: userId,
+        },
+        userId,
+        role: "MEMBER",
+        joinedAt: new Date(),
+      },
+      message: "User added to conversation successfully",
+    };
+  }
+
   /**
    * Create a new conversation (direct or group)
    */
   async createConversation(userId: string, data: CreateConversationDto) {
     try {
+      if (data.type !== "DIRECT" && data.type !== "GROUP") {
+        throw new BadRequestException("Invalid conversation type");
+      }
+
       // Validate input
       if (data.type === "DIRECT" && data.participantIds.length !== 1) {
         throw new BadRequestException(
@@ -66,6 +402,10 @@ export class ChatService implements ChatServiceInterface {
 
       if (data.type === "GROUP" && !data.title) {
         throw new BadRequestException("Group conversations must have a title");
+      }
+
+      if (isMockPrismaMode()) {
+        return this.createConversationMock(userId, data);
       }
 
       // For direct messages, check if conversation already exists
@@ -109,6 +449,10 @@ export class ChatService implements ChatServiceInterface {
     cursor?: string,
   ) {
     try {
+      if (isMockPrismaMode()) {
+        return this.getUserConversationsMock(userId, limit, cursor);
+      }
+
       const result = await this.chatRepository.getUserConversations(
         userId,
         limit,
@@ -155,6 +499,12 @@ export class ChatService implements ChatServiceInterface {
     data: SendMessageDto,
   ) {
     try {
+      const MAX_MESSAGE_LENGTH = 10_000;
+
+      if (data.content && data.content.length > MAX_MESSAGE_LENGTH) {
+        throw new BadRequestException("Message content is too long");
+      }
+
       // Validate message content
       if (
         !data.content?.trim() &&
@@ -172,6 +522,10 @@ export class ChatService implements ChatServiceInterface {
             throw new BadRequestException("Invalid attachment data");
           }
         }
+      }
+
+      if (isMockPrismaMode()) {
+        return this.sendMessageMock(conversationId, userId, data);
       }
 
       const message = await this.chatRepository.sendMessage(
@@ -205,6 +559,10 @@ export class ChatService implements ChatServiceInterface {
     options: GetMessagesDto = {},
   ) {
     try {
+      if (isMockPrismaMode()) {
+        return this.getMessagesMock(conversationId, userId, options);
+      }
+
       const result = await this.chatRepository.getMessages(
         conversationId,
         userId,
@@ -243,6 +601,10 @@ export class ChatService implements ChatServiceInterface {
         throw new BadRequestException("No message IDs provided");
       }
 
+      if (isMockPrismaMode()) {
+        return this.markMessagesAsReadMock(conversationId, userId, messageIds);
+      }
+
       const result = await this.chatRepository.markMessagesAsRead(
         conversationId,
         userId,
@@ -272,6 +634,10 @@ export class ChatService implements ChatServiceInterface {
    */
   async getUnreadCount(userId: string): Promise<number> {
     try {
+      if (isMockPrismaMode()) {
+        return this.getUnreadCountMock(userId);
+      }
+
       return await this.chatRepository.getUnreadMessageCount(userId);
     } catch (error) {
       throw new BadRequestException(
@@ -289,6 +655,13 @@ export class ChatService implements ChatServiceInterface {
         throw new BadRequestException(
           "Cannot create conversation with yourself",
         );
+      }
+
+      if (isMockPrismaMode()) {
+        return this.createConversationMock(user1Id, {
+          type: "DIRECT",
+          participantIds: [user2Id],
+        });
       }
 
       const conversation = await this.chatRepository.findOrCreateDirectMessage(
@@ -317,6 +690,14 @@ export class ChatService implements ChatServiceInterface {
     addedByUserId: string,
   ) {
     try {
+      if (isMockPrismaMode()) {
+        return this.addUserToConversationMock(
+          conversationId,
+          userId,
+          addedByUserId,
+        );
+      }
+
       const result = await this.chatRepository.addUserToConversation(
         conversationId,
         userId,
@@ -347,6 +728,10 @@ export class ChatService implements ChatServiceInterface {
    */
   async getConversationDetails(conversationId: string, userId: string) {
     try {
+      if (isMockPrismaMode()) {
+        return this.getConversationDetailsMock(conversationId, userId);
+      }
+
       // This would be implemented in the repository
       // For now, we'll get it through getUserConversations and filter
       const result = await this.chatRepository.getUserConversations(
@@ -392,6 +777,9 @@ export class ChatService implements ChatServiceInterface {
           messages: [],
           total: 0,
           query,
+          conversationId,
+          userId,
+          limit,
         },
         message: "Message search feature coming soon",
       };
@@ -417,6 +805,10 @@ export class ChatService implements ChatServiceInterface {
           mostActiveUser: null,
         },
         message: "Conversation statistics feature coming soon",
+        context: {
+          conversationId,
+          userId,
+        },
       };
     } catch (error) {
       throw new BadRequestException(

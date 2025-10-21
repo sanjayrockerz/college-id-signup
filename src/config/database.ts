@@ -10,12 +10,10 @@ const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
 
 let prismaClientMode: PrismaClientMode;
 let PrismaClient: new (...args: any[]) => any;
-let Prisma: any;
 
 function loadMockPrisma(reason?: string) {
   const mockModule = require("../infra/prisma/mock-prisma-client");
   PrismaClient = mockModule.PrismaClient;
-  Prisma = mockModule.Prisma;
   prismaClientMode = "mock";
 
   if (reason) {
@@ -31,7 +29,6 @@ function tryLoadRealPrisma() {
   try {
     const prismaModule = require("@prisma/client");
     PrismaClient = prismaModule.PrismaClient;
-    Prisma = prismaModule.Prisma;
     prismaClientMode = "database";
     return true;
   } catch (error) {
@@ -135,10 +132,30 @@ function createPrismaClient(): IPrismaClient {
       ]
     : ["error"];
 
+  // Connection pool configuration for load testing
+  // Supporting 120+ concurrent Virtual Users
+  // Math: 120 VUs × 0.7 active ratio × 0.15s avg query = ~13 concurrent peak
+  // 3x buffer for bursts = 40 minimum, +10 overhead = 50 total
+  // PostgreSQL max_connections=100, using 50 (50% capacity for safety)
+  const connectionUrl = process.env.DATABASE_URL;
+  const poolSize = parseInt(process.env.DATABASE_POOL_SIZE || "50", 10);
+  const connectionTimeout = parseInt(
+    process.env.DATABASE_CONNECTION_TIMEOUT || "10",
+    10,
+  );
+  const poolTimeout = parseInt(process.env.DATABASE_POOL_TIMEOUT || "30", 10);
+
+  // Append connection pool parameters to DATABASE_URL if not already present
+  let enhancedUrl = connectionUrl;
+  if (connectionUrl && !connectionUrl.includes("connection_limit")) {
+    const separator = connectionUrl.includes("?") ? "&" : "?";
+    enhancedUrl = `${connectionUrl}${separator}connection_limit=${poolSize}&pool_timeout=${poolTimeout}&connect_timeout=${connectionTimeout}`;
+  }
+
   const client = new PrismaClient({
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: enhancedUrl,
       },
     },
     log: logConfig,

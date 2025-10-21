@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import {
   UserRepository,
   UpdateUserDto,
@@ -98,10 +94,6 @@ export class UserService {
       lastName: user.lastName,
       bio: user.bio,
       profileImageUrl: user.profileImageUrl,
-      isVerified: user.isVerified,
-      verifiedCollegeId: user.verifiedCollegeId,
-      collegeName: user.collegeName,
-      graduationYear: user.graduationYear,
       profileVisibility: user.profileVisibility,
       createdAt: user.createdAt,
       stats: {
@@ -120,20 +112,4 @@ export class UserService {
     return currentDate.getTime() - lastResetDate.getTime() > weekInMs;
   }
 
-  async verifyCollege(
-    userId: string,
-    collegeData: {
-      verifiedCollegeId: string;
-      collegeName: string;
-      studentIdNumber: string;
-      graduationYear: number;
-    },
-  ): Promise<UserResponseDto> {
-    const updateData = {
-      ...collegeData,
-      isVerified: true,
-    };
-
-    return this.updateUser(userId, updateData);
-  }
 }

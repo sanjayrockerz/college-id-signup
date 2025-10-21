@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { ValidationError } from "class-validator";
 
 /**
  * Request Validation Middleware
@@ -410,65 +409,4 @@ export function validateSearchQuery(
   next();
 }
 
-/**
- * Validate ID card verification payload
- */
-export function validateIdCardVerification(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
-  const { collegeName, studentIdNumber, graduationYear } = req.body;
-
-  if (
-    !collegeName ||
-    typeof collegeName !== "string" ||
-    collegeName.trim().length === 0
-  ) {
-    sendValidationError(
-      res,
-      "collegeName is required and must be a non-empty string",
-    );
-    return;
-  }
-
-  if (collegeName.length > 200) {
-    sendValidationError(res, "collegeName is too long (max 200 characters)");
-    return;
-  }
-
-  if (
-    !studentIdNumber ||
-    typeof studentIdNumber !== "string" ||
-    studentIdNumber.trim().length === 0
-  ) {
-    sendValidationError(
-      res,
-      "studentIdNumber is required and must be a non-empty string",
-    );
-    return;
-  }
-
-  if (studentIdNumber.length > 100) {
-    sendValidationError(
-      res,
-      "studentIdNumber is too long (max 100 characters)",
-    );
-    return;
-  }
-
-  // graduationYear is optional
-  if (graduationYear !== undefined) {
-    const year = parseInt(graduationYear, 10);
-    const currentYear = new Date().getFullYear();
-    if (isNaN(year) || year < 1900 || year > currentYear + 10) {
-      sendValidationError(res, "graduationYear must be a valid year", {
-        allowed: `1900-${currentYear + 10}`,
-        received: graduationYear,
-      });
-      return;
-    }
-  }
-
-  next();
-}
+// ID card payload validation removed with feature de-scope.

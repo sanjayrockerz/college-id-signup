@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-10-21T09:40:05.429Z",
+  "database": "postgresql://postgres:password@localhost:5432/chat_backend_db?schema=public",
+  "queries": [
+    {
+      "name": "Message history pagination",
+      "query": "SELECT id, sender_id, content, created_at\n      FROM messages\n      WHERE conversation_id = '8f7a0c83-dad5-4f02-92a9-55078fef9f31'\n      ORDER BY created_at DESC\n      LIMIT 50 OFFSET 0",
+      "metrics": null,
+      "warnings": [
+        "Query analysis failed: \nInvalid `prisma.$queryRawUnsafe()` invocation:\n\n\nRaw query failed. Code: `42703`. Message: `column \"sender_id\" does not exist`"
+      ]
+    },
+    {
+      "name": "Conversation list for user",
+      "query": "SELECT c.id, c.name, c.updated_at, cu.last_read_at\n      FROM conversations c\n      INNER JOIN conversation_users cu ON cu.conversation_id = c.id\n      WHERE cu.user_id = '5b12e375-59a5-4e65-a2d2-3a4edc0d2b5c' AND cu.is_active = true\n      ORDER BY c.updated_at DESC\n      LIMIT 25 OFFSET 0",
+      "metrics": null,
+      "warnings": [
+        "Query analysis failed: \nInvalid `prisma.$queryRawUnsafe()` invocation:\n\n\nRaw query failed. Code: `42703`. Message: `column cu.conversation_id does not exist`"
+      ]
+    },
+    {
+      "name": "Message insert baseline",
+      "query": "INSERT INTO messages (id, conversation_id, sender_id, content, type, status, created_at, updated_at)\n      VALUES (gen_random_uuid(), '8f7a0c83-dad5-4f02-92a9-55078fef9f31', '5b12e375-59a5-4e65-a2d2-3a4edc0d2b5c', 'Performance test message', 'TEXT', 'SENT', NOW(), NOW())\n      RETURNING id",
+      "metrics": null,
+      "warnings": [
+        "Query analysis failed: \nInvalid `prisma.$queryRawUnsafe()` invocation:\n\n\nRaw query failed. Code: `42703`. Message: `column \"conversation_id\" of relation \"messages\" does not exist`"
+      ]
+    }
+  ]
+}

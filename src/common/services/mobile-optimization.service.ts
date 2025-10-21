@@ -1,5 +1,4 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { PrismaService } from "../../infra/prisma/prisma.service";
 import sharp from "sharp";
 import {
   MobileUserDto,
@@ -37,7 +36,7 @@ export interface MobilePaginationOptions {
 export class MobileOptimizationService {
   private readonly logger = new Logger(MobileOptimizationService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor() {}
 
   /**
    * Optimize images for mobile consumption based on network quality and data usage preferences
@@ -149,13 +148,11 @@ export class MobileOptimizationService {
     options: {
       batchSize?: number;
       delayBetweenBatches?: number;
-      maxConcurrency?: number;
     } = {},
   ): Promise<R[]> {
     const {
       batchSize = 3, // Conservative batch size for mobile
       delayBetweenBatches = 100, // Battery-friendly delay
-      maxConcurrency = 2, // Limit concurrent operations
     } = options;
 
     const results: R[] = [];

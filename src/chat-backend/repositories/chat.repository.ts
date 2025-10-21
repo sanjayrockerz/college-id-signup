@@ -201,7 +201,7 @@ export class ChatRepository {
       const message = await tx.message.create({
         data: {
           content,
-          messageType,
+          type: messageType,
           conversationId,
           senderId,
         },
@@ -302,7 +302,7 @@ export class ChatRepository {
           },
         },
         attachments: true,
-        readReceipts: {
+        messageReads: {
           include: {
             user: {
               select: {
@@ -398,7 +398,7 @@ export class ChatRepository {
       where: {
         conversationId: { in: conversationIds },
         senderId: { not: userId }, // Don't count own messages
-        readReceipts: {
+        messageReads: {
           none: {
             userId,
           },

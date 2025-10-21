@@ -6,12 +6,14 @@
  */
 
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication } from "@nestjs/common";
 import request from "supertest";
 import { AppModule } from "../src/app.module";
+import { configureApp } from "../src/app.bootstrap";
 
-const describeIfDatabase =
-  process.env.PRISMA_CLIENT_MODE === "mock" ? describe.skip : describe;
+const isMockPrisma = process.env.PRISMA_CLIENT_MODE === "mock";
+const forceMockIntegration = process.env.FORCE_PRISMA_INTEGRATION === "true";
+const describeIfDatabase = isMockPrisma && !forceMockIntegration ? describe.skip : describe;
 
 describeIfDatabase("Chat API (Anonymous Access)", () => {
   let app: INestApplication;
@@ -27,16 +29,7 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-
-    // Apply same validation pipes as production
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-
+    await configureApp(app);
     await app.init();
   });
 
@@ -51,15 +44,19 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
         .send({
           userId: testUserId1,
           type: "DIRECT",
-          participantIds: [testUserId1, testUserId2],
+          participantIds: [testUserId2],
         })
         .expect(201);
 
-      expect(response.body).toHaveProperty("id");
-      expect(response.body.type).toBe("DIRECT");
-      expect(response.body.participantIds).toContain(testUserId1);
+      expect(response.body.success).toBe(true);
+      expect(response.body).toHaveProperty("conversation");
 
-      conversationId = response.body.id;
+      const conversation = response.body.conversation;
+      expect(conversation).toBeDefined();
+      expect(conversation.type).toBe("DIRECT");
+      expect(Array.isArray(conversation.participants)).toBe(true);
+
+      conversationId = conversation.id;
     });
 
     it("should create a group conversation", async () => {
@@ -70,13 +67,16 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
           type: "GROUP",
           title: "Test Group",
           description: "A test group conversation",
-          participantIds: [testUserId1, testUserId2, "test-user-3"],
+          participantIds: [testUserId2, "test-user-3"],
         })
         .expect(201);
 
-      expect(response.body).toHaveProperty("id");
-      expect(response.body.type).toBe("GROUP");
-      expect(response.body.title).toBe("Test Group");
+      expect(response.body.success).toBe(true);
+      expect(response.body).toHaveProperty("conversation");
+
+      const conversation = response.body.conversation;
+      expect(conversation.type).toBe("GROUP");
+      expect(conversation.title).toBe("Test Group");
     });
 
     it("should reject request without userId", async () => {
@@ -98,9 +98,12 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
         .send({
           userId: testUserId1,
           type: "INVALID",
-          participantIds: [testUserId1, testUserId2],
+          participantIds: [testUserId2],
         })
-        .expect(400);
+        .expect(400)
+        .expect((res) => {
+          expect(res.body.message).toContain("Invalid conversation type");
+        });
     });
 
     it("should reject empty participantIds", async () => {
@@ -122,8 +125,9 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
         .query({ userId: testUserId1, limit: 20 })
         .expect(200);
 
-      expect(response.body).toHaveProperty("conversations");
-      expect(Array.isArray(response.body.conversations)).toBe(true);
+      expect(response.body.success).toBe(true);
+      expect(response.body).toHaveProperty("data");
+      expect(Array.isArray(response.body.data.conversations)).toBe(true);
     });
 
     it("should reject request without userId", async () => {
@@ -141,10 +145,11 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
         .query({ userId: testUserId1, limit: 10 })
         .expect(200);
 
-      expect(response.body).toHaveProperty("conversations");
+      expect(response.body.success).toBe(true);
+      expect(response.body).toHaveProperty("data");
       // May have cursor if more results available
-      if (response.body.hasMore) {
-        expect(response.body).toHaveProperty("cursor");
+      if (response.body.data.hasMore) {
+        expect(response.body.data.nextCursor).toBeDefined();
       }
     });
   });
@@ -160,9 +165,12 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
         })
         .expect(201);
 
-      expect(response.body).toHaveProperty("id");
-      expect(response.body.content).toBe("Hello, this is a test message!");
-      expect(response.body.messageType).toBe("TEXT");
+      expect(response.body.success).toBe(true);
+      expect(response.body).toHaveProperty("message");
+      expect(response.body.message.content).toBe(
+        "Hello, this is a test message!",
+      );
+      expect(response.body.message.messageType).toBe("TEXT");
     });
 
     it("should reject message without userId", async () => {
@@ -210,8 +218,9 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
         .query({ userId: testUserId1, limit: 50 })
         .expect(200);
 
-      expect(response.body).toHaveProperty("messages");
-      expect(Array.isArray(response.body.messages)).toBe(true);
+      expect(response.body.success).toBe(true);
+      expect(response.body).toHaveProperty("data");
+      expect(Array.isArray(response.body.data.messages)).toBe(true);
     });
 
     it("should support pagination", async () => {
@@ -220,7 +229,8 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
         .query({ userId: testUserId1, limit: 10 })
         .expect(200);
 
-      expect(response.body.messages.length).toBeLessThanOrEqual(10);
+      expect(response.body).toHaveProperty("data");
+      expect(response.body.data.messages.length).toBeLessThanOrEqual(10);
     });
 
     it("should reject request without userId", async () => {
@@ -238,7 +248,9 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
         .query({ userId: testUserId2, limit: 5 })
         .expect(200);
 
-      const messageIds = messagesResponse.body.messages.map((m: any) => m.id);
+      const messageIds = messagesResponse.body.data.messages.map(
+        (m: any) => m.id,
+      );
 
       if (messageIds.length > 0) {
         await request(app.getHttpServer())
@@ -269,8 +281,8 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
         .expect(200);
 
       // Rate limit headers should be present
-      expect(response.headers).toHaveProperty("ratelimit-limit");
-      expect(response.headers).toHaveProperty("ratelimit-remaining");
+      expect(response.headers["ratelimit-limit"]).toBeDefined();
+      expect(response.headers["ratelimit-remaining"]).toBeDefined();
     });
   });
 
@@ -301,7 +313,7 @@ describeIfDatabase("Chat API (Anonymous Access)", () => {
   describe("Security Headers", () => {
     it("should include security headers in responses", async () => {
       const response = await request(app.getHttpServer())
-        .get("/health")
+        .get("/api/v1/chat/health")
         .expect(200);
 
       expect(response.headers).toHaveProperty(

@@ -4,11 +4,18 @@ import { UpdateUserDto } from "../data/user.repository";
 
 interface UserResponseDto {
   id: string;
+  email: string;
   username: string;
-  verifiedCollegeId?: string;
-  collegeName?: string;
-  isVerified: boolean;
+  firstName?: string;
+  lastName?: string;
+  bio?: string;
+  profileImageUrl?: string;
+  profileVisibility: string;
   createdAt: Date;
+  stats: {
+    anonymousPostsToday: number;
+    weeklyPushesUsed: number;
+  };
 }
 
 @Controller("users")
@@ -40,21 +47,6 @@ export class UserController {
   ): Promise<UserResponseDto> {
     const userId = req.user?.id || "temp-user-id";
     return this.userService.updateUser(userId, updateUserDto);
-  }
-
-  @Put("verify-college")
-  async verifyCollege(
-    @Body()
-    collegeData: {
-      verifiedCollegeId: string;
-      collegeName: string;
-      studentIdNumber: string;
-      graduationYear: number;
-    },
-    @Request() req: any,
-  ): Promise<UserResponseDto> {
-    const userId = req.user?.id || "temp-user-id";
-    return this.userService.verifyCollege(userId, collegeData);
   }
 
   @Get("me/limits")

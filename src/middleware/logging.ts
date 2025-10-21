@@ -133,7 +133,7 @@ export function requestLoggingMiddleware(
 export function errorLoggingMiddleware(
   error: Error,
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ): void {
   const requestId = req.requestId;

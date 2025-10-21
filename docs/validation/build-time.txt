@@ -1,0 +1,27 @@
+[96msrc/upload/upload.module.ts[0m:[93m2[0m:[93m34[0m - [91merror[0m[90m TS2307: [0mCannot find module './upload.controller' or its corresponding type declarations.
+
+[7m2[0m import { UploadController } from "./upload.controller";
+[7m [0m [91m                                 ~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/upload/upload.module.ts[0m:[93m3[0m:[93m31[0m - [91merror[0m[90m TS2307: [0mCannot find module './upload.service' or its corresponding type declarations.
+
+[7m3[0m import { UploadService } from "./upload.service";
+[7m [0m [91m                              ~~~~~~~~~~~~~~~~~~[0m
+
+        0.90 real         1.62 user         0.14 sys
+           454787072  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               32788  page reclaims
+                 278  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+                5823  involuntary context switches
+           834008902  instructions retired
+           293430587  cycles elapsed
+            23923592  peak memory footprint

@@ -7,11 +7,6 @@ export interface User {
   lastName?: string;
   bio?: string;
   profileImageUrl?: string;
-  isVerified: boolean;
-  verifiedCollegeId?: string;
-  collegeName?: string;
-  studentIdNumber?: string;
-  graduationYear?: number;
   anonymousPostsToday: number;
   weeklyPushesUsed: number;
   lastAnonymousPostDate?: Date;
@@ -19,6 +14,9 @@ export interface User {
   allowDirectMessages: boolean;
   showOnlineStatus: boolean;
   profileVisibility: string;
+  isOnline: boolean;
+  lastSeenAt?: Date;
+  typingIn?: string | null;
   createdAt: Date;
   updatedAt: Date;
   lastLoginAt?: Date;
@@ -309,83 +307,81 @@ export class PrismaClient implements MockPrismaClient {
         lastName: args.data.lastName,
         bio: args.data.bio,
         profileImageUrl: args.data.profileImageUrl,
-        isVerified: args.data.isVerified || false,
-        verifiedCollegeId: args.data.verifiedCollegeId,
-        collegeName: args.data.collegeName,
-        studentIdNumber: args.data.studentIdNumber,
-        graduationYear: args.data.graduationYear,
         anonymousPostsToday: 0,
         weeklyPushesUsed: 0,
         lastWeeklyReset: new Date(),
         allowDirectMessages: true,
         showOnlineStatus: true,
         profileVisibility: "PUBLIC",
+        isOnline: false,
+        typingIn: null,
         createdAt: new Date(),
         updatedAt: new Date(),
+        lastSeenAt: new Date(),
       };
     },
-    findUnique: async (args: any): Promise<User | null> => null,
-    findMany: async (args: any): Promise<User[]> => [],
-    update: async (args: any): Promise<User> => ({}) as User,
-    delete: async (args: any): Promise<User> => ({}) as User,
-    count: async (args: any): Promise<number> => 0,
+  findUnique: async (_args: any): Promise<User | null> => null,
+  findMany: async (_args: any): Promise<User[]> => [],
+  update: async (_args: any): Promise<User> => ({}) as User,
+  delete: async (_args: any): Promise<User> => ({}) as User,
+  count: async (_args: any): Promise<number> => 0,
   };
 
   post = {
-    create: async (args: any): Promise<Post> => ({}) as Post,
-    findUnique: async (args: any): Promise<Post | null> => null,
-    findMany: async (args: any): Promise<Post[]> => [],
-    update: async (args: any): Promise<Post> => ({}) as Post,
-    delete: async (args: any): Promise<Post> => ({}) as Post,
-    count: async (args: any): Promise<number> => 0,
+  create: async (_args: any): Promise<Post> => ({}) as Post,
+  findUnique: async (_args: any): Promise<Post | null> => null,
+  findMany: async (_args: any): Promise<Post[]> => [],
+  update: async (_args: any): Promise<Post> => ({}) as Post,
+  delete: async (_args: any): Promise<Post> => ({}) as Post,
+  count: async (_args: any): Promise<number> => 0,
   };
 
   interaction = {
-    create: async (args: any): Promise<Interaction> => ({}) as Interaction,
-    findUnique: async (args: any): Promise<Interaction | null> => null,
-    findMany: async (args: any): Promise<Interaction[]> => [],
-    update: async (args: any): Promise<Interaction> => ({}) as Interaction,
-    delete: async (args: any): Promise<Interaction> => ({}) as Interaction,
-    count: async (args: any): Promise<number> => 0,
+  create: async (_args: any): Promise<Interaction> => ({}) as Interaction,
+  findUnique: async (_args: any): Promise<Interaction | null> => null,
+  findMany: async (_args: any): Promise<Interaction[]> => [],
+  update: async (_args: any): Promise<Interaction> => ({}) as Interaction,
+  delete: async (_args: any): Promise<Interaction> => ({}) as Interaction,
+  count: async (_args: any): Promise<number> => 0,
   };
 
   connection = {
-    create: async (args: any): Promise<Connection> => ({}) as Connection,
-    findUnique: async (args: any): Promise<Connection | null> => null,
-    findMany: async (args: any): Promise<Connection[]> => [],
-    update: async (args: any): Promise<Connection> => ({}) as Connection,
-    delete: async (args: any): Promise<Connection> => ({}) as Connection,
-    count: async (args: any): Promise<number> => 0,
+  create: async (_args: any): Promise<Connection> => ({}) as Connection,
+  findUnique: async (_args: any): Promise<Connection | null> => null,
+  findMany: async (_args: any): Promise<Connection[]> => [],
+  update: async (_args: any): Promise<Connection> => ({}) as Connection,
+  delete: async (_args: any): Promise<Connection> => ({}) as Connection,
+  count: async (_args: any): Promise<number> => 0,
   };
 
   coolnessRating = {
-    create: async (args: any): Promise<CoolnessRating> =>
+    create: async (_args: any): Promise<CoolnessRating> =>
       ({}) as CoolnessRating,
-    findUnique: async (args: any): Promise<CoolnessRating | null> => null,
-    findMany: async (args: any): Promise<CoolnessRating[]> => [],
-    update: async (args: any): Promise<CoolnessRating> =>
+    findUnique: async (_args: any): Promise<CoolnessRating | null> => null,
+    findMany: async (_args: any): Promise<CoolnessRating[]> => [],
+    update: async (_args: any): Promise<CoolnessRating> =>
       ({}) as CoolnessRating,
-    delete: async (args: any): Promise<CoolnessRating> =>
+    delete: async (_args: any): Promise<CoolnessRating> =>
       ({}) as CoolnessRating,
-    count: async (args: any): Promise<number> => 0,
+    count: async (_args: any): Promise<number> => 0,
   };
 
   postView = {
-    create: async (args: any): Promise<PostView> => ({}) as PostView,
-    findUnique: async (args: any): Promise<PostView | null> => null,
-    findMany: async (args: any): Promise<PostView[]> => [],
-    update: async (args: any): Promise<PostView> => ({}) as PostView,
-    delete: async (args: any): Promise<PostView> => ({}) as PostView,
-    count: async (args: any): Promise<number> => 0,
+  create: async (_args: any): Promise<PostView> => ({}) as PostView,
+  findUnique: async (_args: any): Promise<PostView | null> => null,
+  findMany: async (_args: any): Promise<PostView[]> => [],
+  update: async (_args: any): Promise<PostView> => ({}) as PostView,
+  delete: async (_args: any): Promise<PostView> => ({}) as PostView,
+  count: async (_args: any): Promise<number> => 0,
   };
 
   push = {
-    create: async (args: any): Promise<Push> => ({}) as Push,
-    findUnique: async (args: any): Promise<Push | null> => null,
-    findMany: async (args: any): Promise<Push[]> => [],
-    update: async (args: any): Promise<Push> => ({}) as Push,
-    delete: async (args: any): Promise<Push> => ({}) as Push,
-    count: async (args: any): Promise<number> => 0,
+  create: async (_args: any): Promise<Push> => ({}) as Push,
+  findUnique: async (_args: any): Promise<Push | null> => null,
+  findMany: async (_args: any): Promise<Push[]> => [],
+  update: async (_args: any): Promise<Push> => ({}) as Push,
+  delete: async (_args: any): Promise<Push> => ({}) as Push,
+  count: async (_args: any): Promise<number> => 0,
   };
 
   conversation = {
@@ -402,12 +398,12 @@ export class PrismaClient implements MockPrismaClient {
         updatedAt: new Date(),
         creatorId: args.data.createdById || "mock-creator",
       }) as Conversation,
-    findUnique: async (args: any): Promise<Conversation | null> => null,
-    findMany: async (args: any): Promise<Conversation[]> => [],
-    findFirst: async (args: any): Promise<Conversation | null> => null,
-    update: async (args: any): Promise<Conversation> => ({}) as Conversation,
-    delete: async (args: any): Promise<Conversation> => ({}) as Conversation,
-    count: async (args: any): Promise<number> => 0,
+  findUnique: async (_args: any): Promise<Conversation | null> => null,
+  findMany: async (_args: any): Promise<Conversation[]> => [],
+  findFirst: async (_args: any): Promise<Conversation | null> => null,
+  update: async (_args: any): Promise<Conversation> => ({}) as Conversation,
+  delete: async (_args: any): Promise<Conversation> => ({}) as Conversation,
+  count: async (_args: any): Promise<number> => 0,
   };
 
   conversationUser = {
@@ -426,14 +422,14 @@ export class PrismaClient implements MockPrismaClient {
     createMany: async (args: any): Promise<{ count: number }> => ({
       count: args.data?.length || 0,
     }),
-    findUnique: async (args: any): Promise<ConversationUser | null> => null,
-    findFirst: async (args: any): Promise<ConversationUser | null> => null,
-    findMany: async (args: any): Promise<ConversationUser[]> => [],
-    update: async (args: any): Promise<ConversationUser> =>
+    findUnique: async (_args: any): Promise<ConversationUser | null> => null,
+    findFirst: async (_args: any): Promise<ConversationUser | null> => null,
+    findMany: async (_args: any): Promise<ConversationUser[]> => [],
+    update: async (_args: any): Promise<ConversationUser> =>
       ({}) as ConversationUser,
-    delete: async (args: any): Promise<ConversationUser> =>
+    delete: async (_args: any): Promise<ConversationUser> =>
       ({}) as ConversationUser,
-    count: async (args: any): Promise<number> => 0,
+    count: async (_args: any): Promise<number> => 0,
   };
 
   message = {
@@ -450,11 +446,11 @@ export class PrismaClient implements MockPrismaClient {
         senderId: args.data.senderId,
         conversationId: args.data.conversationId,
       }) as Message,
-    findUnique: async (args: any): Promise<Message | null> => null,
-    findMany: async (args: any): Promise<Message[]> => [],
-    update: async (args: any): Promise<Message> => ({}) as Message,
-    delete: async (args: any): Promise<Message> => ({}) as Message,
-    count: async (args: any): Promise<number> => 0,
+  findUnique: async (_args: any): Promise<Message | null> => null,
+  findMany: async (_args: any): Promise<Message[]> => [],
+  update: async (_args: any): Promise<Message> => ({}) as Message,
+  delete: async (_args: any): Promise<Message> => ({}) as Message,
+  count: async (_args: any): Promise<number> => 0,
   };
 
   messageRead = {
@@ -467,9 +463,9 @@ export class PrismaClient implements MockPrismaClient {
         userId: args.data.userId,
         messageId: args.data.messageId,
       }) as MessageRead,
-    findUnique: async (args: any): Promise<MessageRead | null> => null,
-    findMany: async (args: any): Promise<MessageRead[]> => [],
-    update: async (args: any): Promise<MessageRead> => ({}) as MessageRead,
+    findUnique: async (_args: any): Promise<MessageRead | null> => null,
+    findMany: async (_args: any): Promise<MessageRead[]> => [],
+    update: async (_args: any): Promise<MessageRead> => ({}) as MessageRead,
     upsert: async (args: any): Promise<MessageRead> =>
       ({
         id: "mock-read-id",
@@ -479,8 +475,8 @@ export class PrismaClient implements MockPrismaClient {
         userId: args.create.userId,
         messageId: args.create.messageId,
       }) as MessageRead,
-    delete: async (args: any): Promise<MessageRead> => ({}) as MessageRead,
-    count: async (args: any): Promise<number> => 0,
+    delete: async (_args: any): Promise<MessageRead> => ({}) as MessageRead,
+    count: async (_args: any): Promise<number> => 0,
   };
 
   attachment = {
@@ -498,11 +494,11 @@ export class PrismaClient implements MockPrismaClient {
         uploaderId: args.data.uploaderId,
         messageId: args.data.messageId,
       }) as Attachment,
-    findUnique: async (args: any): Promise<Attachment | null> => null,
-    findMany: async (args: any): Promise<Attachment[]> => [],
-    update: async (args: any): Promise<Attachment> => ({}) as Attachment,
-    delete: async (args: any): Promise<Attachment> => ({}) as Attachment,
-    count: async (args: any): Promise<number> => 0,
+  findUnique: async (_args: any): Promise<Attachment | null> => null,
+  findMany: async (_args: any): Promise<Attachment[]> => [],
+  update: async (_args: any): Promise<Attachment> => ({}) as Attachment,
+  delete: async (_args: any): Promise<Attachment> => ({}) as Attachment,
+  count: async (_args: any): Promise<number> => 0,
   };
 
   async $connect(): Promise<void> {
@@ -521,7 +517,7 @@ export class PrismaClient implements MockPrismaClient {
   }
 
   // Query raw support
-  async $queryRaw(query: any) {
+  async $queryRaw(_query: any) {
     return Promise.resolve([{ result: 1 }]);
   }
 }

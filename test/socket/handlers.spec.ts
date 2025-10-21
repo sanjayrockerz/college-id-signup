@@ -56,7 +56,13 @@ class MockSocket extends EventEmitter {
   }
 
   emit = jest.fn((event: string, payload?: any) => {
-    EventEmitter.prototype.emit.call(this, event, payload);
+    const shouldPropagateError =
+      event === "error" && this.listenerCount("error") === 0;
+
+    if (!shouldPropagateError) {
+      EventEmitter.prototype.emit.call(this, event, payload);
+    }
+
     return true;
   });
 }
@@ -99,8 +105,8 @@ describe("socket handlers", () => {
     });
 
     expect(socket.emit).toHaveBeenCalledWith(
-      "message_error",
-      expect.objectContaining({ error: "Access denied" }),
+      "error",
+      expect.objectContaining({ message: "You are not a participant in this conversation" }),
     );
   });
 });

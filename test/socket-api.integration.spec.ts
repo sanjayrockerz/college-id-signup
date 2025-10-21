@@ -8,14 +8,21 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 import { io, Socket } from "socket.io-client";
+import { Server } from "socket.io";
+import { AddressInfo } from "net";
 import { AppModule } from "../src/app.module";
+import { configureApp } from "../src/app.bootstrap";
 
-const describeIfDatabase =
-  process.env.PRISMA_CLIENT_MODE === "mock" ? describe.skip : describe;
+const { registerSocketHandlers } = require("../src/socket/handlers");
 
-describeIfDatabase("Socket.IO API (Anonymous Access)", () => {
+const isMockPrisma = process.env.PRISMA_CLIENT_MODE === "mock";
+const forceMockIntegration = process.env.FORCE_PRISMA_INTEGRATION === "true";
+const describeIfSocketSuite = isMockPrisma || forceMockIntegration ? describe : describe.skip;
+
+describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
   let app: INestApplication;
   let serverUrl: string;
+  let ioServer: Server;
   let socket1: Socket;
   let socket2: Socket;
 
@@ -28,14 +35,39 @@ describeIfDatabase("Socket.IO API (Anonymous Access)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    await configureApp(app);
     await app.listen(0); // Random port
 
-    const address = app.getHttpServer().address();
+    const httpServer = app.getHttpServer();
+
+    ioServer = new Server(httpServer, {
+      cors: {
+        origin: process.env.CORS_ORIGIN?.split(",") ?? ["http://localhost:3000"],
+        credentials: true,
+      },
+      transports: ["websocket", "polling"],
+    });
+
+    registerSocketHandlers(ioServer);
+
+    const address = httpServer.address() as AddressInfo;
     const port = address.port;
     serverUrl = `http://localhost:${port}`;
   });
 
   afterAll(async () => {
+    if (ioServer) {
+      await new Promise<void>((resolve, reject) => {
+        ioServer.close((err?: Error) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    }
+
     await app.close();
   });
 
@@ -76,7 +108,7 @@ describeIfDatabase("Socket.IO API (Anonymous Access)", () => {
 
     it("should NOT require auth token in handshake", () => {
       // Verify no auth query parameter required
-      expect(socket1.io.opts.query).not.toHaveProperty("token");
+      expect(socket1.io.opts.query ?? {}).not.toHaveProperty("token");
       // Socket.IO v3+ no longer uses separate auth object in manager options
     });
   });

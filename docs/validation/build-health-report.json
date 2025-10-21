@@ -1,0 +1,140 @@
+{
+  "timestamp": "2025-10-21T05:01:29Z",
+  "typecheck": {
+    "command": "npx tsc --pretty false --project tsconfig.json --strict --noEmit --noUnusedLocals --noUnusedParameters --noImplicitReturns --noFallthroughCasesInSwitch",
+    "outputFile": "docs/validation/typecheck-output.txt",
+    "totalErrors": 117,
+    "totalWarnings": 0,
+    "errorDensityPerKLOC": 16.68,
+    "errorFamilies": {
+      "unused-declaration": 114,
+      "missing-import": 2,
+      "incomplete-control-flow": 1
+    },
+    "topFiles": [
+      {"file": "src/infra/prisma/mock-prisma-client.ts", "errors": 69},
+      {"file": "src/chat-backend/controllers/chat.controller.ts", "errors": 10},
+      {"file": "src/user/data/user.repository.ts", "errors": 8},
+      {"file": "src/app.ts", "errors": 6},
+      {"file": "src/chat-backend/services/chat.service.new.ts", "errors": 5},
+      {"file": "src/chat-backend/services/chat.service.ts", "errors": 5},
+      {"file": "src/main.ts", "errors": 4},
+      {"file": "src/common/services/mobile-optimization.service.ts", "errors": 3},
+      {"file": "src/middleware/logging.ts", "errors": 2},
+      {"file": "src/upload/upload.module.ts", "errors": 2}
+    ],
+    "notableIssues": [
+      "TS2307 missing modules: src/upload/upload.module.ts references ./upload.controller and ./upload.service which do not exist",
+      "TS7030: src/app.ts function has code path without return",
+      "Extensive TS6133 unused parameters and variables across controllers, services, and mock Prisma client"
+    ]
+  },
+  "eslint": {
+    "command": "npx eslint \"src/**/*.{ts,tsx,js,jsx}\" --max-warnings=0 -f json -o docs/validation/eslint-results.json",
+    "summaryFile": "docs/validation/eslint-results.json",
+    "aggregates": {
+      "totalErrors": 0,
+      "totalWarnings": 11,
+      "ruleFrequency": {
+        "prettier/prettier": 11
+      }
+    },
+    "topFiles": [
+      {"file": "src/docs/registerDocs.ts", "violations": 9},
+      {"file": "src/main.ts", "violations": 1},
+      {"file": "src/user/application/user.service.ts", "violations": 1}
+    ],
+    "criticalRuleBreaches": [],
+    "notes": [
+      "Lint run failed due to non-zero warning count with max-warnings=0",
+      "Warnings are all Prettier formatting issues; no no-console/no-debugger/no-unused-vars hits"
+    ]
+  },
+  "dependencies": {
+    "npmLsReport": "docs/validation/dependency-tree.json",
+    "issues": {
+      "missing": [
+        "husky@^9.1.6 (declared but not installed)",
+        "lint-staged@^15.2.10 (declared but not installed)"
+      ],
+      "versionConflicts": [],
+      "peerDependencyWarnings": []
+    }
+  },
+  "security": {
+    "npmAuditReport": "docs/validation/vulnerability-scan.json",
+    "summary": {
+      "critical": 0,
+      "high": 2,
+      "moderate": 7,
+      "low": 0,
+      "total": 9
+    },
+    "highSeverityFindings": [
+      {
+        "package": "@nestjs/platform-express",
+        "via": ["@nestjs/common", "@nestjs/core", "multer"],
+        "notes": "Upgrade NestJS platform stack to patched major version"
+      },
+      {
+        "package": "multer",
+        "advisory": "GHSA-fjgf-rc76-4x9p",
+        "remediation": "Upgrade to multer 2.0.2 or newer"
+      }
+    ],
+    "snyk": {
+      "command": "npx snyk test --json",
+      "status": "failed",
+      "error": "Dependency express-rate-limit@^8.1.0 missing from package-lock.json; package manifest out of sync"
+    }
+  },
+  "unusedDependencies": {
+    "report": "docs/validation/depcheck.json",
+    "unused": {
+      "dependencies": ["@aws-sdk/client-s3", "@aws-sdk/s3-request-presigner", "ioredis", "node-tesseract-ocr", "socket.io", "tsconfig-paths"],
+      "devDependencies": ["@nestjs/schematics", "@types/jest", "nodemon", "source-map-support", "husky"]
+    },
+    "missing": {
+      "dependencies": ["uuid", "k6", "express-validator"],
+      "notes": "Modules referenced in code but not declared in package.json"
+    }
+  },
+  "deadCode": {
+    "tool": "ts-prune",
+    "report": "docs/validation/ts-prune.txt",
+    "flaggedExports": 59,
+    "falsePositives": 28,
+    "remainingUnused": 31,
+    "comment": "31 exported symbols appear unused (notably legacy database examples, rate limiter variants, validation helpers, upload module)"
+  },
+  "circularDependencies": {
+    "tool": "madge",
+    "report": "docs/validation/madge.txt",
+    "cyclesDetected": 0,
+    "warnings": 6
+  },
+  "build": {
+    "command": "npm run build",
+    "output": "docs/validation/build-output.txt",
+    "timeMetrics": {
+      "realSeconds": 0.90,
+      "userSeconds": 1.62,
+      "sysSeconds": 0.14
+    },
+    "success": false,
+    "errors": [
+      "TS2307: src/upload/upload.module.ts cannot resolve ./upload.controller",
+      "TS2307: src/upload/upload.module.ts cannot resolve ./upload.service"
+    ],
+    "artifactSizeMB": null
+  },
+  "loc": {
+    "report": "docs/validation/src-loc.txt",
+    "totalLines": 7014
+  },
+  "notes": [
+    "Quality gates failed across TypeScript, ESLint, security, dependency hygiene, and build execution",
+    "Package manifest inconsistencies (missing husky/lint-staged) and undeclared runtime deps (uuid, express-validator) require remediation",
+    "High severity vulnerabilities remain unresolved (multer, NestJS platform)"
+  ]
+}

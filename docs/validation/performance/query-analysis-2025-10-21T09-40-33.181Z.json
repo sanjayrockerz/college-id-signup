@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-10-21T09:40:33.181Z",
+  "database": "postgresql://postgres:password@localhost:5432/chat_backend_db?schema=public",
+  "queries": [
+    {
+      "name": "Message history pagination",
+      "query": "SELECT \"id\", \"senderId\", \"content\", \"createdAt\"\n      FROM \"messages\"\n      WHERE \"conversationId\" = '8f7a0c83-dad5-4f02-92a9-55078fef9f31'\n      ORDER BY \"createdAt\" DESC\n      LIMIT 50 OFFSET 0",
+      "metrics": {
+        "planningTimeMs": 2.13,
+        "executionTimeMs": 0.09,
+        "totalRows": 10,
+        "scanTypes": [
+          "Limit",
+          "Index Scan"
+        ],
+        "indexNames": [
+          "messages_conversationId_createdAt_idx"
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "name": "Conversation list for user",
+      "query": "SELECT c.\"id\", c.\"name\", c.\"updatedAt\", cu.\"lastReadAt\"\n      FROM \"conversations\" c\n      INNER JOIN \"conversation_users\" cu ON cu.\"conversationId\" = c.\"id\"\n      WHERE cu.\"userId\" = '5b12e375-59a5-4e65-a2d2-3a4edc0d2b5c' AND cu.\"isActive\" = true\n      ORDER BY c.\"updatedAt\" DESC\n      LIMIT 25 OFFSET 0",
+      "metrics": {
+        "planningTimeMs": 1.494,
+        "executionTimeMs": 0.115,
+        "totalRows": 5,
+        "scanTypes": [
+          "Limit",
+          "Sort",
+          "Nested Loop",
+          "Index Scan"
+        ],
+        "indexNames": [
+          "conversation_users_userId_isActive_idx",
+          "conversations_pkey"
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "name": "Message insert baseline",
+      "query": "INSERT INTO \"messages\" (\"id\", \"conversationId\", \"senderId\", \"content\", \"type\", \"status\", \"createdAt\", \"updatedAt\")\n      VALUES (gen_random_uuid(), '8f7a0c83-dad5-4f02-92a9-55078fef9f31', '5b12e375-59a5-4e65-a2d2-3a4edc0d2b5c', 'Performance test message', 'TEXT', 'SENT', NOW(), NOW())\n      RETURNING \"id\"",
+      "metrics": {
+        "planningTimeMs": 0.054,
+        "executionTimeMs": 1.834,
+        "totalRows": 2,
+        "scanTypes": [
+          "ModifyTable",
+          "Result"
+        ],
+        "indexNames": []
+      },
+      "warnings": [
+        "No index usage detected; confirm expected execution plan."
+      ]
+    }
+  ]
+}

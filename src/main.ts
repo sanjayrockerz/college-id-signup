@@ -17,78 +17,15 @@
 
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { ValidationPipe } from "@nestjs/common";
 import * as fs from "fs";
-import * as path from "path";
 import { ExpressAdapter } from "@nestjs/platform-express";
 import express from "express";
-import { registerDocsRoutes } from "./docs/registerDocs";
-import {
-  requestIdMiddleware,
-  requestLoggingMiddleware,
-  metricsMiddleware,
-  metricsEndpoint,
-} from "./middleware/logging";
+import { configureApp } from "./app.bootstrap";
 
 async function bootstrap() {
   const server = express();
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
-
-  // Request ID generation (must be first)
-  app.use(requestIdMiddleware);
-
-  // Request logging with safe redaction
-  app.use(requestLoggingMiddleware);
-
-  // Metrics collection
-  app.use(metricsMiddleware);
-
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
-
-  // Production-grade CORS restrictions
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(",") || ["http://localhost:3000"],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Request-ID"],
-    exposedHeaders: [
-      "X-Request-ID",
-      "RateLimit-Limit",
-      "RateLimit-Remaining",
-      "RateLimit-Reset",
-    ],
-    maxAge: 3600,
-  });
-
-  // Security headers (production-grade)
-  app.use((req, res, next) => {
-    res.setHeader(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains; preload",
-    );
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("X-Frame-Options", "DENY");
-    res.setHeader("X-XSS-Protection", "1; mode=block");
-    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-    res.setHeader(
-      "Permissions-Policy",
-      "geolocation=(), microphone=(), camera=()",
-    );
-    next();
-  });
-
-  // Serve OpenAPI and Redoc at /docs
-  registerDocsRoutes(server);
-
-  // Global prefix for API routes
-  app.setGlobalPrefix("api/v1");
+  await configureApp(app);
 
   const port = process.env.PORT || 3001;
 
@@ -102,6 +39,7 @@ async function bootstrap() {
       key: fs.readFileSync(process.env.SSL_KEY_PATH),
       cert: fs.readFileSync(process.env.SSL_CERT_PATH),
     };
+    void httpsOptions;
 
     // Note: For HTTPS, you would need to use NestFactory.create(AppModule, { httpsOptions })
     console.log(`Application is running on https://localhost:${port}`);

@@ -392,6 +392,9 @@ export class ChatService implements ChatServiceInterface {
           messages: [],
           total: 0,
           query,
+          conversationId,
+          userId,
+          limit,
         },
         message: "Message search feature coming soon",
       };
@@ -417,6 +420,10 @@ export class ChatService implements ChatServiceInterface {
           mostActiveUser: null,
         },
         message: "Conversation statistics feature coming soon",
+        context: {
+          conversationId,
+          userId,
+        },
       };
     } catch (error) {
       throw new BadRequestException(

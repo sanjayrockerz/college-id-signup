@@ -1,0 +1,59 @@
+src/app.ts:180 - app (used in module)
+src/app.ts:180 - server (used in module)
+src/config/database.examples.ts:17 - getUserExample
+src/config/database.examples.ts:33 - createUserWithProfileExample
+src/config/database.examples.ts:61 - getOrCreateDirectConversation
+src/config/database.examples.ts:123 - sendMessage
+src/config/database.examples.ts:167 - initializeApplication
+src/config/database.examples.ts:187 - shutdownApplication
+src/config/database.examples.ts:204 - healthCheckEndpoint
+src/config/database.examples.ts:229 - getUserFeedExample
+src/config/database.ts:333 - createPrismaClient (used in module)
+src/config/database.ts:336 - default
+src/idcard/idcard.controller.ts:2 - DecommissionedIdController
+src/idcard/idcard.module.ts:2 - DecommissionedIdModule
+src/middleware/logging.ts:133 - errorLoggingMiddleware
+src/middleware/logging.ts:168 - MetricsCollector (used in module)
+src/middleware/rateLimiter.ts:40 - writeOperationLimiter
+src/middleware/rateLimiter.ts:66 - uploadLimiter
+src/middleware/rateLimiter.ts:91 - messagingLimiter
+src/middleware/rateLimiter.ts:115 - adminLimiter
+src/middleware/validation.ts:64 - validateUserId
+src/middleware/validation.ts:110 - validateConversationId
+src/middleware/validation.ts:139 - validateMessageContent
+src/middleware/validation.ts:179 - validateConversationCreate
+src/middleware/validation.ts:260 - validateFileUpload
+src/middleware/validation.ts:294 - validatePagination
+src/middleware/validation.ts:325 - validateMessageIds
+src/middleware/validation.ts:366 - sanitizeInput (used in module)
+src/middleware/validation.ts:380 - validateSearchQuery
+src/middleware/validation.ts:16 - ALLOWED_IMAGE_TYPES (used in module)
+src/middleware/validation.ts:24 - ALLOWED_ATTACHMENT_TYPES
+src/middleware/validation.ts:35 - SIZE_LIMITS (used in module)
+src/routes/idcard.ts:14 - default
+src/upload/upload.module.ts:5 - UploadModule
+test/posts/post.service.spec.ts:94 - postServiceTests
+src/chat-backend/services/chat.service.new.ts:19 - ChatServiceInterface (used in module)
+src/chat-backend/services/chat.service.new.ts:45 - ChatService
+src/chat-backend/services/chat.service.ts:19 - ChatServiceInterface (used in module)
+src/common/services/mobile-optimization.service.ts:11 - MobileOptimizationOptions (used in module)
+src/common/services/mobile-optimization.service.ts:19 - OptimizedImageResult (used in module)
+src/common/services/mobile-optimization.service.ts:28 - MobilePaginationOptions (used in module)
+src/infra/config/database.config.ts:3 - DatabaseConfig (used in module)
+src/infra/config/database.config.ts:18 - DatabaseConfigService
+src/infra/prisma/mock-prisma-client.ts:2 - User (used in module)
+src/infra/prisma/mock-prisma-client.ts:25 - Post (used in module)
+src/infra/prisma/mock-prisma-client.ts:43 - Interaction (used in module)
+src/infra/prisma/mock-prisma-client.ts:53 - Connection (used in module)
+src/infra/prisma/mock-prisma-client.ts:65 - CoolnessRating (used in module)
+src/infra/prisma/mock-prisma-client.ts:75 - PostView (used in module)
+src/infra/prisma/mock-prisma-client.ts:84 - Push (used in module)
+src/infra/prisma/mock-prisma-client.ts:94 - Conversation (used in module)
+src/infra/prisma/mock-prisma-client.ts:116 - ConversationUser (used in module)
+src/infra/prisma/mock-prisma-client.ts:134 - Message (used in module)
+src/infra/prisma/mock-prisma-client.ts:158 - MessageRead (used in module)
+src/infra/prisma/mock-prisma-client.ts:169 - Attachment (used in module)
+src/infra/prisma/mock-prisma-client.ts:189 - MockPrismaClient (used in module)
+src/infra/prisma/mock-prisma-client.ts:296 - PrismaClient
+src/infra/prisma/mock-prisma-client.ts:525 - Prisma (used in module)
+src/infra/services/database-health.service.ts:9 - DatabaseHealthService (used in module)

@@ -1,0 +1,14 @@
+Residual domain directories and files identified during audit:
+
+- ./src/idcard/
+  - idcard.controller.ts
+  - idcard.module.ts
+- ./src/routes/
+  - idcard.ts
+  - idcard.js
+- ./src/middleware/
+  - validation.ts (contains validateIdCardVerification)
+- ./docs/
+  - ID_CARD_VERIFICATION.md
+- ./prisma/
+  - schema.prisma (User model retains college verification fields)
