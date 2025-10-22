@@ -1,0 +1,250 @@
+npm error code ELSPROBLEMS
+npm error missing: husky@^9.1.6, required by chat-backend@2.0.0
+npm error missing: lint-staged@^15.2.10, required by chat-backend@2.0.0
+{
+  "version": "2.0.0",
+  "name": "chat-backend",
+  "problems": [
+    "missing: husky@^9.1.6, required by chat-backend@2.0.0",
+    "missing: lint-staged@^15.2.10, required by chat-backend@2.0.0"
+  ],
+  "dependencies": {
+    "@aws-sdk/client-s3": {
+      "version": "3.884.0",
+      "resolved": "https://registry.npmjs.org/@aws-sdk/client-s3/-/client-s3-3.884.0.tgz",
+      "overridden": false
+    },
+    "@aws-sdk/s3-request-presigner": {
+      "version": "3.884.0",
+      "resolved": "https://registry.npmjs.org/@aws-sdk/s3-request-presigner/-/s3-request-presigner-3.884.0.tgz",
+      "overridden": false
+    },
+    "@nestjs/cli": {
+      "version": "11.0.10",
+      "resolved": "https://registry.npmjs.org/@nestjs/cli/-/cli-11.0.10.tgz",
+      "overridden": false
+    },
+    "@nestjs/common": {
+      "version": "11.1.3",
+      "resolved": "https://registry.npmjs.org/@nestjs/common/-/common-11.1.3.tgz",
+      "overridden": false
+    },
+    "@nestjs/core": {
+      "version": "11.1.3",
+      "resolved": "https://registry.npmjs.org/@nestjs/core/-/core-11.1.3.tgz",
+      "overridden": false
+    },
+    "@nestjs/platform-express": {
+      "version": "11.1.3",
+      "resolved": "https://registry.npmjs.org/@nestjs/platform-express/-/platform-express-11.1.3.tgz",
+      "overridden": false
+    },
+    "@nestjs/schematics": {
+      "version": "11.0.7",
+      "resolved": "https://registry.npmjs.org/@nestjs/schematics/-/schematics-11.0.7.tgz",
+      "overridden": false
+    },
+    "@nestjs/testing": {
+      "version": "11.1.6",
+      "resolved": "https://registry.npmjs.org/@nestjs/testing/-/testing-11.1.6.tgz",
+      "overridden": false
+    },
+    "@prisma/client": {
+      "version": "5.22.0",
+      "resolved": "https://registry.npmjs.org/@prisma/client/-/client-5.22.0.tgz",
+      "overridden": false
+    },
+    "@types/cors": {
+      "version": "2.8.19",
+      "resolved": "https://registry.npmjs.org/@types/cors/-/cors-2.8.19.tgz",
+      "overridden": false
+    },
+    "@types/express": {
+      "version": "5.0.3",
+      "resolved": "https://registry.npmjs.org/@types/express/-/express-5.0.3.tgz",
+      "overridden": false
+    },
+    "@types/jest": {
+      "version": "29.5.14",
+      "resolved": "https://registry.npmjs.org/@types/jest/-/jest-29.5.14.tgz",
+      "overridden": false
+    },
+    "@types/multer": {
+      "version": "1.4.13",
+      "resolved": "https://registry.npmjs.org/@types/multer/-/multer-1.4.13.tgz",
+      "overridden": false
+    },
+    "@types/node": {
+      "version": "24.0.4",
+      "resolved": "https://registry.npmjs.org/@types/node/-/node-24.0.4.tgz",
+      "overridden": false
+    },
+    "@types/supertest": {
+      "version": "6.0.3",
+      "resolved": "https://registry.npmjs.org/@types/supertest/-/supertest-6.0.3.tgz",
+      "overridden": false
+    },
+    "@typescript-eslint/eslint-plugin": {
+      "version": "8.43.0",
+      "resolved": "https://registry.npmjs.org/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.43.0.tgz",
+      "overridden": false
+    },
+    "@typescript-eslint/parser": {
+      "version": "8.43.0",
+      "resolved": "https://registry.npmjs.org/@typescript-eslint/parser/-/parser-8.43.0.tgz",
+      "overridden": false
+    },
+    "class-transformer": {
+      "version": "0.5.1",
+      "resolved": "https://registry.npmjs.org/class-transformer/-/class-transformer-0.5.1.tgz",
+      "overridden": false
+    },
+    "class-validator": {
+      "version": "0.14.2",
+      "resolved": "https://registry.npmjs.org/class-validator/-/class-validator-0.14.2.tgz",
+      "overridden": false
+    },
+    "cors": {
+      "version": "2.8.5",
+      "resolved": "https://registry.npmjs.org/cors/-/cors-2.8.5.tgz",
+      "overridden": false
+    },
+    "eslint-config-prettier": {
+      "version": "9.1.2",
+      "resolved": "https://registry.npmjs.org/eslint-config-prettier/-/eslint-config-prettier-9.1.2.tgz",
+      "overridden": false
+    },
+    "eslint-plugin-prettier": {
+      "version": "5.5.4",
+      "resolved": "https://registry.npmjs.org/eslint-plugin-prettier/-/eslint-plugin-prettier-5.5.4.tgz",
+      "overridden": false
+    },
+    "eslint": {
+      "version": "8.57.1",
+      "resolved": "https://registry.npmjs.org/eslint/-/eslint-8.57.1.tgz",
+      "overridden": false
+    },
+    "express-rate-limit": {
+      "version": "8.1.0",
+      "overridden": false
+    },
+    "express": {
+      "version": "5.1.0",
+      "resolved": "https://registry.npmjs.org/express/-/express-5.1.0.tgz",
+      "overridden": false
+    },
+    "helmet": {
+      "version": "7.2.0",
+      "resolved": "https://registry.npmjs.org/helmet/-/helmet-7.2.0.tgz",
+      "overridden": false
+    },
+    "husky": {
+      "required": "^9.1.6",
+      "missing": true,
+      "problems": [
+        "missing: husky@^9.1.6, required by chat-backend@2.0.0"
+      ]
+    },
+    "ioredis": {
+      "version": "5.6.1",
+      "resolved": "https://registry.npmjs.org/ioredis/-/ioredis-5.6.1.tgz",
+      "overridden": false
+    },
+    "jest": {
+      "version": "29.7.0",
+      "resolved": "https://registry.npmjs.org/jest/-/jest-29.7.0.tgz",
+      "overridden": false
+    },
+    "lint-staged": {
+      "missing": true,
+      "problems": [
+        "missing: lint-staged@^15.2.10, required by chat-backend@2.0.0"
+      ]
+    },
+    "multer": {
+      "version": "1.4.5-lts.2",
+      "resolved": "https://registry.npmjs.org/multer/-/multer-1.4.5-lts.2.tgz",
+      "overridden": false
+    },
+    "node-tesseract-ocr": {
+      "version": "2.2.1",
+      "resolved": "https://registry.npmjs.org/node-tesseract-ocr/-/node-tesseract-ocr-2.2.1.tgz",
+      "overridden": false
+    },
+    "nodemon": {
+      "version": "3.1.10",
+      "resolved": "https://registry.npmjs.org/nodemon/-/nodemon-3.1.10.tgz",
+      "overridden": false
+    },
+    "prettier": {
+      "version": "3.6.2",
+      "resolved": "https://registry.npmjs.org/prettier/-/prettier-3.6.2.tgz",
+      "overridden": false
+    },
+    "prisma": {
+      "version": "5.22.0",
+      "resolved": "https://registry.npmjs.org/prisma/-/prisma-5.22.0.tgz",
+      "overridden": false
+    },
+    "reflect-metadata": {
+      "version": "0.2.2",
+      "resolved": "https://registry.npmjs.org/reflect-metadata/-/reflect-metadata-0.2.2.tgz",
+      "overridden": false
+    },
+    "rxjs": {
+      "version": "7.8.2",
+      "resolved": "https://registry.npmjs.org/rxjs/-/rxjs-7.8.2.tgz",
+      "overridden": false
+    },
+    "sharp": {
+      "version": "0.34.2",
+      "resolved": "https://registry.npmjs.org/sharp/-/sharp-0.34.2.tgz",
+      "overridden": false
+    },
+    "socket.io-client": {
+      "version": "4.8.1",
+      "overridden": false
+    },
+    "socket.io": {
+      "version": "4.8.1",
+      "resolved": "https://registry.npmjs.org/socket.io/-/socket.io-4.8.1.tgz",
+      "overridden": false
+    },
+    "source-map-support": {
+      "version": "0.5.21",
+      "resolved": "https://registry.npmjs.org/source-map-support/-/source-map-support-0.5.21.tgz",
+      "overridden": false
+    },
+    "supertest": {
+      "version": "7.1.4",
+      "resolved": "https://registry.npmjs.org/supertest/-/supertest-7.1.4.tgz",
+      "overridden": false
+    },
+    "ts-jest": {
+      "version": "29.4.1",
+      "resolved": "https://registry.npmjs.org/ts-jest/-/ts-jest-29.4.1.tgz",
+      "overridden": false
+    },
+    "ts-node": {
+      "version": "10.9.2",
+      "resolved": "https://registry.npmjs.org/ts-node/-/ts-node-10.9.2.tgz",
+      "overridden": false
+    },
+    "tsconfig-paths": {
+      "version": "4.2.0",
+      "resolved": "https://registry.npmjs.org/tsconfig-paths/-/tsconfig-paths-4.2.0.tgz",
+      "overridden": false
+    },
+    "typescript": {
+      "version": "5.8.3",
+      "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.8.3.tgz",
+      "overridden": false
+    }
+  },
+  "error": {
+    "code": "ELSPROBLEMS",
+    "summary": "missing: husky@^9.1.6, required by chat-backend@2.0.0\nmissing: lint-staged@^15.2.10, required by chat-backend@2.0.0",
+    "detail": ""
+  }
+}
+npm error A complete log of this run can be found in: /Users/harishraghave/.npm/_logs/2025-10-21T04_52_47_977Z-debug-0.log

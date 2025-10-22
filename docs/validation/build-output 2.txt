@@ -1,0 +1,6 @@
+
+> chat-backend@2.0.0 build
+> nest build
+
+Found 2 error(s).
+

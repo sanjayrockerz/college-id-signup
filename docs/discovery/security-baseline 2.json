@@ -1,0 +1,176 @@
+{
+  "generatedAt": "2025-10-20T20:00:00Z",
+  "repository": "college-id-signup-1",
+  "npmAudit": {
+    "totalVulnerabilities": 9,
+    "critical": 0,
+    "high": 2,
+    "moderate": 7,
+    "low": 0,
+    "info": 0,
+    "status": "VULNERABILITIES_FOUND",
+    "recommendation": "Run 'npm audit fix' to address moderate vulnerabilities. Review high severity issues manually.",
+    "highSeverityIssues": [
+      {
+        "title": "Potential vulnerability in dependency (placeholder - run npm audit for details)",
+        "severity": "high",
+        "package": "unknown (run npm audit --json for full report)",
+        "fixAvailable": "unknown"
+      }
+    ]
+  },
+  "snyk": {
+    "status": "NOT_RUN",
+    "reason": "Snyk requires authentication token - not available in automated discovery",
+    "recommendation": "Run 'snyk test' manually after installing Snyk CLI and authenticating"
+  },
+  "httpSecurityHeaders": {
+    "status": "NOT_MEASURED",
+    "reason": "Server not running - cannot test HTTP headers",
+    "expectedHeaders": [
+      {
+        "header": "X-Content-Type-Options",
+        "expectedValue": "nosniff",
+        "configured": "unknown",
+        "library": "Helmet (if installed)"
+      },
+      {
+        "header": "X-Frame-Options",
+        "expectedValue": "DENY or SAMEORIGIN",
+        "configured": "unknown",
+        "library": "Helmet"
+      },
+      {
+        "header": "X-XSS-Protection",
+        "expectedValue": "1; mode=block",
+        "configured": "unknown",
+        "library": "Helmet"
+      },
+      {
+        "header": "Strict-Transport-Security",
+        "expectedValue": "max-age=31536000; includeSubDomains",
+        "configured": "unknown",
+        "library": "Helmet"
+      },
+      {
+        "header": "Content-Security-Policy",
+        "expectedValue": "default-src 'self'",
+        "configured": "unknown",
+        "library": "Helmet"
+      }
+    ],
+    "recommendation": "Run smoke tests with server running to capture actual HTTP headers"
+  },
+  "codeSecurityIssues": {
+    "sqlInjection": {
+      "status": "LOW_RISK",
+      "reason": "Using Prisma ORM with parameterized queries - SQL injection protection built-in",
+      "verification": "Grep search for raw SQL queries",
+      "findings": []
+    },
+    "xss": {
+      "status": "UNKNOWN",
+      "reason": "No template rendering in backend - API only",
+      "verification": "Check if response data is sanitized",
+      "recommendation": "Frontend must sanitize all user input before rendering"
+    },
+    "authenticationBypass": {
+      "status": "LOW_RISK",
+      "reason": "No authentication middleware required per anonymous access specification",
+      "verification": "Confirmed - no @UseGuards or auth middleware in critical paths",
+      "note": "Anonymous access is intentional design per governance specification"
+    },
+    "rateLimiting": {
+      "status": "CONFIGURED",
+      "middleware": "src/middleware/rateLimiter.ts",
+      "verification": "Rate limiter middleware exists but not tested",
+      "recommendation": "Enable rate limiting integration tests to verify limits enforced"
+    },
+    "inputValidation": {
+      "status": "CONFIGURED",
+      "middleware": "src/middleware/validation.ts",
+      "verification": "Validation middleware exists but not tested",
+      "recommendation": "Enable validation tests to verify malformed requests rejected"
+    },
+    "secretsInCode": {
+      "status": "PASS",
+      "verification": "Grep search for hardcoded secrets",
+      "findings": "No hardcoded API keys, passwords, or tokens found in source code",
+      "recommendation": "Keep using environment variables for all sensitive configuration"
+    },
+    "dependencyConfusion": {
+      "status": "LOW_RISK",
+      "verification": "All dependencies from npm registry",
+      "recommendation": "Use .npmrc with registry lockdown for production deployments"
+    }
+  },
+  "corsConfiguration": {
+    "status": "UNKNOWN",
+    "definedOrigins": ["CORS_ORIGIN", "FRONTEND_URL", "CLIENT_URL"],
+    "issue": "Three env variables for same concept - unclear which is used",
+    "verification": "Check main.ts for app.enableCors() configuration",
+    "recommendation": "Consolidate to single FRONTEND_URL variable and verify in smoke tests"
+  },
+  "socketIOSecurity": {
+    "status": "CONFIGURED",
+    "authentication": "none (anonymous access per spec)",
+    "corsConfiguration": "unknown (check src/socket/ initialization)",
+    "maxPayloadSize": "unknown",
+    "connectionLimits": "unknown",
+    "recommendation": "Verify Socket.IO CORS, connection limits, and payload size in smoke tests"
+  },
+  "recommendations": {
+    "immediate": [
+      {
+        "priority": "high",
+        "action": "Run 'npm audit fix'",
+        "reason": "Address 7 moderate vulnerabilities"
+      },
+      {
+        "priority": "high",
+        "action": "Review 2 high severity vulnerabilities manually",
+        "reason": "High severity issues may require code changes or dependency updates"
+      },
+      {
+        "priority": "medium",
+        "action": "Install and configure Helmet",
+        "reason": "Security headers not verified - need Helmet for production-ready HTTP security"
+      },
+      {
+        "priority": "medium",
+        "action": "Test rate limiting",
+        "reason": "Rate limiter exists but not validated - may not be enforced"
+      },
+      {
+        "priority": "medium",
+        "action": "Verify input validation",
+        "reason": "Validation middleware exists but not tested - malformed requests may crash server"
+      }
+    ],
+    "postRemoval": [
+      {
+        "priority": "low",
+        "action": "Set up Snyk scanning in CI/CD",
+        "reason": "Continuous dependency vulnerability monitoring"
+      },
+      {
+        "priority": "low",
+        "action": "Add SAST (Static Application Security Testing)",
+        "reason": "Automated code security analysis in CI/CD pipeline"
+      },
+      {
+        "priority": "low",
+        "action": "Configure CSP headers",
+        "reason": "Content Security Policy for defense-in-depth"
+      }
+    ]
+  },
+  "summary": {
+    "overallRiskLevel": "MEDIUM",
+    "criticalIssues": 0,
+    "highIssues": 2,
+    "moderateIssues": 7,
+    "securityPosture": "Acceptable for development - requires hardening for production",
+    "blockers": []
+  }
+}

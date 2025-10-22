@@ -1,0 +1,176 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-backend
+  labels:
+    app: chat-backend
+    version: v1.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0  # Zero-downtime deployments
+  selector:
+    matchLabels:
+      app: chat-backend
+  template:
+    metadata:
+      labels:
+        app: chat-backend
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3001"
+        prometheus.io/path: "/metrics"
+    spec:
+      terminationGracePeriodSeconds: 45  # Must exceed drain + shutdown time
+      
+      containers:
+      - name: chat-backend
+        image: your-registry/chat-backend:latest
+        imagePullPolicy: Always
+        
+        ports:
+        - containerPort: 3001
+          name: http
+          protocol: TCP
+        
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3001"
+        
+        # Load configuration from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: chat-backend-config
+        
+        # Secrets (create separately)
+        # - secretRef:
+        #     name: chat-backend-secrets
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        # Lifecycle hooks for graceful shutdown
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - |
+                #!/bin/sh
+                set -e
+                
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - PreStop hook initiated"
+                
+                # 1. Mark pod unhealthy for readiness checks
+                touch /tmp/shutdown-initiated
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Marked unhealthy"
+                
+                # 2. Wait for LB to detect unhealthy and stop routing
+                # (2 × readiness check interval = 2 × 5s = 10s)
+                sleep 10
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - LB deregistration complete"
+                
+                # 3. Send SIGTERM to Node.js process for graceful shutdown
+                kill -SIGTERM 1
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - SIGTERM sent to process"
+                
+                # 4. Wait for active connections to drain (30s drain window)
+                sleep 30
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Drain period complete"
+        
+        # Startup probe - allows slow initialization
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 3001
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 12  # 60s total startup time
+        
+        # Readiness probe - checks if ready to accept traffic
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - |
+              # Fail if shutdown initiated
+              if [ -f /tmp/shutdown-initiated ]; then
+                exit 1
+              fi
+              # Otherwise check health endpoint
+              curl -f http://localhost:3001/health || exit 1
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 2  # 10s to become unready
+        
+        # Liveness probe - checks if process is alive
+        livenessProbe:
+          httpGet:
+            path: /health/database
+            port: 3001
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3  # 30s before restart
+        
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # Node.js needs write access
+          capabilities:
+            drop:
+            - ALL
+        
+        # Volume mounts for writable tmp
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      
+      # Affinity rules for high availability
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - chat-backend
+              topologyKey: kubernetes.io/hostname
+          - weight: 50
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - chat-backend
+              topologyKey: topology.kubernetes.io/zone

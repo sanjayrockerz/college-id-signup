@@ -1,0 +1,97 @@
+{
+  "generatedAt": "2025-10-20T20:00:00Z",
+  "repository": "college-id-signup-1",
+  "status": "NOT_EXECUTED",
+  "reason": "Database query profiling requires running server with PostgreSQL - deferred to manual execution",
+  "plannedAnalysis": {
+    "hotPaths": [
+      {
+        "operation": "Get messages with pagination",
+        "query": "SELECT * FROM Message WHERE conversationId = ? ORDER BY createdAt DESC LIMIT ? OFFSET ?",
+        "expectedIndexes": ["conversationId", "createdAt"],
+        "currentIndexes": "UNKNOWN (need EXPLAIN ANALYZE)",
+        "expectedPerformance": "< 100ms for 1000 messages",
+        "status": "PENDING"
+      },
+      {
+        "operation": "Get conversation with participants",
+        "query": "SELECT * FROM Conversation JOIN ConversationParticipant ON ... WHERE id = ?",
+        "expectedIndexes": ["conversationId", "userId"],
+        "potentialIssue": "N+1 if fetching participants separately",
+        "mitigation": "Use Prisma include for eager loading",
+        "status": "PENDING"
+      },
+      {
+        "operation": "Mark messages as read",
+        "query": "UPDATE Message SET isRead = true WHERE conversationId = ? AND id <= ?",
+        "expectedIndexes": ["conversationId", "id"],
+        "expectedPerformance": "< 50ms for 100 messages",
+        "status": "PENDING"
+      },
+      {
+        "operation": "Get unread message count",
+        "query": "SELECT COUNT(*) FROM Message WHERE conversationId = ? AND userId != ? AND isRead = false",
+        "expectedIndexes": ["conversationId", "userId", "isRead"],
+        "potentialIssue": "Slow COUNT(*) on large conversations",
+        "mitigation": "Add composite index or cached counter",
+        "status": "PENDING"
+      }
+    ],
+    "indexRecommendations": [
+      {
+        "table": "Message",
+        "columns": ["conversationId", "createdAt DESC"],
+        "type": "composite",
+        "reason": "Optimize pagination queries - most common access pattern"
+      },
+      {
+        "table": "Message",
+        "columns": ["conversationId", "userId", "isRead"],
+        "type": "composite",
+        "reason": "Optimize unread count queries"
+      },
+      {
+        "table": "ConversationParticipant",
+        "columns": ["conversationId", "userId"],
+        "type": "composite",
+        "reason": "Optimize participant lookups and authorization checks"
+      },
+      {
+        "table": "Conversation",
+        "columns": ["userId"],
+        "type": "single",
+        "reason": "Optimize 'get my conversations' queries"
+      }
+    ],
+    "n1Patterns": [
+      {
+        "location": "chat.repository.ts::getConversations()",
+        "pattern": "Fetching participants in loop for each conversation",
+        "impact": "N+1 query per conversation",
+        "mitigation": "Use Prisma include: { participants: true }",
+        "status": "PENDING_VERIFICATION"
+      },
+      {
+        "location": "chat.repository.ts::getMessages()",
+        "pattern": "Fetching user data for each message",
+        "impact": "N+1 query per message if not using include",
+        "mitigation": "Use Prisma include: { user: true }",
+        "status": "PENDING_VERIFICATION"
+      }
+    ]
+  },
+  "executionPlan": {
+    "tools": ["PostgreSQL EXPLAIN ANALYZE", "Prisma debug logging", "pg_stat_statements"],
+    "steps": [
+      "1. Enable Prisma query logging: prisma.$on('query', ...)",
+      "2. Run smoke tests with database profiling enabled",
+      "3. Capture EXPLAIN ANALYZE for slow queries (>100ms)",
+      "4. Identify missing indexes",
+      "5. Detect N+1 patterns from query logs",
+      "6. Generate optimization recommendations"
+    ],
+    "outputFormat": "query-plan-analysis.json with missing indexes, N+1 patterns, slow queries"
+  },
+  "recommendation": "Execute database profiling during smoke tests after PostgreSQL setup. Update this file with actual EXPLAIN ANALYZE results and index recommendations.",
+  "note": "Query profiling deferred due to database dependency - requires running server with PostgreSQL and executing representative workload"
+}

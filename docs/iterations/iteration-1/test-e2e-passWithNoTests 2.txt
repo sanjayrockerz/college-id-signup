@@ -1,0 +1,5 @@
+
+> chat-backend@2.0.0 test:e2e
+> jest --config ./test/jest-e2e.json --passWithNoTests
+
+No tests found, exiting with code 0

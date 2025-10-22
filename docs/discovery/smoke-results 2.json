@@ -1,0 +1,236 @@
+{
+  "generatedAt": "2025-10-20T20:00:00Z",
+  "repository": "college-id-signup-1",
+  "status": "NOT_EXECUTED",
+  "reason": "Server requires database connection - automated smoke tests deferred to manual execution phase",
+  "plannedTests": {
+    "serverStartup": {
+      "test": "Boot NestJS server and verify startup logs",
+      "command": "npm run start:dev",
+      "expectedOutput": "Nest application successfully started",
+      "expectedPort": 3001,
+      "timeout": "10s",
+      "status": "PENDING"
+    },
+    "healthCheck": {
+      "test": "GET /health endpoint",
+      "endpoint": "http://localhost:3001/health",
+      "expectedStatus": 200,
+      "expectedBody": {"status": "ok", "database": "connected"},
+      "status": "PENDING"
+    },
+    "restAPI": {
+      "createConversation": {
+        "method": "POST",
+        "endpoint": "/api/v1/chat/conversations",
+        "body": {
+          "type": "direct",
+          "userId": "test-user-123",
+          "participantIds": ["test-user-456"]
+        },
+        "expectedStatus": 201,
+        "expectedFields": ["id", "type", "participants", "createdAt"],
+        "status": "PENDING"
+      },
+      "sendMessage": {
+        "method": "POST",
+        "endpoint": "/api/v1/chat/messages",
+        "body": {
+          "conversationId": "{conversationId}",
+          "userId": "test-user-123",
+          "content": "Hello, world!"
+        },
+        "expectedStatus": 201,
+        "expectedFields": ["id", "conversationId", "userId", "content", "createdAt"],
+        "status": "PENDING"
+      },
+      "getMessages": {
+        "method": "GET",
+        "endpoint": "/api/v1/chat/messages?conversationId={conversationId}&limit=20",
+        "expectedStatus": 200,
+        "expectedFields": ["messages", "nextCursor", "hasMore"],
+        "status": "PENDING"
+      },
+      "getMessagesPagination": {
+        "method": "GET",
+        "endpoint": "/api/v1/chat/messages?conversationId={conversationId}&cursor={cursor}&limit=10",
+        "expectedStatus": 200,
+        "validation": "Verify cursor-based pagination returns next page",
+        "status": "PENDING"
+      },
+      "markAsRead": {
+        "method": "PUT",
+        "endpoint": "/api/v1/chat/messages/read",
+        "body": {
+          "conversationId": "{conversationId}",
+          "userId": "test-user-456",
+          "lastReadMessageId": "{messageId}"
+        },
+        "expectedStatus": 200,
+        "status": "PENDING"
+      },
+      "errorHandling": {
+        "invalidConversationType": {
+          "method": "POST",
+          "endpoint": "/api/v1/chat/conversations",
+          "body": {"type": "invalid", "userId": "test-user-123"},
+          "expectedStatus": 400,
+          "expectedError": "Validation error",
+          "status": "PENDING"
+        },
+        "oversizedMessage": {
+          "method": "POST",
+          "endpoint": "/api/v1/chat/messages",
+          "body": {
+            "conversationId": "{conversationId}",
+            "userId": "test-user-123",
+            "content": "<10001 character string>"
+          },
+          "expectedStatus": 413,
+          "expectedError": "Payload too large",
+          "status": "PENDING"
+        },
+        "missingRequiredField": {
+          "method": "POST",
+          "endpoint": "/api/v1/chat/conversations",
+          "body": {"type": "direct"},
+          "expectedStatus": 400,
+          "expectedError": "userId is required",
+          "status": "PENDING"
+        }
+      }
+    },
+    "socketIO": {
+      "connect": {
+        "event": "connect",
+        "handshake": {"userId": "test-user-123"},
+        "expectedAck": "connection_success",
+        "timeout": "5s",
+        "status": "PENDING"
+      },
+      "joinConversation": {
+        "event": "join_conversation",
+        "payload": {"conversationId": "{conversationId}", "userId": "test-user-123"},
+        "expectedAck": "joined",
+        "expectedBroadcast": "user_joined",
+        "status": "PENDING"
+      },
+      "sendMessage": {
+        "event": "send_message",
+        "payload": {
+          "conversationId": "{conversationId}",
+          "userId": "test-user-123",
+          "content": "Real-time message test"
+        },
+        "expectedAck": "message_sent",
+        "expectedBroadcast": "new_message",
+        "broadcastRecipients": ["test-user-456"],
+        "status": "PENDING"
+      },
+      "typingIndicator": {
+        "event": "typing_indicator",
+        "payload": {
+          "conversationId": "{conversationId}",
+          "userId": "test-user-123",
+          "isTyping": true
+        },
+        "expectedBroadcast": "user_typing",
+        "status": "PENDING"
+      },
+      "markAsRead": {
+        "event": "mark_as_read",
+        "payload": {
+          "conversationId": "{conversationId}",
+          "userId": "test-user-123",
+          "messageId": "{messageId}"
+        },
+        "expectedBroadcast": "message_read",
+        "status": "PENDING"
+      },
+      "disconnect": {
+        "event": "disconnect",
+        "expectedCleanup": "Remove socket from conversation rooms",
+        "status": "PENDING"
+      },
+      "reconnect": {
+        "test": "Disconnect and reconnect with same userId",
+        "expectedBehavior": "Rejoin previous conversations automatically",
+        "status": "PENDING"
+      },
+      "concurrentConnections": {
+        "test": "Connect 10 clients simultaneously",
+        "expectedBehavior": "All clients connected without errors",
+        "status": "PENDING"
+      },
+      "messageOrdering": {
+        "test": "Send 100 messages rapidly",
+        "expectedBehavior": "All messages delivered in order",
+        "validation": "Check createdAt timestamps and sequence",
+        "status": "PENDING"
+      },
+      "errorHandling": {
+        "nonMemberSend": {
+          "event": "send_message",
+          "payload": {
+            "conversationId": "{conversationId}",
+            "userId": "unauthorized-user",
+            "content": "Should fail"
+          },
+          "expectedError": "Not a conversation member",
+          "status": "PENDING"
+        },
+        "invalidPayload": {
+          "event": "send_message",
+          "payload": {"conversationId": "invalid"},
+          "expectedError": "Validation failed",
+          "status": "PENDING"
+        }
+      }
+    },
+    "performance": {
+      "messageLatency": {
+        "test": "Measure Socket.IO message send-to-receive latency",
+        "expectedP50": "< 50ms",
+        "expectedP95": "< 200ms",
+        "expectedP99": "< 500ms",
+        "status": "PENDING"
+      },
+      "paginationPerformance": {
+        "test": "GET /messages with 1000 messages in conversation",
+        "expectedResponseTime": "< 500ms",
+        "status": "PENDING"
+      },
+      "concurrentRequests": {
+        "test": "50 concurrent POST /messages requests",
+        "expectedSuccessRate": "> 99%",
+        "expectedP95ResponseTime": "< 1s",
+        "status": "PENDING"
+      }
+    },
+    "databaseQueries": {
+      "test": "Monitor database query execution during smoke tests",
+      "metrics": ["Query count", "Slow queries (>100ms)", "N+1 patterns"],
+      "status": "PENDING"
+    }
+  },
+  "executionPlan": {
+    "prerequisites": [
+      "PostgreSQL running (docker-compose up -d postgres)",
+      "DATABASE_URL configured in .env",
+      "Database migrated (npx prisma migrate deploy)",
+      "Test data seeded"
+    ],
+    "steps": [
+      "1. Start server: npm run start:dev",
+      "2. Run REST API tests: curl or supertest script",
+      "3. Run Socket.IO tests: socket.io-client script",
+      "4. Measure performance metrics",
+      "5. Monitor database queries",
+      "6. Generate smoke-results.json with pass/fail and metrics"
+    ],
+    "automationScript": "test/smoke-tests.sh (to be created)",
+    "expectedDuration": "5 minutes"
+  },
+  "recommendation": "Execute smoke tests manually or via CI/CD after database setup. Update this file with actual results (pass/fail, performance metrics) for baseline comparison.",
+  "note": "Smoke tests deferred due to database dependency - cannot run in fully automated discovery phase without infrastructure setup"
+}

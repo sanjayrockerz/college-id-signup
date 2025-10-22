@@ -1,0 +1,75 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chat-backend-alb
+  annotations:
+    # ALB Ingress Controller
+    kubernetes.io/ingress.class: alb
+    
+    # ALB scheme and target type
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    
+    # Backend protocol (HTTP for WebSocket)
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    
+    # Listeners
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    
+    # Certificate (use ACM certificate ARN)
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:123456789012:certificate/your-cert-id
+    
+    # Session stickiness (cookie-based)
+    alb.ingress.kubernetes.io/target-group-attributes: |
+      stickiness.enabled=true,
+      stickiness.type=lb_cookie,
+      stickiness.lb_cookie.duration_seconds=86400,
+      deregistration_delay.timeout_seconds=30,
+      deregistration_delay.connection_termination.enabled=false
+    
+    # Health checks
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
+    alb.ingress.kubernetes.io/success-codes: "200"
+    
+    # Timeouts - CRITICAL for WebSocket
+    alb.ingress.kubernetes.io/load-balancer-attributes: |
+      idle_timeout.timeout_seconds=80,
+      routing.http2.enabled=false,
+      deletion_protection.enabled=true
+    
+    # Security groups
+    alb.ingress.kubernetes.io/security-groups: sg-xxxxxxxxx
+    
+    # Subnets (public subnets for internet-facing ALB)
+    alb.ingress.kubernetes.io/subnets: subnet-xxxxxxxx,subnet-yyyyyyyy,subnet-zzzzzzzz
+    
+    # Tags
+    alb.ingress.kubernetes.io/tags: |
+      Environment=production,
+      Service=chat-backend,
+      ManagedBy=kubernetes,
+      Project=chat-application
+    
+    # WAF (optional)
+    # alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:us-east-1:123456789012:regional/webacl/your-waf/xxxxx
+
+spec:
+  ingressClassName: alb
+  rules:
+  - host: chat.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: chat-backend
+            port:
+              number: 3001
