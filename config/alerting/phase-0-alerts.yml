@@ -1,0 +1,199 @@
+groups:
+  - name: chat-backend-phase0
+    interval: 30s
+    rules:
+      - alert: ChatBackendHandshakeSuccessWarn
+        expr: |
+          rate(handshake_total{event="handshake.rejected"}[5m])
+            /
+          clamp_min(rate(handshake_total[5m]), 1)
+            > 0.0005
+        for: 5m
+        labels:
+          severity: warn
+          service: chat-backend
+          slo: handshake-success
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runbooks/phase-0-alert-triage.md#handshake-failure-spikes
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "Handshake success rate < 99.95% (warning)"
+          description: |
+            Handshake rejects exceed 0.05% over 5 minutes.
+            Investigate authentication issuer status and network ACLs.
+
+      - alert: ChatBackendHandshakeSuccessPage
+        expr: |
+          rate(handshake_total{event="handshake.rejected"}[5m])
+            /
+          clamp_min(rate(handshake_total[5m]), 1)
+            > 0.0007
+        for: 10m
+        labels:
+          severity: page
+          service: chat-backend
+          slo: handshake-success
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runbooks/phase-0-alert-triage.md#handshake-failure-spikes
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "Handshake success SLO breached"
+          description: |
+            Handshake rejects exceed 0.07% for 10m.
+            Expect rapid error budget burn (>5x). Page primary on-call.
+
+      - alert: ChatBackendSendLatencyWarn
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(delivery_latency_ms_bucket{event="send"}[5m])) by (le)
+          ) > 210
+        for: 5m
+        labels:
+          severity: warn
+          service: chat-backend
+          slo: latency-send
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runbooks/phase-0-alert-triage.md#latency-creep
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "Send latency p95 creeping"
+          description: "Delivery latency p95 > 210ms (84% of 250ms SLO)."
+
+      - alert: ChatBackendSendLatencyPage
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(delivery_latency_ms_bucket{event="send"}[5m])) by (le)
+          ) > 230
+        for: 10m
+        labels:
+          severity: page
+          service: chat-backend
+          slo: latency-send
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runbooks/phase-0-alert-triage.md#latency-creep
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "Send latency SLO breach"
+          description: "Delivery latency p95 > 230ms for 10 minutes."
+
+      - alert: ChatBackendHistoryLatencyWarn
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(delivery_latency_ms_bucket{event="history"}[5m])) by (le)
+          ) > 310
+        for: 5m
+        labels:
+          severity: warn
+          service: chat-backend
+          slo: latency-history
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runbooks/phase-0-alert-triage.md#latency-creep
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "History latency p95 nearing limit"
+          description: "History latency p95 > 310ms (89% of 350ms SLO)."
+
+      - alert: ChatBackendHistoryLatencyPage
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(delivery_latency_ms_bucket{event="history"}[5m])) by (le)
+          ) > 330
+        for: 10m
+        labels:
+          severity: page
+          service: chat-backend
+          slo: latency-history
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runbooks/phase-0-alert-triage.md#latency-creep
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "History latency SLO breach"
+          description: "History latency p95 > 330ms for 10 minutes."
+
+      - alert: ChatBackendErrorRateWarn
+        expr: |
+          sum(rate(error_total{event=~"send_message|history|delivery"}[5m]))
+            /
+          clamp_min(sum(rate(message_throughput_total{type=~"send|history|delivered"}[5m])), 1)
+            > 0.0006
+        for: 5m
+        labels:
+          severity: warn
+          service: chat-backend
+          slo: error-rate
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runbooks/phase-0-alert-triage.md#transport-errors
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "Error rate approaching limit"
+          description: "Message error rate >0.06% for 5 minutes."
+
+      - alert: ChatBackendErrorRatePage
+        expr: |
+          sum(rate(error_total{event=~"send_message|history|delivery"}[5m]))
+            /
+          clamp_min(sum(rate(message_throughput_total{type=~"send|history|delivered"}[5m])), 1)
+            > 0.0008
+        for: 10m
+        labels:
+          severity: page
+          service: chat-backend
+          slo: error-rate
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runbooks/phase-0-alert-triage.md#transport-errors
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "Message error rate SLO breach"
+          description: "Error rate >0.08% over 10 minutes."
+
+      - alert: ChatBackendErrorBudgetBurn
+        expr: |
+          (
+            sum(rate(error_total{event=~"send_message|history|delivery"}[5m]))
+              /
+            clamp_min(sum(rate(message_throughput_total{type=~"send|history|delivered"}[5m])), 1)
+          ) / 0.0008 > 4
+        for: 30m
+        labels:
+          severity: page
+          service: chat-backend
+          slo: error-rate
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runbooks/phase-0-alert-triage.md#budget-burn
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "Error budget burn >4x"
+          description: |
+            Sustained burn threatens Phase 1 budget.
+            Initiate release freeze and mitigation steps.
+
+      - alert: ChatBackendHeartbeatMissWarn
+        expr: |
+          max by (instance) (
+            sum(rate(socket_disconnect_total{reason="heartbeat_timeout"}[5m])) by (instance)
+              /
+            clamp_min(sum(rate(socket_disconnect_total[5m])) by (instance), 1)
+          ) > 0.02
+        for: 10m
+        labels:
+          severity: warn
+          service: chat-backend
+          slo: heartbeat-continuity
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runtime/socket-handshake-runbook.md
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "Heartbeat miss ratio >2%"
+          description: |
+            Heartbeat timeout disconnects exceed 2% of total for 10m.
+            Inspect adapter connectivity and load-balancer stickiness.
+
+      - alert: ChatBackendHeartbeatMissPage
+        expr: |
+          max by (instance) (
+            sum(rate(socket_disconnect_total{reason="heartbeat_timeout"}[5m])) by (instance)
+              /
+            clamp_min(sum(rate(socket_disconnect_total[5m])) by (instance), 1)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: page
+          service: chat-backend
+          slo: heartbeat-continuity
+          runbook: https://github.com/sanjayrockerz/college-id-signup/blob/master/docs/runtime/socket-handshake-runbook.md
+          dashboard: grafana://d/chat-phase-0
+        annotations:
+          summary: "Heartbeat miss ratio critical"
+          description: |
+            Heartbeat timeout disconnects exceed 5% for 5m.
+            Page realtime on-call and evaluate Redis/presence health.

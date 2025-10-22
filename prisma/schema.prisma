@@ -61,6 +61,7 @@ model User {
   conversationUsers    ConversationUser[] @relation("ConversationMember")
   sentMessages         Message[]          @relation("MessageSender")
   messageReads         MessageRead[]      @relation("MessageReader")
+  messageReceipts      MessageReceipt[]   @relation("MessageRecipient")
   attachments          Attachment[]       @relation("AttachmentUploader")
   createdConversations Conversation[]     @relation("ConversationCreator")
 
@@ -229,6 +230,12 @@ enum MessageStatus {
   DELETED
 }
 
+enum MessageReceiptState {
+  SENT
+  DELIVERED
+  READ
+}
+
 enum AttachmentType {
   IMAGE
   VIDEO
@@ -319,6 +326,10 @@ model Message {
 
   // Metadata
   metadata Json? // For storing additional message data (reactions, etc.)
+  
+  // Phase 3: Idempotency and tracing
+  idempotencyKey String  @unique // For deduplication
+  correlationId  String? // For distributed tracing
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -333,14 +344,18 @@ model Message {
   replyTo Message?  @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
   replies Message[] @relation("MessageReply")
 
-  attachments  Attachment[]  @relation("MessageAttachments")
-  messageReads MessageRead[] @relation("MessageReadStatus")
+  attachments    Attachment[]     @relation("MessageAttachments")
+  messageReads   MessageRead[]    @relation("MessageReadStatus")
+  messageReceipt MessageReceipt[] @relation("MessageReceipts")
 
+  @@unique([conversationId, id])
   @@index([conversationId, createdAt])
   @@index([senderId])
   @@index([threadId])
   @@index([replyToId])
   @@index([type, isDeleted])
+  @@index([idempotencyKey])
+  @@index([correlationId])
   @@map("messages")
 }
 
@@ -362,6 +377,29 @@ model MessageRead {
   @@index([messageId])
   @@index([userId])
   @@map("message_reads")
+}
+
+// Phase 3: Receipt state tracking with idempotency
+model MessageReceipt {
+  id        String                @id @default(cuid())
+  state     MessageReceiptState
+  timestamp DateTime              @default(now())
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  messageId String
+  message   Message @relation("MessageReceipts", fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation("MessageRecipient", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, state]) // Idempotency: prevent duplicate transitions
+  @@index([messageId])
+  @@index([userId])
+  @@index([state])
+  @@map("message_receipts")
 }
 
 model Attachment {

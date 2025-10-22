@@ -6,9 +6,13 @@ import {
   requestLoggingMiddleware,
 } from "./middleware/logging";
 import { apiLimiter } from "./middleware/rateLimiter";
+import { getEnv } from "./config/environment";
+import { prometheusMetricsHandler } from "./observability/prometheus-endpoint";
+import { TelemetryMetrics } from "./observability/metrics-registry";
 
 const DEFAULT_CORS_ORIGINS = ["http://localhost:3000"] as const;
 const DOCS_ROUTE_FLAG = Symbol.for("__docs_routes_registered__");
+const METRICS_ROUTE_FLAG = Symbol.for("__metrics_route_registered__");
 
 /**
  * Applies the same HTTP configuration used in production bootstrap to a Nest application instance.
@@ -16,6 +20,8 @@ const DOCS_ROUTE_FLAG = Symbol.for("__docs_routes_registered__");
  * (prefix, security headers, middleware stack, docs routes, CORS, validation, etc.).
  */
 export async function configureApp(app: INestApplication): Promise<void> {
+  const env = getEnv();
+  TelemetryMetrics.refreshEnvironment();
   // Request correlation & structured logging come first.
   app.use(requestIdMiddleware);
   app.use(requestLoggingMiddleware);
@@ -31,9 +37,9 @@ export async function configureApp(app: INestApplication): Promise<void> {
   );
 
   // CORS policy matches main bootstrap.
-  const corsOrigins = process.env.CORS_ORIGIN?.split(",") ?? [
-    ...DEFAULT_CORS_ORIGINS,
-  ];
+  const corsOrigins = env.service.corsOrigins.length
+    ? env.service.corsOrigins
+    : [...DEFAULT_CORS_ORIGINS];
 
   app.enableCors({
     origin: corsOrigins,
@@ -89,10 +95,7 @@ export async function configureApp(app: INestApplication): Promise<void> {
         const resetTime = rateLimitInfo.resetTime;
         const resetSeconds =
           resetTime instanceof Date
-            ? Math.max(
-                0,
-                Math.ceil((resetTime.getTime() - Date.now()) / 1000),
-              )
+            ? Math.max(0, Math.ceil((resetTime.getTime() - Date.now()) / 1000))
             : Math.max(0, Math.ceil(resetTime / 1000));
         res.setHeader("RateLimit-Reset", String(resetSeconds));
       }
@@ -103,13 +106,19 @@ export async function configureApp(app: INestApplication): Promise<void> {
 
   // Serve docs once per underlying HTTP adapter instance.
   const httpAdapter = app.getHttpAdapter();
-  const server = httpAdapter && "getInstance" in httpAdapter
-    ? (httpAdapter as any).getInstance?.()
-    : undefined;
+  const server =
+    httpAdapter && "getInstance" in httpAdapter
+      ? (httpAdapter as any).getInstance?.()
+      : undefined;
 
   if (server && !Reflect.get(server, DOCS_ROUTE_FLAG)) {
     registerDocsRoutes(server);
     Reflect.set(server, DOCS_ROUTE_FLAG, true);
+  }
+
+  if (server && !Reflect.get(server, METRICS_ROUTE_FLAG)) {
+    server.get("/metrics", prometheusMetricsHandler);
+    Reflect.set(server, METRICS_ROUTE_FLAG, true);
   }
 
   // Align API surface with production (e.g. /api/v1/chat/...).

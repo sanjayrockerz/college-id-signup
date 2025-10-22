@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chat-backend-config
+data:
+  # Node.js Environment
+  NODE_ENV: "production"
+  PORT: "3001"
+
+  # Database Configuration
+  # Update with your production database URL
+  DATABASE_URL: "postgresql://user:password@postgres-service:5432/chat_backend_db?connection_limit=50&pool_timeout=30&connect_timeout=10"
+  PRISMA_CLIENT_MODE: "database"
+
+  # Redis Configuration
+  # Update with your production Redis URL
+  REDIS_URL: "redis://redis-service:6379"
+  SOCKET_REDIS_URL: "redis://redis-service:6379"
+  SOCKET_REDIS_KEY_PREFIX: "presence"
+  SOCKET_REDIS_TLS: "false"
+  SOCKET_REDIS_MOCK: "false"
+
+  # Socket.IO Configuration
+  SOCKET_ADAPTER_ENABLED: "true"
+  SOCKET_INSTANCE_ID: "" # Auto-generated from hostname
+
+  # Heartbeat Configuration (aligned with LB timeouts)
+  SOCKET_HEARTBEAT_INTERVAL_MS: "25000" # 25 seconds
+  SOCKET_HEARTBEAT_GRACE_MS: "25000" # 25 seconds (total timeout: 50s)
+  SOCKET_PRESENCE_TTL_MS: "51000" # Must be > interval + grace
+
+  # Replay Cache Configuration
+  SOCKET_REPLAY_CACHE_TTL_MS: "300000" # 5 minutes
+  SOCKET_REPLAY_CACHE_MAX_MESSAGES: "500" # Max messages per conversation
+
+  # CORS Configuration
+  # Update with your frontend URL
+  FRONTEND_URL: "https://app.example.com"
+  ALLOWED_ORIGINS: "https://app.example.com,https://www.example.com"
+
+  # Rate Limiting
+  DISABLE_RATE_LIMIT: "false"
+
+  # Logging
+  LOG_LEVEL: "info"
+
+  # JWT Configuration (use secret for JWT_SECRET)
+  JWT_AUDIENCE: "chat-backend"
+  JWT_ISSUER: "chat-backend-api"

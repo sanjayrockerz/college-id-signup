@@ -1,0 +1,129 @@
+{
+  "generatedAt": "2025-10-20T20:00:00Z",
+  "repository": "college-id-signup-1",
+  "overall": {
+    "linesCovered": 0,
+    "linesTotal": 0,
+    "branchesCovered": 0,
+    "branchesTotal": 0,
+    "functionsCovered": 0,
+    "functionsTotal": 0,
+    "statementsCovered": 0,
+    "statementsTotal": 0,
+    "coveragePercentage": 0
+  },
+  "status": "NOT_MEASURED",
+  "reason": "44 out of 45 tests are skipped/pending - coverage cannot be calculated",
+  "criticalPathsUncovered": [
+    {
+      "path": "src/chat-backend/services/chat.service.ts",
+      "operations": [
+        "createConversation",
+        "sendMessage",
+        "getMessages",
+        "markAsRead"
+      ],
+      "severity": "blocker",
+      "businessImpact": "Core message send/receive functionality not tested"
+    },
+    {
+      "path": "src/chat-backend/controllers/chat.controller.ts",
+      "operations": [
+        "POST /conversations",
+        "POST /messages",
+        "GET /messages",
+        "PUT /messages/read"
+      ],
+      "severity": "blocker",
+      "businessImpact": "HTTP API endpoints not validated"
+    },
+    {
+      "path": "src/socket/handlers.js",
+      "operations": [
+        "send_message",
+        "join_conversation",
+        "typing_indicator",
+        "mark_as_read"
+      ],
+      "severity": "blocker",
+      "businessImpact": "Real-time messaging flow not tested"
+    },
+    {
+      "path": "src/chat-backend/repositories/chat.repository.ts",
+      "operations": [
+        "createConversation",
+        "createMessage",
+        "getConversationMessages",
+        "markMessagesAsRead"
+      ],
+      "severity": "blocker",
+      "businessImpact": "Database queries not validated for correctness or performance"
+    },
+    {
+      "path": "src/middleware/validation.ts",
+      "operations": [
+        "validateMessageContent",
+        "validateConversationCreate",
+        "validatePagination"
+      ],
+      "severity": "major",
+      "businessImpact": "Input validation not tested - vulnerable to malformed requests"
+    },
+    {
+      "path": "src/middleware/rateLimiter.ts",
+      "operations": ["checkRateLimit", "incrementCounter", "resetLimits"],
+      "severity": "major",
+      "businessImpact": "Rate limiting not verified - vulnerable to abuse"
+    },
+    {
+      "path": "src/chat-backend/services/chat.service.ts (pagination)",
+      "operations": [
+        "cursor-based pagination",
+        "limit validation",
+        "ordering by createdAt"
+      ],
+      "severity": "major",
+      "businessImpact": "Pagination logic not tested - may return incorrect results or crash"
+    },
+    {
+      "path": "src/socket/handlers.js (error handling)",
+      "operations": [
+        "invalid userId",
+        "non-member access",
+        "oversized payload",
+        "connection errors"
+      ],
+      "severity": "major",
+      "businessImpact": "Error paths not exercised - unclear how system behaves under failure"
+    },
+    {
+      "path": "src/chat-backend/services/chat.service.ts (concurrency)",
+      "operations": [
+        "concurrent message sends",
+        "race conditions",
+        "duplicate prevention"
+      ],
+      "severity": "major",
+      "businessImpact": "Concurrency handling not tested - potential message loss or duplication"
+    },
+    {
+      "path": "Socket.IO reconnection handling",
+      "operations": [
+        "reconnect with existing userId",
+        "rejoin conversations",
+        "message delivery continuity"
+      ],
+      "severity": "major",
+      "businessImpact": "Reconnection flow not validated - users may lose messages"
+    }
+  ],
+  "recommendations": [
+    "Enable all 44 skipped tests - prioritize integration tests for core paths",
+    "Set up test database container (PostgreSQL) for integration tests",
+    "Configure Socket.IO test client for real-time tests",
+    "Target minimum 75% coverage per governance CI/CD specification",
+    "Focus on critical paths: send/receive messages, pagination, error handling",
+    "Add performance tests for database queries (N+1 detection, index usage)",
+    "Test edge cases: empty conversations, oversized messages, rapid sends, disconnects"
+  ]
+}

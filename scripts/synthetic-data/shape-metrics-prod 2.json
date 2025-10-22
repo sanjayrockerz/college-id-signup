@@ -1,0 +1,89 @@
+{
+  "extracted_at": "2025-10-22T11:43:54.054Z",
+  "sample_window_days": 30,
+  "privacy_level": "ANONYMIZED_SHAPE_ONLY",
+  "users": {
+    "total_count": 5000,
+    "username_length_histogram": {
+      "15-19": 5000
+    },
+    "profile_completeness_bins": {
+      "0_fields": 2530,
+      "1_field": 2470,
+      "2_fields": 0
+    }
+  },
+  "conversations": {
+    "total_count": 8000,
+    "type_distribution": {
+      "DIRECT_MESSAGE": 5575,
+      "GROUP_CHAT": 2425
+    },
+    "member_count_histogram": {
+      "0-4": 6179,
+      "5-9": 1492,
+      "10-14": 329
+    },
+    "messages_per_conversation_percentiles": {
+      "p50": 63,
+      "p75": 63,
+      "p90": 63,
+      "p95": 63,
+      "p99": 63,
+      "max": 63
+    }
+  },
+  "messages": {
+    "total_count": 500000,
+    "content_length_histogram": {
+      "50-99": 332439,
+      "0-49": 164879,
+      "100-149": 2682
+    },
+    "content_length_stats": {
+      "mean": 61,
+      "median": 60,
+      "p95": 93
+    },
+    "type_distribution": {
+      "IMAGE": 63007,
+      "TEXT": 416887,
+      "FILE": 20106
+    },
+    "hourly_distribution": [
+      27483,
+      16087,
+      22118,
+      24130,
+      25466,
+      14748,
+      22120,
+      12734,
+      26812,
+      20107,
+      21446,
+      26135,
+      21452,
+      15415,
+      20774,
+      22790,
+      28818,
+      20773,
+      16085,
+      20778,
+      16089,
+      24127,
+      19437,
+      14076
+    ],
+    "day_of_week_distribution": [
+      79086,
+      69700,
+      60327,
+      67698,
+      72385,
+      77750,
+      73054
+    ]
+  }
+}

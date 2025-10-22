@@ -1,0 +1,61 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: chat-backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: chat-backend
+  
+  minReplicas: 3
+  maxReplicas: 10
+  
+  metrics:
+  # CPU utilization
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70  # Scale when CPU > 70%
+  
+  # Memory utilization
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80  # Scale when memory > 80%
+  
+  # Custom metric: active WebSocket connections (if using Prometheus adapter)
+  # - type: Pods
+  #   pods:
+  #     metric:
+  #       name: websocket_connections
+  #     target:
+  #       type: AverageValue
+  #       averageValue: "500"  # Scale when avg connections > 500 per pod
+  
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # Wait 5 minutes before scaling down
+      policies:
+      - type: Percent
+        value: 50  # Scale down max 50% of pods at once
+        periodSeconds: 60
+      - type: Pods
+        value: 1  # Or scale down 1 pod at a time
+        periodSeconds: 60
+      selectPolicy: Min  # Use the more conservative policy
+    
+    scaleUp:
+      stabilizationWindowSeconds: 0  # Scale up immediately
+      policies:
+      - type: Percent
+        value: 100  # Double the pods
+        periodSeconds: 15
+      - type: Pods
+        value: 2  # Or add 2 pods at a time
+        periodSeconds: 15
+      selectPolicy: Max  # Use the more aggressive policy

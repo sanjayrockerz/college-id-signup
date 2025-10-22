@@ -1,0 +1,86 @@
+# Prometheus Configuration for Chat Backend Monitoring
+# Scrapes metrics from: Application, PgBouncer, Redis, PostgreSQL
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: "chat-backend-monitor"
+    environment: "development"
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Load rules from files
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  # ==========================================
+  # Application Metrics (NestJS + Custom)
+  # ==========================================
+  - job_name: "chat-backend"
+    static_configs:
+      - targets: ["host.docker.internal:3001"]
+    metrics_path: "/metrics"
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # ==========================================
+  # PgBouncer Exporter
+  # ==========================================
+  - job_name: "pgbouncer"
+    static_configs:
+      - targets: ["pgbouncer-exporter:9127"]
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: "pgbouncer"
+
+  # ==========================================
+  # PostgreSQL Exporter
+  # ==========================================
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: "postgres"
+
+  # ==========================================
+  # Redis Exporter
+  # ==========================================
+  - job_name: "redis"
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: "redis"
+
+  # ==========================================
+  # Node Exporter (System Metrics)
+  # ==========================================
+  - job_name: "node"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # ==========================================
+  # Prometheus Self-Monitoring
+  # ==========================================
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+    scrape_interval: 30s

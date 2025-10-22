@@ -10,14 +10,50 @@ import { INestApplication } from "@nestjs/common";
 import { io, Socket } from "socket.io-client";
 import { Server } from "socket.io";
 import { AddressInfo } from "net";
+import { createSecretKey } from "crypto";
+import { SignJWT, type JWTPayload } from "jose";
 import { AppModule } from "../src/app.module";
 import { configureApp } from "../src/app.bootstrap";
+import { registerSocketHandlers } from "../src/socket/handlers";
+import {
+  loadEnvironment,
+  resetEnvironmentCacheForTests,
+} from "../src/config/environment";
 
-const { registerSocketHandlers } = require("../src/socket/handlers");
+const TEST_SHARED_SECRET = "socket-integration-secret";
+
+process.env.NODE_ENV = process.env.NODE_ENV ?? "test";
+process.env.JWT_ISSUER = "https://issuer.example.com";
+process.env.JWT_AUDIENCE = "chat-backend";
+process.env.PUBLIC_KEYS = TEST_SHARED_SECRET;
+process.env.TOKEN_LEEWAY_SEC = "10";
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL ?? "postgresql://user:pass@localhost:5432/chat_test";
+
+resetEnvironmentCacheForTests();
+loadEnvironment();
+
+const sharedSecretKey = createSecretKey(
+  Buffer.from(TEST_SHARED_SECRET, "utf-8"),
+);
+
+async function signTestToken(
+  userId: string,
+  overrides: Partial<JWTPayload> = {},
+): Promise<string> {
+  return new SignJWT({ sub: userId, ...overrides })
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setIssuer(process.env.JWT_ISSUER!)
+    .setAudience(process.env.JWT_AUDIENCE!)
+    .setIssuedAt()
+    .setExpirationTime("10m")
+    .sign(sharedSecretKey);
+}
 
 const isMockPrisma = process.env.PRISMA_CLIENT_MODE === "mock";
 const forceMockIntegration = process.env.FORCE_PRISMA_INTEGRATION === "true";
-const describeIfSocketSuite = isMockPrisma || forceMockIntegration ? describe : describe.skip;
+const describeIfSocketSuite =
+  isMockPrisma || forceMockIntegration ? describe : describe.skip;
 
 describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
   let app: INestApplication;
@@ -42,13 +78,20 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
 
     ioServer = new Server(httpServer, {
       cors: {
-        origin: process.env.CORS_ORIGIN?.split(",") ?? ["http://localhost:3000"],
+        origin: process.env.CORS_ORIGIN?.split(",") ?? [
+          "http://localhost:3000",
+        ],
         credentials: true,
       },
       transports: ["websocket", "polling"],
     });
 
-    registerSocketHandlers(ioServer);
+    await registerSocketHandlers(ioServer, {
+      realtime: {
+        ...loadEnvironment().realtime,
+        adapterEnabled: false,
+      },
+    });
 
     const address = httpServer.address() as AddressInfo;
     const port = address.port;
@@ -71,28 +114,49 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
     await app.close();
   });
 
-  beforeEach((done) => {
-    // Create two socket connections for testing
+  beforeEach(async () => {
+    const [token1, token2] = await Promise.all([
+      signTestToken(testUserId1),
+      signTestToken(testUserId2),
+    ]);
+
     socket1 = io(serverUrl, {
       transports: ["websocket"],
       reconnection: false,
+      auth: { token: token1 },
     });
 
     socket2 = io(serverUrl, {
       transports: ["websocket"],
       reconnection: false,
+      auth: { token: token2 },
     });
 
-    let connectedCount = 0;
-    const checkBothConnected = () => {
-      connectedCount++;
-      if (connectedCount === 2) {
-        done();
+    await new Promise<void>((resolve, reject) => {
+      function cleanup() {
+        socket1.off("connect", handleConnect);
+        socket2.off("connect", handleConnect);
+        socket1.off("connect_error", handleError);
+        socket2.off("connect_error", handleError);
       }
-    };
 
-    socket1.on("connect", checkBothConnected);
-    socket2.on("connect", checkBothConnected);
+      function handleConnect() {
+        if (socket1.connected && socket2.connected) {
+          cleanup();
+          resolve();
+        }
+      }
+
+      function handleError(err: Error) {
+        cleanup();
+        reject(err);
+      }
+
+      socket1.on("connect", handleConnect);
+      socket2.on("connect", handleConnect);
+      socket1.on("connect_error", handleError);
+      socket2.on("connect_error", handleError);
+    });
   });
 
   afterEach(() => {
@@ -101,48 +165,58 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
   });
 
   describe("Connection", () => {
-    it("should connect without authentication", () => {
+    it("allows connections when a valid token is provided", () => {
       expect(socket1.connected).toBe(true);
       expect(socket2.connected).toBe(true);
     });
 
-    it("should NOT require auth token in handshake", () => {
-      // Verify no auth query parameter required
-      expect(socket1.io.opts.query ?? {}).not.toHaveProperty("token");
-      // Socket.IO v3+ no longer uses separate auth object in manager options
+    it("rejects connections that omit the token", (done) => {
+      const unauthenticated = io(serverUrl, {
+        transports: ["websocket"],
+        reconnection: false,
+      });
+
+      unauthenticated.on("connect", () => {
+        done.fail("Expected connection to be rejected");
+      });
+
+      unauthenticated.on("connect_error", (error) => {
+        expect(error?.message).toContain("auth_failure");
+        unauthenticated.close();
+        done();
+      });
     });
   });
 
   describe("join_conversation event", () => {
-    it("should join a conversation with userId", (done) => {
+    it("should join a conversation with the authenticated identity", (done) => {
       const conversationId = "test-conv-1";
 
       socket1.emit("join_conversation", {
-        userId: testUserId1,
-        conversationId: conversationId,
+        conversationId,
       });
 
       socket1.on("conversation_joined", (data) => {
         expect(data.conversationId).toBe(conversationId);
+        expect(data.userId).toBe(testUserId1);
         done();
       });
     });
 
-    it("should reject without userId", (done) => {
+    it("should reject when payload userId mismatches authenticated user", (done) => {
       socket1.emit("join_conversation", {
         conversationId: "test-conv-2",
+        userId: "impersonator",
       });
 
       socket1.on("error", (error) => {
-        expect(error.message).toContain("userId");
+        expect(error.message).toContain("mismatch");
         done();
       });
     });
 
     it("should reject without conversationId", (done) => {
-      socket1.emit("join_conversation", {
-        userId: testUserId1,
-      });
+      socket1.emit("join_conversation", {});
 
       socket1.on("error", (error) => {
         expect(error.message).toContain("conversationId");
@@ -157,12 +231,10 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
     beforeEach((done) => {
       // Join both users to same conversation
       socket1.emit("join_conversation", {
-        userId: testUserId1,
         conversationId: conversationId,
       });
 
       socket2.emit("join_conversation", {
-        userId: testUserId2,
         conversationId: conversationId,
       });
 
@@ -189,29 +261,28 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
       });
 
       socket1.emit("send_message", {
-        userId: testUserId1,
         conversationId: conversationId,
         content: messageContent,
         messageType: "TEXT",
       });
     });
 
-    it("should reject message without userId", (done) => {
+    it("should reject message when payload userId mismatches", (done) => {
       socket1.emit("send_message", {
         conversationId: conversationId,
+        userId: "other-user",
         content: "Test",
         messageType: "TEXT",
       });
 
       socket1.on("error", (error) => {
-        expect(error.message).toContain("userId");
+        expect(error.message).toContain("mismatch");
         done();
       });
     });
 
     it("should reject empty message content", (done) => {
       socket1.emit("send_message", {
-        userId: testUserId1,
         conversationId: conversationId,
         content: "",
         messageType: "TEXT",
@@ -227,7 +298,6 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
       const longContent = "a".repeat(10001);
 
       socket1.emit("send_message", {
-        userId: testUserId1,
         conversationId: conversationId,
         content: longContent,
         messageType: "TEXT",
@@ -247,7 +317,6 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
       });
 
       socket1.emit("send_message", {
-        userId: testUserId1,
         conversationId: conversationId,
         content: "Image message",
         messageType: "IMAGE",
@@ -261,12 +330,10 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
 
     beforeEach((done) => {
       socket1.emit("join_conversation", {
-        userId: testUserId1,
         conversationId: conversationId,
       });
 
       socket2.emit("join_conversation", {
-        userId: testUserId2,
         conversationId: conversationId,
       });
 
@@ -291,7 +358,6 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
       });
 
       socket1.emit("typing_indicator", {
-        userId: testUserId1,
         conversationId: conversationId,
         isTyping: true,
       });
@@ -304,7 +370,6 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
       });
 
       socket1.emit("typing_indicator", {
-        userId: testUserId1,
         conversationId: conversationId,
         isTyping: false,
       });
@@ -316,12 +381,10 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
 
     beforeEach((done) => {
       socket1.emit("join_conversation", {
-        userId: testUserId1,
         conversationId: conversationId,
       });
 
       socket2.emit("join_conversation", {
-        userId: testUserId2,
         conversationId: conversationId,
       });
 
@@ -348,20 +411,20 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
       });
 
       socket2.emit("mark_as_read", {
-        userId: testUserId2,
         conversationId: conversationId,
         messageIds: messageIds,
       });
     });
 
-    it("should reject without userId", (done) => {
+    it("should reject when payload userId mismatches", (done) => {
       socket1.emit("mark_as_read", {
         conversationId: conversationId,
+        userId: "impersonator",
         messageIds: ["msg-1"],
       });
 
       socket1.on("error", (error) => {
-        expect(error.message).toContain("userId");
+        expect(error.message).toContain("mismatch");
         done();
       });
     });
@@ -372,13 +435,11 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
       const conversationId = "test-conv-leave";
 
       socket1.emit("join_conversation", {
-        userId: testUserId1,
         conversationId: conversationId,
       });
 
       socket1.on("conversation_joined", () => {
         socket1.emit("leave_conversation", {
-          userId: testUserId1,
           conversationId: conversationId,
         });
 
@@ -404,7 +465,6 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
       const conversationId = "test-conv-disconnect";
 
       socket1.emit("join_conversation", {
-        userId: testUserId1,
         conversationId: conversationId,
       });
 
@@ -420,43 +480,67 @@ describeIfSocketSuite("Socket.IO API (Anonymous Access)", () => {
     });
   });
 
-  describe("No Authentication", () => {
-    it("should NOT check Authorization header", () => {
-      // Socket connections work without auth
-      expect(socket1.connected).toBe(true);
+  describe("Authentication enforcement", () => {
+    it("rejects connections with an invalid signature", (done) => {
+      const forgedSecret = createSecretKey(
+        Buffer.from("invalid-secret", "utf-8"),
+      );
+
+      new SignJWT({ sub: testUserId1 })
+        .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+        .setIssuer(process.env.JWT_ISSUER!)
+        .setAudience(process.env.JWT_AUDIENCE!)
+        .setIssuedAt()
+        .setExpirationTime("5m")
+        .sign(forgedSecret)
+        .then((badToken) => {
+          const client = io(serverUrl, {
+            transports: ["websocket"],
+            reconnection: false,
+            auth: { token: badToken },
+          });
+
+          client.on("connect", () => {
+            client.close();
+            done.fail("Expected invalid token to be rejected");
+          });
+
+          client.on("connect_error", (error) => {
+            expect(error?.message).toContain("auth_failure");
+            client.close();
+            done();
+          });
+        })
+        .catch(done);
     });
 
-    it("should NOT emit unauthorized errors", (done) => {
-      let hasError = false;
+    it("rejects connections when the token is expired", async () => {
+      const now = Math.floor(Date.now() / 1000);
+      const expiredToken = await new SignJWT({ sub: testUserId1 })
+        .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+        .setIssuer(process.env.JWT_ISSUER!)
+        .setAudience(process.env.JWT_AUDIENCE!)
+        .setIssuedAt(now - 180)
+        .setExpirationTime(now - 60)
+        .sign(sharedSecretKey);
 
-      socket1.on("unauthorized", () => {
-        hasError = true;
-      });
+      await new Promise<void>((resolve, reject) => {
+        const client = io(serverUrl, {
+          transports: ["websocket"],
+          reconnection: false,
+          auth: { token: expiredToken },
+        });
 
-      // Emit events and wait
-      socket1.emit("join_conversation", {
-        userId: testUserId1,
-        conversationId: "test",
-      });
+        client.on("connect", () => {
+          client.close();
+          reject(new Error("Expired token unexpectedly accepted"));
+        });
 
-      setTimeout(() => {
-        expect(hasError).toBe(false);
-        done();
-      }, 500);
-    });
-
-    it("should accept any userId format (opaque metadata)", (done) => {
-      const randomUserId = `random-${Math.random()}`;
-      const conversationId = "test-conv-random";
-
-      socket1.emit("join_conversation", {
-        userId: randomUserId,
-        conversationId: conversationId,
-      });
-
-      socket1.on("conversation_joined", (data) => {
-        expect(data.conversationId).toBe(conversationId);
-        done();
+        client.on("connect_error", (error) => {
+          expect(error?.message).toContain("auth_failure");
+          client.close();
+          resolve();
+        });
       });
     });
   });

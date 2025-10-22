@@ -1,12 +1,45 @@
 {
   "title": "Chat Backend Overview",
   "panels": [
-    { "type": "stat", "title": "Req/s", "target": "rate(http_requests_total[5m])" },
-    { "type": "graph", "title": "p95 latency", "target": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))" },
-    { "type": "graph", "title": "Error rate %", "target": "sum(rate(http_requests_failed_total[5m])) / sum(rate(http_requests_total[5m])) * 100" },
-    { "type": "graph", "title": "Connection count", "target": "socket_connections" },
-    { "type": "graph", "title": "DB query time", "target": "histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket[5m])) by (le))" },
-    { "type": "graph", "title": "CPU %", "target": "node_cpu_seconds_total" },
-    { "type": "graph", "title": "Memory", "target": "node_memory_MemAvailable_bytes" }
+    {
+      "type": "graph",
+      "title": "Send Throughput / s",
+      "target": "sum(rate(message_throughput_total{type=\"send\"}[5m]))"
+    },
+    {
+      "type": "graph",
+      "title": "Send p95 Latency (ms)",
+      "target": "histogram_quantile(0.95, sum(rate(delivery_latency_ms_bucket{event=\"send\"}[5m])) by (le))"
+    },
+    {
+      "type": "graph",
+      "title": "Message Error Rate %",
+      "target": "sum(rate(error_total{event=~\"send_message|history|delivery\"}[5m])) / clamp_min(sum(rate(message_throughput_total{type=~\"send|history|delivered\"}[5m])), 1) * 100"
+    },
+    {
+      "type": "graph",
+      "title": "Active Connections by Instance",
+      "target": "sum by (instance) (ws_connections)"
+    },
+    {
+      "type": "graph",
+      "title": "Adapter Heartbeat Age (ms)",
+      "target": "max by (instance) (time() * 1000 - adapter_last_heartbeat_ms)"
+    },
+    {
+      "type": "graph",
+      "title": "Heartbeat Miss Rate %",
+      "target": "sum by (instance) (rate(socket_disconnect_total{reason=\"heartbeat_timeout\"}[5m])) / clamp_min(sum by (instance) (rate(socket_disconnect_total[5m])), 1) * 100"
+    },
+    {
+      "type": "graph",
+      "title": "Disconnect Reasons",
+      "target": "sum(rate(socket_disconnect_total[5m])) by (reason)"
+    },
+    {
+      "type": "graph",
+      "title": "Presence Writes",
+      "target": "sum(rate(registry_write_total[5m])) by (event)"
+    }
   ]
 }

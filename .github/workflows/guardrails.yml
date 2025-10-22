@@ -12,10 +12,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
       - name: Install dependencies (minimal)
         run: |
           npm ci --ignore-scripts
+      - name: Verify production flags remain disabled
+        run: |
+          npm run ci:verify-prod-flags
       - name: Check prohibited imports and directories
         run: |
           if grep -RIE --line-number "from ['\"]/.*\/(auth|college|idcard|campus|student)" src/ 2>/dev/null; then
@@ -35,7 +38,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
       - name: Install dependencies
         run: npm ci
       - name: Typecheck & Lint

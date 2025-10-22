@@ -1,0 +1,12 @@
+
+> chat-backend@2.0.0 test:e2e
+> jest --config ./test/jest-e2e.json
+
+No tests found, exiting with code 1
+Run with `--passWithNoTests` to exit with code 0
+In /Users/harishraghave/Desktop/colleging/college-id-signup-1/test
+  7 files checked.
+  testMatch:  - 0 matches
+  testPathIgnorePatterns: /node_modules/ - 7 matches
+  testRegex: .e2e-spec.ts$ - 0 matches
+Pattern:  - 0 matches

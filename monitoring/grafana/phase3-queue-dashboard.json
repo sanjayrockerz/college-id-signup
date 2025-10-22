@@ -1,0 +1,426 @@
+{
+  "dashboard": {
+    "title": "Phase 3: Durable Delivery - Queue Monitoring",
+    "tags": ["phase3", "messaging", "queues", "redis-streams"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Enqueue Rate (msgs/sec)",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "rate(stream_enqueue_total[1m])",
+            "legendFormat": "Partition {{partition}} - {{priority}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          { "format": "ops", "label": "Messages/sec" },
+          { "show": false }
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "avg": true,
+          "max": true
+        }
+      },
+      {
+        "id": 2,
+        "title": "Dequeue Rate (msgs/sec)",
+        "type": "graph",
+        "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "rate(stream_dequeue_total[1m])",
+            "legendFormat": "Partition {{partition}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          { "format": "ops", "label": "Messages/sec" },
+          { "show": false }
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "avg": true
+        }
+      },
+      {
+        "id": 3,
+        "title": "Partition Lag (messages)",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "stream_partition_lag",
+            "legendFormat": "Partition {{partition}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          { "format": "short", "label": "Pending Messages" },
+          { "show": false }
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": { "params": [1000], "type": "gt" },
+              "operator": { "type": "and" },
+              "query": { "params": ["A", "5m", "now"] },
+              "reducer": { "params": [], "type": "avg" },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "60s",
+          "handler": 1,
+          "name": "High Partition Lag",
+          "noDataState": "no_data",
+          "notifications": []
+        },
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "max": true
+        }
+      },
+      {
+        "id": 4,
+        "title": "Processing Duration (p50, p95, p99)",
+        "type": "graph",
+        "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(stream_processing_duration_ms_bucket[5m]))",
+            "legendFormat": "p50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(stream_processing_duration_ms_bucket[5m]))",
+            "legendFormat": "p95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(stream_processing_duration_ms_bucket[5m]))",
+            "legendFormat": "p99",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [{ "format": "ms", "label": "Duration" }, { "show": false }],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "avg": true
+        }
+      },
+      {
+        "id": 5,
+        "title": "Dead Letter Queue Rate (msgs/sec)",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "rate(stream_dead_letter_total[1m])",
+            "legendFormat": "Partition {{partition}} - {{reason}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          { "format": "ops", "label": "Messages/sec" },
+          { "show": false }
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": { "params": [10], "type": "gt" },
+              "operator": { "type": "and" },
+              "query": { "params": ["A", "5m", "now"] },
+              "reducer": { "params": [], "type": "avg" },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "60s",
+          "handler": 1,
+          "name": "High DLQ Rate",
+          "noDataState": "no_data",
+          "notifications": []
+        },
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "total": true
+        }
+      },
+      {
+        "id": 6,
+        "title": "Idempotent Hit Rate (msgs/sec)",
+        "type": "graph",
+        "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "rate(idempotency_hit_total[1m])",
+            "legendFormat": "{{operation}} - {{source}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{ "format": "ops", "label": "Hits/sec" }, { "show": false }],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "avg": true,
+          "total": true
+        }
+      },
+      {
+        "id": 7,
+        "title": "Consumer Processing Success Rate",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "rate(stream_consumer_processed_total{status=\"success\"}[1m])",
+            "legendFormat": "Success - Partition {{partition}}",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(stream_consumer_processed_total{status=\"error\"}[1m])",
+            "legendFormat": "Error - Partition {{partition}}",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          { "format": "ops", "label": "Messages/sec" },
+          { "show": false }
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "avg": true
+        }
+      },
+      {
+        "id": 8,
+        "title": "Consumer Processing Duration (p95)",
+        "type": "graph",
+        "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(stream_consumer_processing_duration_ms_bucket[5m]))",
+            "legendFormat": "p95 - Partition {{partition}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{ "format": "ms", "label": "Duration" }, { "show": false }],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "avg": true
+        }
+      },
+      {
+        "id": 9,
+        "title": "Ingress Acknowledgment Duration (p95)",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 32, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(idempotency_ingress_duration_ms_bucket[5m]))",
+            "legendFormat": "p95 - {{status}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{ "format": "ms", "label": "Duration" }, { "show": false }],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "avg": true
+        }
+      },
+      {
+        "id": 10,
+        "title": "Persistence Duration (p95)",
+        "type": "graph",
+        "gridPos": { "x": 12, "y": 32, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(idempotency_persistence_duration_ms_bucket[5m]))",
+            "legendFormat": "p95 - {{status}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{ "format": "ms", "label": "Duration" }, { "show": false }],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "avg": true
+        }
+      },
+      {
+        "id": 11,
+        "title": "Total Messages in System",
+        "type": "singlestat",
+        "gridPos": { "x": 0, "y": 40, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "sum(stream_enqueue_total)",
+            "refId": "A"
+          }
+        ],
+        "format": "short",
+        "valueName": "current",
+        "sparkline": {
+          "show": true,
+          "full": false,
+          "lineColor": "rgb(31, 120, 193)",
+          "fillColor": "rgba(31, 118, 189, 0.18)"
+        }
+      },
+      {
+        "id": 12,
+        "title": "Total Idempotent Hits",
+        "type": "singlestat",
+        "gridPos": { "x": 6, "y": 40, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "sum(idempotency_hit_total)",
+            "refId": "A"
+          }
+        ],
+        "format": "short",
+        "valueName": "current",
+        "sparkline": {
+          "show": true,
+          "full": false,
+          "lineColor": "rgb(255, 152, 48)",
+          "fillColor": "rgba(255, 152, 48, 0.18)"
+        }
+      },
+      {
+        "id": 13,
+        "title": "Total DLQ Messages",
+        "type": "singlestat",
+        "gridPos": { "x": 12, "y": 40, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "sum(stream_dead_letter_total)",
+            "refId": "A"
+          }
+        ],
+        "format": "short",
+        "valueName": "current",
+        "sparkline": {
+          "show": true,
+          "full": false,
+          "lineColor": "rgb(245, 54, 54)",
+          "fillColor": "rgba(245, 54, 54, 0.18)"
+        },
+        "thresholds": "10,100",
+        "colorBackground": true
+      },
+      {
+        "id": 14,
+        "title": "Current Max Partition Lag",
+        "type": "singlestat",
+        "gridPos": { "x": 18, "y": 40, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "max(stream_partition_lag)",
+            "refId": "A"
+          }
+        ],
+        "format": "short",
+        "valueName": "current",
+        "sparkline": {
+          "show": true,
+          "full": false,
+          "lineColor": "rgb(255, 193, 7)",
+          "fillColor": "rgba(255, 193, 7, 0.18)"
+        },
+        "thresholds": "500,1000",
+        "colorBackground": true
+      }
+    ],
+    "templating": {
+      "list": []
+    },
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ]
+    }
+  }
+}

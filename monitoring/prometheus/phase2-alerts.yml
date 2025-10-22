@@ -1,0 +1,314 @@
+# Phase 2 Data Layer - Prometheus Alert Rules
+# Deploy with: promtool check rules prometheus-alerts.yml && kubectl apply -f prometheus-alerts.yml
+
+groups:
+  - name: phase2_data_layer_slo
+    interval: 30s
+    rules:
+      # ==========================================
+      # Query Performance SLO Alerts
+      # ==========================================
+
+      - alert: HighQueryLatency
+        expr: histogram_quantile(0.95, rate(db_query_duration_ms_bucket[5m])) > 500
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+          phase: "2"
+        annotations:
+          summary: "Query p95 latency exceeds 500ms"
+          description: "Query p95 latency is {{ $value | humanizeDuration }}, exceeding the 500ms threshold for 5 minutes."
+          runbook_url: "https://docs.example.com/runbooks/high-query-latency"
+          dashboard_url: "https://grafana.example.com/d/phase2-overview"
+
+      - alert: CriticalQueryLatency
+        expr: histogram_quantile(0.95, rate(db_query_duration_ms_bucket[5m])) > 1000
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+          phase: "2"
+        annotations:
+          summary: "Query p95 latency critically high (>1s)"
+          description: "Query p95 latency is {{ $value | humanizeDuration }}, exceeding 1 second threshold."
+          runbook_url: "https://docs.example.com/runbooks/critical-query-latency"
+
+      # ==========================================
+      # Connection Pool Alerts
+      # ==========================================
+
+      - alert: PoolSaturationHigh
+        expr: pgbouncer_pool_saturation > 0.80
+        for: 2m
+        labels:
+          severity: warning
+          component: pgbouncer
+          phase: "2"
+        annotations:
+          summary: "Connection pool saturation high (>80%)"
+          description: "PgBouncer pool saturation is {{ $value | humanizePercentage }}, indicating potential connection exhaustion."
+          runbook_url: "https://docs.example.com/runbooks/pool-saturation-high"
+
+      - alert: PoolSaturationCritical
+        expr: pgbouncer_pool_saturation > 0.90
+        for: 1m
+        labels:
+          severity: critical
+          component: pgbouncer
+          phase: "2"
+        annotations:
+          summary: "Connection pool saturation critical (>90%)"
+          description: "PgBouncer pool saturation is {{ $value | humanizePercentage }}. Connection exhaustion imminent!"
+          runbook_url: "https://docs.example.com/runbooks/pool-saturation-critical"
+
+      - alert: QueueWaitTimeHigh
+        expr: histogram_quantile(0.95, rate(pgbouncer_queue_wait_ms_bucket[5m])) > 50
+        for: 3m
+        labels:
+          severity: warning
+          component: pgbouncer
+          phase: "2"
+        annotations:
+          summary: "Connection queue wait time high (>50ms p95)"
+          description: "Clients are waiting {{ $value | humanizeDuration }} for connections. Pool may be undersized."
+          runbook_url: "https://docs.example.com/runbooks/queue-wait-high"
+
+      # ==========================================
+      # Cache Performance Alerts
+      # ==========================================
+
+      - alert: CacheHitRatioLow
+        expr: (rate(cache_operation_total{result="hit"}[10m]) / rate(cache_operation_total[10m])) < 0.50
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+          phase: "2"
+        annotations:
+          summary: "Cache hit ratio low (<50%)"
+          description: "Cache hit ratio is {{ $value | humanizePercentage }}, indicating ineffective caching or high cache churn."
+          runbook_url: "https://docs.example.com/runbooks/cache-hit-ratio-low"
+
+      - alert: CacheUnavailable
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: cache
+          phase: "2"
+        annotations:
+          summary: "Redis cache unavailable"
+          description: "Redis is down. All reads will hit the database directly."
+          runbook_url: "https://docs.example.com/runbooks/cache-unavailable"
+
+      - alert: CacheInvalidationSlow
+        expr: histogram_quantile(0.95, rate(cache_invalidation_duration_ms_bucket[5m])) > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+          phase: "2"
+        annotations:
+          summary: "Cache invalidation slow (>100ms p95)"
+          description: "Cache invalidation taking {{ $value | humanizeDuration }}, may cause stale reads."
+          runbook_url: "https://docs.example.com/runbooks/cache-invalidation-slow"
+
+      # ==========================================
+      # Replica Health Alerts
+      # ==========================================
+
+      - alert: ReplicaLagHigh
+        expr: replica_lag_seconds > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: replica
+          phase: "2"
+        annotations:
+          summary: "Read replica lag high (>10s)"
+          description: "Replica lag is {{ $value | humanizeDuration }}. Circuit breaker may open soon."
+          runbook_url: "https://docs.example.com/runbooks/replica-lag-high"
+
+      - alert: ReplicaLagCritical
+        expr: replica_lag_seconds > 30
+        for: 2m
+        labels:
+          severity: critical
+          component: replica
+          phase: "2"
+        annotations:
+          summary: "Read replica lag critical (>30s)"
+          description: "Replica lag is {{ $value | humanizeDuration }}. Data consistency at risk!"
+          runbook_url: "https://docs.example.com/runbooks/replica-lag-critical"
+
+      - alert: CircuitBreakerOpen
+        expr: circuit_breaker_state{component="read_replica"} == 2
+        for: 1m
+        labels:
+          severity: critical
+          component: replica
+          phase: "2"
+        annotations:
+          summary: "Read replica circuit breaker OPEN"
+          description: "Circuit breaker is OPEN. All reads routing to primary database."
+          runbook_url: "https://docs.example.com/runbooks/circuit-breaker-open"
+
+      - alert: ReplicaUnavailable
+        expr: up{job="postgres-replica"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: replica
+          phase: "2"
+        annotations:
+          summary: "Read replica unavailable"
+          description: "Replica is down. All traffic routing to primary."
+          runbook_url: "https://docs.example.com/runbooks/replica-unavailable"
+
+      # ==========================================
+      # Vacuum & Bloat Health Alerts
+      # ==========================================
+
+      - alert: TableBloatHigh
+        expr: db_table_bloat_ratio > 0.20
+        for: 1h
+        labels:
+          severity: warning
+          component: vacuum
+          phase: "2"
+        annotations:
+          summary: "Table bloat high (>20%)"
+          description: "Table {{ $labels.table_name }} has {{ $value | humanizePercentage }} bloat. Consider manual VACUUM."
+          runbook_url: "https://docs.example.com/runbooks/table-bloat-high"
+
+      - alert: TableBloatCritical
+        expr: db_table_bloat_ratio > 0.30
+        for: 30m
+        labels:
+          severity: critical
+          component: vacuum
+          phase: "2"
+        annotations:
+          summary: "Table bloat critical (>30%)"
+          description: "Table {{ $labels.table_name }} has {{ $value | humanizePercentage }} bloat. Manual VACUUM FULL may be needed!"
+          runbook_url: "https://docs.example.com/runbooks/table-bloat-critical"
+
+      - alert: VacuumNotRunning
+        expr: (time() - db_last_vacuum_seconds) > 86400
+        for: 1h
+        labels:
+          severity: warning
+          component: vacuum
+          phase: "2"
+        annotations:
+          summary: "Vacuum not run in 24+ hours"
+          description: "Table {{ $labels.table_name }} hasn't been vacuumed in {{ $value | humanizeDuration }}."
+          runbook_url: "https://docs.example.com/runbooks/vacuum-not-running"
+
+      - alert: DeadTuplesHigh
+        expr: db_dead_tuples_count > 100000
+        for: 30m
+        labels:
+          severity: warning
+          component: vacuum
+          phase: "2"
+        annotations:
+          summary: "High dead tuple count (>100k)"
+          description: "Table {{ $labels.table_name }} has {{ $value }} dead tuples. Autovacuum may be struggling."
+          runbook_url: "https://docs.example.com/runbooks/dead-tuples-high"
+
+      # ==========================================
+      # Error Rate Alerts
+      # ==========================================
+
+      - alert: ErrorRateHigh
+        expr: (rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+          phase: "2"
+        annotations:
+          summary: "Error rate high (>1%)"
+          description: "Endpoint {{ $labels.endpoint }} has {{ $value | humanizePercentage }} error rate."
+          runbook_url: "https://docs.example.com/runbooks/error-rate-high"
+
+      - alert: ErrorRateCritical
+        expr: (rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          component: application
+          phase: "2"
+        annotations:
+          summary: "Error rate critical (>5%)"
+          description: "Endpoint {{ $labels.endpoint }} has {{ $value | humanizePercentage }} error rate. Service degradation!"
+          runbook_url: "https://docs.example.com/runbooks/error-rate-critical"
+
+      # ==========================================
+      # SLO Violation Alerts
+      # ==========================================
+
+      - alert: SLOViolation_MessageHistory
+        expr: histogram_quantile(0.95, rate(db_query_duration_ms_bucket{operation="message.history"}[5m])) > 350
+        for: 10m
+        labels:
+          severity: critical
+          component: slo
+          phase: "2"
+          slo: "message_history_p95"
+        annotations:
+          summary: "Message history SLO violated (p95 >350ms)"
+          description: "Message history p95 latency is {{ $value | humanizeDuration }}, violating 350ms SLO."
+          runbook_url: "https://docs.example.com/runbooks/slo-violation-message-history"
+
+      - alert: SLOViolation_MessageSend
+        expr: histogram_quantile(0.95, rate(db_query_duration_ms_bucket{operation="message.send"}[5m])) > 250
+        for: 10m
+        labels:
+          severity: critical
+          component: slo
+          phase: "2"
+          slo: "message_send_p95"
+        annotations:
+          summary: "Message send SLO violated (p95 >250ms)"
+          description: "Message send p95 latency is {{ $value | humanizeDuration }}, violating 250ms SLO."
+          runbook_url: "https://docs.example.com/runbooks/slo-violation-message-send"
+
+      - alert: SLOViolation_Throughput
+        expr: rate(http_requests_total[5m]) < 100
+        for: 10m
+        labels:
+          severity: warning
+          component: slo
+          phase: "2"
+          slo: "throughput"
+        annotations:
+          summary: "Throughput below target (<100 req/s)"
+          description: "Request throughput is {{ $value | humanize }} req/s, below 100 req/s target."
+          runbook_url: "https://docs.example.com/runbooks/slo-violation-throughput"
+
+  # ==========================================
+  # Recording Rules (Pre-computed Metrics)
+  # ==========================================
+
+  - name: phase2_recording_rules
+    interval: 30s
+    rules:
+      - record: job:db_query_latency_p95:rate5m
+        expr: histogram_quantile(0.95, rate(db_query_duration_ms_bucket[5m]))
+
+      - record: job:db_query_latency_p99:rate5m
+        expr: histogram_quantile(0.99, rate(db_query_duration_ms_bucket[5m]))
+
+      - record: job:cache_hit_ratio:rate5m
+        expr: rate(cache_operation_total{result="hit"}[5m]) / rate(cache_operation_total[5m])
+
+      - record: job:error_rate:rate5m
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])
+
+      - record: job:slo_compliance_score:rate5m
+        expr: |
+          (sum(rate(db_query_duration_ms_bucket{le="350"}[5m])) / sum(rate(db_query_duration_ms_bucket{le="+Inf"}[5m])))
+          * (1 - (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))))

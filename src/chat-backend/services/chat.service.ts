@@ -10,6 +10,13 @@ import {
   SendMessageDto,
   GetMessagesDto,
 } from "../repositories/chat.repository";
+import { TelemetryMetrics } from "../../observability/metrics-registry";
+import { CacheService } from "../../common/services/cache.service";
+import {
+  CacheKeys,
+  CacheTTL,
+  getMessageHistoryTTL,
+} from "../../common/utils/cache-keys";
 
 // Utility function for safe error handling
 function getErrorMessage(error: unknown): string {
@@ -96,12 +103,12 @@ export interface ChatServiceInterface {
 
 @Injectable()
 export class ChatService implements ChatServiceInterface {
-  constructor(private readonly chatRepository: ChatRepository) {}
+  constructor(
+    private readonly chatRepository: ChatRepository,
+    private readonly cacheService: CacheService,
+  ) {}
 
-  private createConversationMock(
-    userId: string,
-    data: CreateConversationDto,
-  ) {
+  private createConversationMock(userId: string, data: CreateConversationDto) {
     const participants = Array.from(new Set([userId, ...data.participantIds]));
 
     if (data.type === "DIRECT") {
@@ -109,9 +116,7 @@ export class ChatService implements ChatServiceInterface {
         (conversation) =>
           conversation.type === "DIRECT" &&
           participants.length === conversation.participantIds.length &&
-          participants.every((id) =>
-            conversation.participantIds.includes(id),
-          ),
+          participants.every((id) => conversation.participantIds.includes(id)),
       );
 
       if (existing) {
@@ -164,8 +169,8 @@ export class ChatService implements ChatServiceInterface {
     if (cursor) {
       const cursorDate = new Date(cursor);
       if (!Number.isNaN(cursorDate.getTime())) {
-        sorted = sorted.filter((conversation) =>
-          conversation.updatedAt < cursorDate,
+        sorted = sorted.filter(
+          (conversation) => conversation.updatedAt < cursorDate,
         );
       }
     }
@@ -251,7 +256,9 @@ export class ChatService implements ChatServiceInterface {
     let filtered = messages;
 
     if (options.after) {
-      filtered = filtered.filter((message) => message.createdAt > options.after);
+      filtered = filtered.filter(
+        (message) => message.createdAt > options.after,
+      );
     }
 
     if (options.before) {
@@ -322,10 +329,7 @@ export class ChatService implements ChatServiceInterface {
     return count;
   }
 
-  private getConversationDetailsMock(
-    conversationId: string,
-    userId: string,
-  ) {
+  private getConversationDetailsMock(conversationId: string, userId: string) {
     const conversation = mockChatStore.conversations.get(conversationId);
 
     if (!conversation || !conversation.participantIds.includes(userId)) {
@@ -498,6 +502,7 @@ export class ChatService implements ChatServiceInterface {
     userId: string,
     data: SendMessageDto,
   ) {
+    const startedAt = Date.now();
     try {
       const MAX_MESSAGE_LENGTH = 10_000;
 
@@ -525,7 +530,10 @@ export class ChatService implements ChatServiceInterface {
       }
 
       if (isMockPrismaMode()) {
-        return this.sendMessageMock(conversationId, userId, data);
+        const response = this.sendMessageMock(conversationId, userId, data);
+        TelemetryMetrics.incrementThroughput("send");
+        TelemetryMetrics.observeDeliveryLatency("send", Date.now() - startedAt);
+        return response;
       }
 
       const message = await this.chatRepository.sendMessage(
@@ -534,12 +542,21 @@ export class ChatService implements ChatServiceInterface {
         data,
       );
 
-      return {
+      // Invalidate message history cache for this conversation
+      await this.invalidateMessageCache(conversationId);
+
+      const response = {
         success: true,
         message,
         timestamp: new Date().toISOString(),
       };
+
+      TelemetryMetrics.incrementThroughput("send");
+      TelemetryMetrics.observeDeliveryLatency("send", Date.now() - startedAt);
+
+      return response;
     } catch (error) {
+      TelemetryMetrics.incrementError("send_message");
       const errorMessage = getErrorMessage(error);
       if (errorMessage.includes("not a participant")) {
         throw new ForbiddenException(
@@ -558,18 +575,49 @@ export class ChatService implements ChatServiceInterface {
     userId: string,
     options: GetMessagesDto = {},
   ) {
+    const startedAt = Date.now();
     try {
       if (isMockPrismaMode()) {
-        return this.getMessagesMock(conversationId, userId, options);
+        const response = this.getMessagesMock(conversationId, userId, options);
+        TelemetryMetrics.incrementThroughput("history");
+        TelemetryMetrics.observeDeliveryLatency(
+          "history",
+          Date.now() - startedAt,
+        );
+        return response;
       }
 
+      // Generate cache key based on conversation, limit, and cursor
+      const limit = options.limit || 50;
+      const cursor = options.cursor || "0";
+      const cacheKey = CacheKeys.messageHistory(
+        conversationId,
+        limit,
+        parseInt(cursor) || 0,
+      );
+
+      // Try to get from cache first
+      const cached = await this.cacheService.get<any>(cacheKey);
+      if (cached) {
+        TelemetryMetrics.incrementThroughput("history");
+        TelemetryMetrics.observeDeliveryLatency(
+          "history",
+          Date.now() - startedAt,
+        );
+        return {
+          ...cached,
+          fromCache: true, // Add indicator for debugging
+        };
+      }
+
+      // Cache miss - query database
       const result = await this.chatRepository.getMessages(
         conversationId,
         userId,
         options,
       );
 
-      return {
+      const response = {
         success: true,
         data: {
           messages: result.messages,
@@ -577,7 +625,23 @@ export class ChatService implements ChatServiceInterface {
           nextCursor: result.nextCursor,
         },
       };
+
+      // Cache the result with TTL based on offset
+      const ttl = getMessageHistoryTTL(parseInt(cursor) || 0);
+      await this.cacheService.set(cacheKey, response, ttl);
+
+      TelemetryMetrics.incrementThroughput("history");
+      TelemetryMetrics.observeDeliveryLatency(
+        "history",
+        Date.now() - startedAt,
+      );
+
+      return {
+        ...response,
+        fromCache: false,
+      };
     } catch (error) {
+      TelemetryMetrics.incrementError("history");
       const errorMessage = getErrorMessage(error);
       if (errorMessage.includes("not a participant")) {
         throw new ForbiddenException(
@@ -585,6 +649,33 @@ export class ChatService implements ChatServiceInterface {
         );
       }
       throw new BadRequestException(`Failed to get messages: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Invalidate message cache for a conversation
+   */
+  private async invalidateMessageCache(conversationId: string): Promise<void> {
+    try {
+      // Delete all message history cache entries for this conversation
+      const pattern = `msg:history:${conversationId}:*`;
+      const deletedCount = await this.cacheService.deletePattern(pattern);
+
+      // Also invalidate message count cache
+      await this.cacheService.delete(CacheKeys.messageCount(conversationId));
+
+      // Log for monitoring (optional)
+      if (deletedCount > 0) {
+        console.log(
+          `[Cache] Invalidated ${deletedCount} cache entries for conversation ${conversationId}`,
+        );
+      }
+    } catch (error) {
+      // Don't throw - cache invalidation failure shouldn't break the operation
+      console.error(
+        `[Cache] Error invalidating cache for conversation ${conversationId}:`,
+        error,
+      );
     }
   }
 
@@ -602,7 +693,13 @@ export class ChatService implements ChatServiceInterface {
       }
 
       if (isMockPrismaMode()) {
-        return this.markMessagesAsReadMock(conversationId, userId, messageIds);
+        const response = this.markMessagesAsReadMock(
+          conversationId,
+          userId,
+          messageIds,
+        );
+        TelemetryMetrics.incrementThroughput("read");
+        return response;
       }
 
       const result = await this.chatRepository.markMessagesAsRead(
@@ -611,12 +708,17 @@ export class ChatService implements ChatServiceInterface {
         messageIds,
       );
 
-      return {
+      const response = {
         success: true,
         markedAsRead: result.markedAsRead,
         message: `Marked ${result.markedAsRead} messages as read`,
       };
+
+      TelemetryMetrics.incrementThroughput("read");
+
+      return response;
     } catch (error) {
+      TelemetryMetrics.incrementError("read");
       const errorMessage = getErrorMessage(error);
       if (errorMessage.includes("not a participant")) {
         throw new ForbiddenException(

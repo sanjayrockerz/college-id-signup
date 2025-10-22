@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { v4 as uuidv4 } from "uuid";
+import { StructuredLogger } from "../common/logging/structured-logger";
+import { resolveCorrelationId } from "../common/logging/correlation";
 
 /**
  * Request Logging Middleware
@@ -16,43 +18,9 @@ declare global {
     interface Request {
       requestId?: string;
       startTime?: number;
+      correlationId?: string;
     }
   }
-}
-
-/**
- * Fields to redact from logs (never log sensitive data)
- */
-const SENSITIVE_FIELDS = [
-  "password",
-  "token",
-  "apiKey",
-  "authorization",
-  "cookie",
-  "session",
-  "secret",
-  "creditCard",
-  "ssn",
-];
-
-/**
- * Redact sensitive fields from objects
- */
-function redactSensitiveData(obj: any): any {
-  if (!obj || typeof obj !== "object") return obj;
-
-  const redacted = Array.isArray(obj) ? [...obj] : { ...obj };
-
-  for (const key in redacted) {
-    const lowerKey = key.toLowerCase();
-    if (SENSITIVE_FIELDS.some((field) => lowerKey.includes(field))) {
-      redacted[key] = "[REDACTED]";
-    } else if (typeof redacted[key] === "object" && redacted[key] !== null) {
-      redacted[key] = redactSensitiveData(redacted[key]);
-    }
-  }
-
-  return redacted;
 }
 
 /**
@@ -65,9 +33,15 @@ export function requestIdMiddleware(
 ): void {
   req.requestId = (req.headers["x-request-id"] as string) || uuidv4();
   req.startTime = Date.now();
+  req.correlationId = resolveCorrelationId(
+    req.headers["x-correlation-id"],
+    req.headers["x-request-id"],
+    req.requestId,
+  );
 
   // Add request ID to response headers for client tracing
   res.setHeader("X-Request-ID", req.requestId);
+  res.setHeader("X-Correlation-ID", req.correlationId);
 
   next();
 }
@@ -82,47 +56,47 @@ export function requestLoggingMiddleware(
 ): void {
   const { method, originalUrl, ip, headers } = req;
   const requestId = req.requestId;
-  const userId = (req.query.userId || req.body?.userId) as string | undefined;
+  const correlationId = req.correlationId;
+  const userId =
+    typeof req.query.userId === "string"
+      ? req.query.userId
+      : typeof req.body?.userId === "string"
+        ? req.body.userId
+        : undefined;
 
-  // Log request (safe, no sensitive data)
-  console.log(
-    JSON.stringify({
-      type: "request",
-      requestId,
-      timestamp: new Date().toISOString(),
+  StructuredLogger.info("http.request", {
+    requestId,
+    correlationId,
+    userId,
+    endpoint: `${method} ${originalUrl}`,
+    status: "received",
+    data: {
       method,
       url: originalUrl,
       ip,
-      userAgent: headers["user-agent"],
-      userId: userId || "anonymous", // Opaque metadata only
-      referer: headers["referer"],
-      contentType: headers["content-type"],
-      contentLength: headers["content-length"],
-    }),
-  );
+      userAgent: headers["user-agent"] as string | undefined,
+    },
+  });
 
-  // Capture response
-  const originalSend = res.send;
-  res.send = function (data: any): Response {
+  res.once("finish", () => {
     const duration = Date.now() - (req.startTime || Date.now());
 
-    // Log response
-    console.log(
-      JSON.stringify({
-        type: "response",
-        requestId,
-        timestamp: new Date().toISOString(),
+    StructuredLogger.info("http.response", {
+      requestId,
+      correlationId,
+      userId,
+      endpoint: `${method} ${originalUrl}`,
+      status: res.statusCode,
+      durationMs: duration,
+      data: {
         method,
         url: originalUrl,
-        statusCode: res.statusCode,
-        duration: `${duration}ms`,
-        userId: userId || "anonymous",
         ip,
-      }),
-    );
-
-    return originalSend.call(this, data);
-  };
+        statusCode: res.statusCode,
+        userAgent: headers["user-agent"] as string | undefined,
+      },
+    });
+  });
 
   next();
 }
@@ -133,31 +107,36 @@ export function requestLoggingMiddleware(
 export function errorLoggingMiddleware(
   error: Error,
   req: Request,
-  _res: Response,
+  res: Response,
   next: NextFunction,
 ): void {
   const requestId = req.requestId;
-  const userId = (req.query.userId || req.body?.userId) as string | undefined;
+  const correlationId = req.correlationId;
+  const userId =
+    typeof req.query.userId === "string"
+      ? req.query.userId
+      : typeof req.body?.userId === "string"
+        ? req.body.userId
+        : undefined;
 
-  console.error(
-    JSON.stringify({
-      type: "error",
-      requestId,
-      timestamp: new Date().toISOString(),
+  StructuredLogger.error("http.error", {
+    requestId,
+    correlationId,
+    userId,
+    endpoint: `${req.method} ${req.originalUrl}`,
+    status: res.statusCode ?? "unknown",
+    data: {
       method: req.method,
       url: req.originalUrl,
       ip: req.ip,
-      userId: userId || "anonymous",
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
-      },
-      // Redact sensitive data from body/query
-      body: redactSensitiveData(req.body),
-      query: redactSensitiveData(req.query),
-    }),
-  );
+      statusCode: res.statusCode,
+    },
+    error: {
+      code: error.name,
+      message: error.message,
+      stack: error.stack,
+    },
+  });
 
   next(error);
 }
@@ -274,11 +253,4 @@ export function metricsMiddleware(
   };
 
   next();
-}
-
-/**
- * Expose metrics endpoint for monitoring
- */
-export function metricsEndpoint(req: Request, res: Response): void {
-  res.json(MetricsCollector.getMetrics());
 }

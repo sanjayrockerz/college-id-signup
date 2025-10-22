@@ -15,7 +15,10 @@ const tsLoader = Module._extensions[".ts"];
 const srcDir = path.resolve(__dirname, "../src");
 
 if (typeof tsLoader === "function") {
-  Module._extensions[".js"] = function hybridLoader(module: NodeModule, filename: string) {
+  Module._extensions[".js"] = function hybridLoader(
+    module: NodeModule,
+    filename: string,
+  ) {
     if (
       filename.startsWith(srcDir) &&
       !fs.existsSync(filename) &&
@@ -36,7 +39,7 @@ if (typeof tsLoader === "function") {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { registerSocketHandlers } = require("../src/socket/handlers");
+import { registerSocketHandlers } from "../src/socket/handlers";
 
 interface SmokeResult {
   name: string;
@@ -77,8 +80,14 @@ function computeLatencyMetrics(samples: number[]): {
   }
   const sorted = [...samples].sort((a, b) => a - b);
   const avg = sorted.reduce((acc, val) => acc + val, 0) / sorted.length;
-  const p95Index = Math.min(sorted.length - 1, Math.floor(0.95 * sorted.length) - 1);
-  const p99Index = Math.min(sorted.length - 1, Math.floor(0.99 * sorted.length) - 1);
+  const p95Index = Math.min(
+    sorted.length - 1,
+    Math.floor(0.95 * sorted.length) - 1,
+  );
+  const p99Index = Math.min(
+    sorted.length - 1,
+    Math.floor(0.99 * sorted.length) - 1,
+  );
   return {
     avg,
     p95: sorted[Math.max(0, p95Index)],
@@ -181,7 +190,9 @@ async function runSmokeTests(): Promise<void> {
 
     ioServer = new Server(httpServer, {
       cors: {
-        origin: process.env.CORS_ORIGIN?.split(",") ?? ["http://localhost:3000"],
+        origin: process.env.CORS_ORIGIN?.split(",") ?? [
+          "http://localhost:3000",
+        ],
         credentials: true,
       },
       transports: ["websocket", "polling"],
@@ -196,25 +207,32 @@ async function runSmokeTests(): Promise<void> {
       messageId?: string;
     } = {};
 
-    await runRestScenario("REST: Health Check", "GET /api/v1/health", async () => {
-      const response = await restAgent.get("/api/v1/health").expect(200);
-      return {
-        statusCode: response.status,
-        body: response.body,
-        ok: response.body?.status === "ok",
-      };
-    });
+    await runRestScenario(
+      "REST: Health Check",
+      "GET /api/v1/health",
+      async () => {
+        const response = await restAgent.get("/api/v1/health").expect(200);
+        return {
+          statusCode: response.status,
+          body: response.body,
+          ok: response.body?.status === "ok",
+        };
+      },
+    );
 
     await runRestScenario(
       "REST: Create Conversation",
       "POST /api/v1/chat/conversations",
       async () => {
-        const response = await restAgent.post("/api/v1/chat/conversations").send({
-          userId: "smoke-user-1",
-          type: "DIRECT",
-          participantIds: ["smoke-user-2"],
-        });
-        const ok = response.status === 201 && Boolean(response.body?.conversation?.id);
+        const response = await restAgent
+          .post("/api/v1/chat/conversations")
+          .send({
+            userId: "smoke-user-1",
+            type: "DIRECT",
+            participantIds: ["smoke-user-2"],
+          });
+        const ok =
+          response.status === 201 && Boolean(response.body?.conversation?.id);
         if (ok) {
           restContext.conversationId = response.body.conversation.id;
         }
@@ -230,7 +248,9 @@ async function runSmokeTests(): Promise<void> {
           throw new Error("conversationId not set");
         }
         const response = await restAgent
-          .post(`/api/v1/chat/conversations/${restContext.conversationId}/messages`)
+          .post(
+            `/api/v1/chat/conversations/${restContext.conversationId}/messages`,
+          )
           .send({
             userId: "smoke-user-1",
             content: "smoke-test-message",
@@ -254,9 +274,13 @@ async function runSmokeTests(): Promise<void> {
           throw new Error("conversationId not set");
         }
         const response = await restAgent
-          .get(`/api/v1/chat/conversations/${restContext.conversationId}/messages`)
+          .get(
+            `/api/v1/chat/conversations/${restContext.conversationId}/messages`,
+          )
           .query({ userId: "smoke-user-1", limit: 20 });
-        const ok = response.status === 200 && Array.isArray(response.body?.data?.messages);
+        const ok =
+          response.status === 200 &&
+          Array.isArray(response.body?.data?.messages);
         return { statusCode: response.status, body: response.body, ok };
       },
     );
@@ -269,7 +293,9 @@ async function runSmokeTests(): Promise<void> {
           throw new Error("conversationId not set");
         }
         const response = await restAgent
-          .post(`/api/v1/chat/conversations/${restContext.conversationId}/messages`)
+          .post(
+            `/api/v1/chat/conversations/${restContext.conversationId}/messages`,
+          )
           .send({
             userId: "smoke-user-1",
             content: "x".repeat(10_500),
@@ -290,125 +316,160 @@ async function runSmokeTests(): Promise<void> {
         query: { userId },
       });
 
-    await runSocketScenario("Socket: Connect", "Establish connection", async () => {
-      clientA = createClient("socket-smoke-1");
-      clientB = createClient("socket-smoke-2");
+    await runSocketScenario(
+      "Socket: Connect",
+      "Establish connection",
+      async () => {
+        clientA = createClient("socket-smoke-1");
+        clientB = createClient("socket-smoke-2");
 
-      await Promise.all([
-        new Promise<void>((resolve, reject) => {
-          clientA?.once("connect", resolve);
+        await Promise.all([
+          new Promise<void>((resolve, reject) => {
+            clientA?.once("connect", resolve);
+            clientA?.once("connect_error", reject);
+            setTimeout(
+              () => reject(new Error("socket A connect timeout")),
+              5000,
+            );
+          }),
+          new Promise<void>((resolve, reject) => {
+            clientB?.once("connect", resolve);
+            clientB?.once("connect_error", reject);
+            setTimeout(
+              () => reject(new Error("socket B connect timeout")),
+              5000,
+            );
+          }),
+        ]);
+
+        return true;
+      },
+    );
+
+    await runSocketScenario(
+      "Socket: Join Room",
+      "join_conversation event",
+      async () => {
+        if (!clientA || !clientB || !restContext.conversationId) {
+          throw new Error("socket clients or conversation not available");
+        }
+
+        const joinedA = new Promise<void>((resolve, reject) => {
+          clientA?.emit("join_conversation", {
+            conversationId: restContext.conversationId,
+            userId: "socket-smoke-1",
+          });
+          clientA?.once("conversation_joined", () => resolve());
+          clientA?.once("conversation_error", (err) =>
+            reject(new Error(err?.error || "join error")),
+          );
+          setTimeout(() => reject(new Error("socket A join timeout")), 5000);
+        });
+
+        const joinedB = new Promise<void>((resolve, reject) => {
+          clientB?.emit("join_conversation", {
+            conversationId: restContext.conversationId,
+            userId: "socket-smoke-2",
+          });
+          clientB?.once("conversation_joined", () => resolve());
+          clientB?.once("conversation_error", (err) =>
+            reject(new Error(err?.error || "join error")),
+          );
+          setTimeout(() => reject(new Error("socket B join timeout")), 5000);
+        });
+
+        await Promise.all([joinedA, joinedB]);
+        return true;
+      },
+    );
+
+    await runSocketScenario(
+      "Socket: Send & Receive",
+      "Emit send_message and receive new_message",
+      async () => {
+        if (!clientA || !clientB || !restContext.conversationId) {
+          throw new Error("socket clients or conversation not available");
+        }
+
+        const messagePromise = new Promise<boolean>((resolve, reject) => {
+          clientB?.once("new_message", (payload) => {
+            resolve(payload?.content === "socket smoke message");
+          });
+          clientB?.once("message_error", (err) =>
+            reject(new Error(err?.error || "message error")),
+          );
+          setTimeout(() => reject(new Error("message receive timeout")), 5000);
+        });
+
+        clientA.emit("send_message", {
+          conversationId: restContext.conversationId,
+          userId: "socket-smoke-1",
+          content: "socket smoke message",
+          messageType: "TEXT",
+        });
+
+        return await messagePromise;
+      },
+    );
+
+    await runSocketScenario(
+      "Socket: Reconnect",
+      "Disconnect and reconnect while retaining room access",
+      async () => {
+        if (!clientA || !clientB || !restContext.conversationId) {
+          throw new Error("socket clients or conversation not available");
+        }
+
+        clientA.disconnect();
+
+        await new Promise<void>((resolve) => {
+          clientA?.once("disconnect", () => resolve());
+          setTimeout(() => resolve(), 500);
+        });
+
+        clientA = createClient("socket-smoke-1");
+
+        await new Promise<void>((resolve, reject) => {
+          clientA?.once("connect", () => resolve());
           clientA?.once("connect_error", reject);
-          setTimeout(() => reject(new Error("socket A connect timeout")), 5000);
-        }),
-        new Promise<void>((resolve, reject) => {
-          clientB?.once("connect", resolve);
-          clientB?.once("connect_error", reject);
-          setTimeout(() => reject(new Error("socket B connect timeout")), 5000);
-        }),
-      ]);
+          setTimeout(() => reject(new Error("socket reconnect timeout")), 5000);
+        });
 
-      return true;
-    });
+        await new Promise<void>((resolve, reject) => {
+          clientA?.emit("join_conversation", {
+            conversationId: restContext.conversationId,
+            userId: "socket-smoke-1",
+          });
+          clientA?.once("conversation_joined", () => resolve());
+          clientA?.once("conversation_error", (err) =>
+            reject(new Error(err?.error || "join error")),
+          );
+          setTimeout(() => reject(new Error("rejoin timeout")), 5000);
+        });
 
-    await runSocketScenario("Socket: Join Room", "join_conversation event", async () => {
-      if (!clientA || !clientB || !restContext.conversationId) {
-        throw new Error("socket clients or conversation not available");
-      }
+        const messagePromise = new Promise<boolean>((resolve, reject) => {
+          clientB?.once("new_message", (payload) => {
+            resolve(payload?.content === "reconnected message");
+          });
+          clientB?.once("message_error", (err) =>
+            reject(new Error(err?.error || "message error")),
+          );
+          setTimeout(
+            () => reject(new Error("post-reconnect receive timeout")),
+            5000,
+          );
+        });
 
-      const joinedA = new Promise<void>((resolve, reject) => {
-        clientA?.emit("join_conversation", {
+        clientA.emit("send_message", {
           conversationId: restContext.conversationId,
           userId: "socket-smoke-1",
+          content: "reconnected message",
+          messageType: "TEXT",
         });
-        clientA?.once("conversation_joined", () => resolve());
-        clientA?.once("conversation_error", (err) => reject(new Error(err?.error || "join error")));
-        setTimeout(() => reject(new Error("socket A join timeout")), 5000);
-      });
 
-      const joinedB = new Promise<void>((resolve, reject) => {
-        clientB?.emit("join_conversation", {
-          conversationId: restContext.conversationId,
-          userId: "socket-smoke-2",
-        });
-        clientB?.once("conversation_joined", () => resolve());
-        clientB?.once("conversation_error", (err) => reject(new Error(err?.error || "join error")));
-        setTimeout(() => reject(new Error("socket B join timeout")), 5000);
-      });
-
-      await Promise.all([joinedA, joinedB]);
-      return true;
-    });
-
-    await runSocketScenario("Socket: Send & Receive", "Emit send_message and receive new_message", async () => {
-      if (!clientA || !clientB || !restContext.conversationId) {
-        throw new Error("socket clients or conversation not available");
-      }
-
-      const messagePromise = new Promise<boolean>((resolve, reject) => {
-        clientB?.once("new_message", (payload) => {
-          resolve(payload?.content === "socket smoke message");
-        });
-        clientB?.once("message_error", (err) => reject(new Error(err?.error || "message error")));
-        setTimeout(() => reject(new Error("message receive timeout")), 5000);
-      });
-
-      clientA.emit("send_message", {
-        conversationId: restContext.conversationId,
-        userId: "socket-smoke-1",
-        content: "socket smoke message",
-        messageType: "TEXT",
-      });
-
-      return await messagePromise;
-    });
-
-    await runSocketScenario("Socket: Reconnect", "Disconnect and reconnect while retaining room access", async () => {
-      if (!clientA || !clientB || !restContext.conversationId) {
-        throw new Error("socket clients or conversation not available");
-      }
-
-      clientA.disconnect();
-
-      await new Promise<void>((resolve) => {
-        clientA?.once("disconnect", () => resolve());
-        setTimeout(() => resolve(), 500);
-      });
-
-      clientA = createClient("socket-smoke-1");
-
-      await new Promise<void>((resolve, reject) => {
-        clientA?.once("connect", () => resolve());
-        clientA?.once("connect_error", reject);
-        setTimeout(() => reject(new Error("socket reconnect timeout")), 5000);
-      });
-
-      await new Promise<void>((resolve, reject) => {
-        clientA?.emit("join_conversation", {
-          conversationId: restContext.conversationId,
-          userId: "socket-smoke-1",
-        });
-        clientA?.once("conversation_joined", () => resolve());
-        clientA?.once("conversation_error", (err) => reject(new Error(err?.error || "join error")));
-        setTimeout(() => reject(new Error("rejoin timeout")), 5000);
-      });
-
-      const messagePromise = new Promise<boolean>((resolve, reject) => {
-        clientB?.once("new_message", (payload) => {
-          resolve(payload?.content === "reconnected message");
-        });
-        clientB?.once("message_error", (err) => reject(new Error(err?.error || "message error")));
-        setTimeout(() => reject(new Error("post-reconnect receive timeout")), 5000);
-      });
-
-      clientA.emit("send_message", {
-        conversationId: restContext.conversationId,
-        userId: "socket-smoke-1",
-        content: "reconnected message",
-        messageType: "TEXT",
-      });
-
-      return await messagePromise;
-    });
+        return await messagePromise;
+      },
+    );
 
     await runRestScenario(
       "REST: Rate Limit",

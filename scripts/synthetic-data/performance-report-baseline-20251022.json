@@ -1,0 +1,715 @@
+{
+  "generated_at": "2025-10-22T11:59:04.126Z",
+  "dataset_stats": {
+    "users": 15000,
+    "conversations": 24000,
+    "messages": 977561
+  },
+  "test_results": [
+    {
+      "test": {
+        "name": "Message History - Recent 20",
+        "description": "Fetch 20 most recent messages in a conversation (hot path)",
+        "sql": "\n          SELECT m.id, m.content, m.\"createdAt\", m.\"senderId\"\n          FROM messages m\n          WHERE m.\"conversationId\" = $1\n          ORDER BY m.\"createdAt\" DESC\n          LIMIT 20\n        ",
+        "params": ["cmh1wealt06t2ivuqu5kvyl3t"],
+        "expectation": {
+          "index_used": "idx_messages_conversation_created",
+          "no_sort": true,
+          "scan_type": "Index Scan"
+        }
+      },
+      "execution_time_ms": 3,
+      "rows_returned": 20,
+      "plan": {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 0.42,
+          "Total Cost": 49.47,
+          "Plan Rows": 20,
+          "Plan Width": 149,
+          "Actual Startup Time": 0.26,
+          "Actual Total Time": 0.268,
+          "Actual Rows": 20,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 6,
+          "Shared Read Blocks": 5,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Backward",
+              "Index Name": "messages_conversationId_createdAt_idx",
+              "Relation Name": "messages",
+              "Alias": "m",
+              "Startup Cost": 0.42,
+              "Total Cost": 154.92,
+              "Plan Rows": 63,
+              "Plan Width": 149,
+              "Actual Startup Time": 0.259,
+              "Actual Total Time": 0.267,
+              "Actual Rows": 20,
+              "Actual Loops": 1,
+              "Index Cond": "(\"conversationId\" = 'cmh1wealt06t2ivuqu5kvyl3t'::text)",
+              "Rows Removed by Index Recheck": 0,
+              "Shared Hit Blocks": 6,
+              "Shared Read Blocks": 5,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 12,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 1,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.063,
+        "Triggers": [],
+        "Execution Time": 0.273
+      },
+      "analysis": {
+        "uses_index": true,
+        "has_sort": false,
+        "scan_type": "Index Scan",
+        "total_cost": 0,
+        "startup_cost": 0,
+        "rows_estimate": 0,
+        "actual_time_ms": 0,
+        "warnings": [],
+        "index_name": "messages_conversationId_createdAt_idx"
+      },
+      "verdict": "PASS",
+      "issues": []
+    },
+    {
+      "test": {
+        "name": "Message History - Deep Pagination (OFFSET 100)",
+        "description": "Fetch messages at offset 100 (tests OFFSET performance)",
+        "sql": "\n          SELECT m.id, m.content, m.\"createdAt\", m.\"senderId\"\n          FROM messages m\n          WHERE m.\"conversationId\" = $1\n          ORDER BY m.\"createdAt\" DESC\n          LIMIT 20 OFFSET 100\n        ",
+        "params": ["cmh1wealt06t2ivuqu5kvyl3t"],
+        "expectation": {
+          "index_used": "idx_messages_conversation_created",
+          "no_sort": true,
+          "scan_type": "Index Scan"
+        }
+      },
+      "execution_time_ms": 1,
+      "rows_returned": 0,
+      "plan": {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 154.92,
+          "Total Cost": 157.37,
+          "Plan Rows": 1,
+          "Plan Width": 149,
+          "Actual Startup Time": 0.165,
+          "Actual Total Time": 0.165,
+          "Actual Rows": 0,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 29,
+          "Shared Read Blocks": 2,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Backward",
+              "Index Name": "messages_conversationId_createdAt_idx",
+              "Relation Name": "messages",
+              "Alias": "m",
+              "Startup Cost": 0.42,
+              "Total Cost": 154.92,
+              "Plan Rows": 63,
+              "Plan Width": 149,
+              "Actual Startup Time": 0.002,
+              "Actual Total Time": 0.164,
+              "Actual Rows": 59,
+              "Actual Loops": 1,
+              "Index Cond": "(\"conversationId\" = 'cmh1wealt06t2ivuqu5kvyl3t'::text)",
+              "Rows Removed by Index Recheck": 0,
+              "Shared Hit Blocks": 29,
+              "Shared Read Blocks": 2,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 0,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.021,
+        "Triggers": [],
+        "Execution Time": 0.167
+      },
+      "analysis": {
+        "uses_index": true,
+        "has_sort": false,
+        "scan_type": "Index Scan",
+        "total_cost": 0,
+        "startup_cost": 0,
+        "rows_estimate": 0,
+        "actual_time_ms": 0,
+        "warnings": [],
+        "index_name": "messages_conversationId_createdAt_idx"
+      },
+      "verdict": "PASS",
+      "issues": []
+    },
+    {
+      "test": {
+        "name": "Unread Messages Count",
+        "description": "Count unread messages per conversation (analytics query)",
+        "sql": "\n          SELECT COUNT(*) as unread_count\n          FROM messages m\n          WHERE m.\"conversationId\" = $1\n            AND m.\"createdAt\" > $2\n        ",
+        "params": ["cmh1xfl450e7kvwdpa0aa3mhs", "2025-10-15T11:59:04.113Z"],
+        "expectation": {
+          "index_used": "idx_messages_conversation_created",
+          "no_sort": false,
+          "scan_type": "Index Scan"
+        }
+      },
+      "execution_time_ms": 3,
+      "rows_returned": 1,
+      "plan": {
+        "Plan": {
+          "Node Type": "Aggregate",
+          "Strategy": "Plain",
+          "Partial Mode": "Simple",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 4.85,
+          "Total Cost": 4.86,
+          "Plan Rows": 1,
+          "Plan Width": 8,
+          "Actual Startup Time": 0.219,
+          "Actual Total Time": 0.219,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 1,
+          "Shared Read Blocks": 2,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Only Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Forward",
+              "Index Name": "messages_conversationId_createdAt_idx",
+              "Relation Name": "messages",
+              "Alias": "m",
+              "Startup Cost": 0.42,
+              "Total Cost": 4.81,
+              "Plan Rows": 19,
+              "Plan Width": 0,
+              "Actual Startup Time": 0.219,
+              "Actual Total Time": 0.219,
+              "Actual Rows": 0,
+              "Actual Loops": 1,
+              "Index Cond": "((\"conversationId\" = 'cmh1xfl450e7kvwdpa0aa3mhs'::text) AND (\"createdAt\" > '2025-10-15 11:59:04.113'::timestamp without time zone))",
+              "Rows Removed by Index Recheck": 0,
+              "Heap Fetches": 0,
+              "Shared Hit Blocks": 1,
+              "Shared Read Blocks": 2,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 7,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.022,
+        "Triggers": [],
+        "Execution Time": 0.223
+      },
+      "analysis": {
+        "uses_index": true,
+        "has_sort": false,
+        "scan_type": "Index Only Scan",
+        "total_cost": 0,
+        "startup_cost": 0,
+        "rows_estimate": 0,
+        "actual_time_ms": 0,
+        "warnings": [],
+        "index_name": "messages_conversationId_createdAt_idx"
+      },
+      "verdict": "PASS",
+      "issues": []
+    },
+    {
+      "test": {
+        "name": "Recent Messages Across Multiple Conversations",
+        "description": "Fetch 50 most recent messages from user's conversations (feed query)",
+        "sql": "\n          SELECT m.id, m.content, m.\"createdAt\", m.\"conversationId\"\n          FROM messages m\n          WHERE m.\"conversationId\" = ANY($1::text[])\n          ORDER BY m.\"createdAt\" DESC\n          LIMIT 50\n        ",
+        "params": [
+          [
+            [
+              "cmh1wealt06t2ivuqu5kvyl3t",
+              "cmh1xfl450e7kvwdpa0aa3mhs",
+              "cmh1xfkez06syvwdpdzmsoe68",
+              "cmh1xfo1a0zv2vwdp8yl7o2wa",
+              "cmh1xjiii09lex22r10bt1gsn",
+              "cmh1xfkze0ciwvwdpnzj4bcaq",
+              "cmh1weajy04wsivuqwqw7jglp",
+              "cmh1weapc09b4ivuqqkupjn4l",
+              "cmh1weaph09vaivuqe4bqcows",
+              "cmh1xjidr05fvx22rpo54txai"
+            ]
+          ]
+        ],
+        "expectation": {
+          "index_used": "idx_messages_conversation_created",
+          "no_sort": false,
+          "scan_type": "Bitmap Index Scan"
+        }
+      },
+      "execution_time_ms": 1,
+      "rows_returned": 0,
+      "plan": {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 156.8,
+          "Total Cost": 156.93,
+          "Plan Rows": 50,
+          "Plan Width": 149,
+          "Actual Startup Time": 0.008,
+          "Actual Total Time": 0.009,
+          "Actual Rows": 0,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 6,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Sort",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 156.8,
+              "Total Cost": 156.96,
+              "Plan Rows": 63,
+              "Plan Width": 149,
+              "Actual Startup Time": 0.008,
+              "Actual Total Time": 0.008,
+              "Actual Rows": 0,
+              "Actual Loops": 1,
+              "Sort Key": ["\"createdAt\" DESC"],
+              "Sort Method": "quicksort",
+              "Sort Space Used": 25,
+              "Sort Space Type": "Memory",
+              "Shared Hit Blocks": 6,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Index Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Scan Direction": "Forward",
+                  "Index Name": "messages_conversationId_createdAt_idx",
+                  "Relation Name": "messages",
+                  "Alias": "m",
+                  "Startup Cost": 0.42,
+                  "Total Cost": 154.92,
+                  "Plan Rows": 63,
+                  "Plan Width": 149,
+                  "Actual Startup Time": 0.002,
+                  "Actual Total Time": 0.002,
+                  "Actual Rows": 0,
+                  "Actual Loops": 1,
+                  "Index Cond": "(\"conversationId\" = ANY ('{\"cmh1wealt06t2ivuqu5kvyl3t,cmh1xfl450e7kvwdpa0aa3mhs,cmh1xfkez06syvwdpdzmsoe68,cmh1xfo1a0zv2vwdp8yl7o2wa,cmh1xjiii09lex22r10bt1gsn,cmh1xfkze0ciwvwdpnzj4bcaq,cmh1weajy04wsivuqwqw7jglp,cmh1weapc09b4ivuqqkupjn4l,cmh1weaph09vaivuqe4bqcows,cmh1xjidr05fvx22rpo54txai\"}'::text[]))",
+                  "Rows Removed by Index Recheck": 0,
+                  "Shared Hit Blocks": 3,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0
+                }
+              ]
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 0,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.019,
+        "Triggers": [],
+        "Execution Time": 0.011
+      },
+      "analysis": {
+        "uses_index": true,
+        "has_sort": true,
+        "scan_type": "Index Scan",
+        "total_cost": 0,
+        "startup_cost": 0,
+        "rows_estimate": 0,
+        "actual_time_ms": 0,
+        "warnings": ["SORT operation present - index not providing order"],
+        "index_name": "messages_conversationId_createdAt_idx"
+      },
+      "verdict": "WARN",
+      "issues": ["SORT operation present - index not providing order"]
+    },
+    {
+      "test": {
+        "name": "Message Range Query",
+        "description": "Fetch messages in a time range (historical query)",
+        "sql": "\n          SELECT m.id, m.\"createdAt\", m.\"senderId\"\n          FROM messages m\n          WHERE m.\"conversationId\" = $1\n            AND m.\"createdAt\" BETWEEN $2 AND $3\n          ORDER BY m.\"createdAt\" DESC\n        ",
+        "params": [
+          "cmh1xfkez06syvwdpdzmsoe68",
+          "2025-10-08T11:59:04.113Z",
+          "2025-10-15T11:59:04.113Z"
+        ],
+        "expectation": {
+          "index_used": "idx_messages_conversation_created",
+          "no_sort": true,
+          "scan_type": "Index Scan"
+        }
+      },
+      "execution_time_ms": 1,
+      "rows_returned": 0,
+      "plan": {
+        "Plan": {
+          "Node Type": "Index Scan",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Scan Direction": "Backward",
+          "Index Name": "messages_conversationId_createdAt_idx",
+          "Relation Name": "messages",
+          "Alias": "m",
+          "Startup Cost": 0.42,
+          "Total Cost": 43.86,
+          "Plan Rows": 16,
+          "Plan Width": 60,
+          "Actual Startup Time": 0.158,
+          "Actual Total Time": 0.158,
+          "Actual Rows": 0,
+          "Actual Loops": 1,
+          "Index Cond": "((\"conversationId\" = 'cmh1xfkez06syvwdpdzmsoe68'::text) AND (\"createdAt\" >= '2025-10-08 11:59:04.113'::timestamp without time zone) AND (\"createdAt\" <= '2025-10-15 11:59:04.113'::timestamp without time zone))",
+          "Rows Removed by Index Recheck": 0,
+          "Shared Hit Blocks": 2,
+          "Shared Read Blocks": 1,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning": {
+          "Shared Hit Blocks": 6,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.021,
+        "Triggers": [],
+        "Execution Time": 0.159
+      },
+      "analysis": {
+        "uses_index": true,
+        "has_sort": false,
+        "scan_type": "Index Scan",
+        "total_cost": 0,
+        "startup_cost": 0,
+        "rows_estimate": 0,
+        "actual_time_ms": 0,
+        "warnings": [],
+        "index_name": "messages_conversationId_createdAt_idx"
+      },
+      "verdict": "PASS",
+      "issues": []
+    },
+    {
+      "test": {
+        "name": "Latest Message Per Conversation",
+        "description": "Get last message for conversation list (preview query)",
+        "sql": "\n          SELECT DISTINCT ON (m.\"conversationId\")\n            m.id, m.content, m.\"createdAt\", m.\"conversationId\"\n          FROM messages m\n          WHERE m.\"conversationId\" = ANY($1::text[])\n          ORDER BY m.\"conversationId\", m.\"createdAt\" DESC\n        ",
+        "params": [
+          [
+            [
+              "cmh1wealt06t2ivuqu5kvyl3t",
+              "cmh1xfl450e7kvwdpa0aa3mhs",
+              "cmh1xfkez06syvwdpdzmsoe68",
+              "cmh1xfo1a0zv2vwdp8yl7o2wa",
+              "cmh1xjiii09lex22r10bt1gsn",
+              "cmh1xfkze0ciwvwdpnzj4bcaq",
+              "cmh1weajy04wsivuqwqw7jglp",
+              "cmh1weapc09b4ivuqqkupjn4l",
+              "cmh1weaph09vaivuqe4bqcows",
+              "cmh1xjidr05fvx22rpo54txai",
+              "cmh1weajz04ymivuqgoelv4h0",
+              "cmh1weakt05lgivuq0fm2gguo",
+              "cmh1xjiev06ucx22rbty6w5b5",
+              "cmh1xfm0g0nfzvwdpfxxwgmgu",
+              "cmh1xjihi08lcx22r18rms8a2",
+              "cmh1xjibu03ztx22r7v97clhq",
+              "cmh1weaj504kjivuqxkud13ie",
+              "cmh1xfkg8072gvwdplfmnq4kk",
+              "cmh1xfkja07v6vwdpwo8y3pmv",
+              "cmh1weaiy040givuqejzp65n1"
+            ]
+          ]
+        ],
+        "expectation": {
+          "index_used": "idx_messages_conversation_created",
+          "no_sort": false,
+          "scan_type": "Index Scan"
+        }
+      },
+      "execution_time_ms": 1,
+      "rows_returned": 0,
+      "plan": {
+        "Plan": {
+          "Node Type": "Unique",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 2.89,
+          "Total Cost": 157.91,
+          "Plan Rows": 63,
+          "Plan Width": 149,
+          "Actual Startup Time": 0.008,
+          "Actual Total Time": 0.008,
+          "Actual Rows": 0,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 6,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Incremental Sort",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 2.89,
+              "Total Cost": 157.75,
+              "Plan Rows": 63,
+              "Plan Width": 149,
+              "Actual Startup Time": 0.008,
+              "Actual Total Time": 0.008,
+              "Actual Rows": 0,
+              "Actual Loops": 1,
+              "Sort Key": ["\"conversationId\"", "\"createdAt\" DESC"],
+              "Presorted Key": ["\"conversationId\""],
+              "Full-sort Groups": {
+                "Group Count": 1,
+                "Sort Methods Used": ["quicksort"],
+                "Sort Space Memory": {
+                  "Average Sort Space Used": 25,
+                  "Peak Sort Space Used": 25
+                }
+              },
+              "Shared Hit Blocks": 6,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Index Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Scan Direction": "Forward",
+                  "Index Name": "messages_conversationId_createdAt_idx",
+                  "Relation Name": "messages",
+                  "Alias": "m",
+                  "Startup Cost": 0.42,
+                  "Total Cost": 154.92,
+                  "Plan Rows": 63,
+                  "Plan Width": 149,
+                  "Actual Startup Time": 0.001,
+                  "Actual Total Time": 0.001,
+                  "Actual Rows": 0,
+                  "Actual Loops": 1,
+                  "Index Cond": "(\"conversationId\" = ANY ('{\"cmh1wealt06t2ivuqu5kvyl3t,cmh1xfl450e7kvwdpa0aa3mhs,cmh1xfkez06syvwdpdzmsoe68,cmh1xfo1a0zv2vwdp8yl7o2wa,cmh1xjiii09lex22r10bt1gsn,cmh1xfkze0ciwvwdpnzj4bcaq,cmh1weajy04wsivuqwqw7jglp,cmh1weapc09b4ivuqqkupjn4l,cmh1weaph09vaivuqe4bqcows,cmh1xjidr05fvx22rpo54txai,cmh1weajz04ymivuqgoelv4h0,cmh1weakt05lgivuq0fm2gguo,cmh1xjiev06ucx22rbty6w5b5,cmh1xfm0g0nfzvwdpfxxwgmgu,cmh1xjihi08lcx22r18rms8a2,cmh1xjibu03ztx22r7v97clhq,cmh1weaj504kjivuqxkud13ie,cmh1xfkg8072gvwdplfmnq4kk,cmh1xfkja07v6vwdpwo8y3pmv,cmh1weaiy040givuqejzp65n1\"}'::text[]))",
+                  "Rows Removed by Index Recheck": 0,
+                  "Shared Hit Blocks": 3,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0
+                }
+              ]
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 0,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.015,
+        "Triggers": [],
+        "Execution Time": 0.015
+      },
+      "analysis": {
+        "uses_index": true,
+        "has_sort": false,
+        "scan_type": "Index Scan",
+        "total_cost": 0,
+        "startup_cost": 0,
+        "rows_estimate": 0,
+        "actual_time_ms": 0,
+        "warnings": [],
+        "index_name": "messages_conversationId_createdAt_idx"
+      },
+      "verdict": "PASS",
+      "issues": []
+    }
+  ],
+  "summary": {
+    "total_tests": 6,
+    "passed": 5,
+    "failed": 0,
+    "warnings": 1,
+    "overall_verdict": "WARN"
+  },
+  "latency_analysis": {
+    "p50_ms": 0,
+    "p95_ms": 0,
+    "p99_ms": 0,
+    "max_ms": 0
+  },
+  "recommendations": [
+    "✓ All tests passed - indexes are effective",
+    "✓ Query plans optimal - no Sort operations",
+    "✓ Latency targets met - p95 < 100ms"
+  ]
+}

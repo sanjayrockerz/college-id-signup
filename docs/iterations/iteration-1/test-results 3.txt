@@ -1,0 +1,20 @@
+PASS test/socket/handlers.spec.ts
+  ● Console
+
+    console.log
+      🔌 Socket socket-e676v34u8l connected (userId: user-123)
+
+      at src/socket/handlers.js:7:13
+          at Array.forEach (<anonymous>)
+
+    console.log
+      ✅ User user-123 joined 0 conversation rooms.
+
+      at src/socket/handlers.js:20:19
+
+
+Test Suites: 2 skipped, 1 passed, 1 of 3 total
+Tests:       44 skipped, 1 passed, 45 total
+Snapshots:   0 total
+Time:        1.335 s, estimated 2 s
+Ran all test suites.

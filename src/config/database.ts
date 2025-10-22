@@ -162,6 +162,73 @@ function createPrismaClient(): IPrismaClient {
     errorFormat: isDevelopment ? "pretty" : "minimal",
   });
 
+  // Add Prisma middleware for query metrics
+  if (typeof (client as any).$use === "function") {
+    (client as any).$use(async (params: any, next: any) => {
+      const startTime = Date.now();
+
+      try {
+        const result = await next(params);
+        const duration = Date.now() - startTime;
+
+        // Extract operation type
+        const action = params.action?.toLowerCase();
+        let queryType: "select" | "insert" | "update" | "delete" | "other" =
+          "other";
+
+        if (
+          action?.includes("find") ||
+          action?.includes("aggregate") ||
+          action?.includes("count")
+        ) {
+          queryType = "select";
+        } else if (action?.includes("create")) {
+          queryType = "insert";
+        } else if (action?.includes("update") || action?.includes("upsert")) {
+          queryType = "update";
+        } else if (action?.includes("delete")) {
+          queryType = "delete";
+        }
+
+        // Emit metrics (lazy-load to avoid circular dependencies)
+        try {
+          const {
+            TelemetryMetrics,
+          } = require("../observability/metrics-registry");
+          TelemetryMetrics.observeDbTransactionDuration(
+            "pgbouncer",
+            queryType,
+            duration,
+          );
+          TelemetryMetrics.incrementDbQuery(queryType, "success");
+        } catch (metricsError) {
+          // Silently fail if metrics not available (e.g., during startup)
+        }
+
+        return result;
+      } catch (error) {
+        const duration = Date.now() - startTime;
+
+        // Emit error metric
+        try {
+          const {
+            TelemetryMetrics,
+          } = require("../observability/metrics-registry");
+          TelemetryMetrics.incrementDbQuery("other", "error");
+          TelemetryMetrics.observeDbTransactionDuration(
+            "pgbouncer",
+            "other",
+            duration,
+          );
+        } catch (metricsError) {
+          // Silently fail
+        }
+
+        throw error;
+      }
+    });
+  }
+
   if (isDevelopment && typeof client.$on === "function") {
     client.$on("query", (e: QueryEvent) => {
       console.log("Query: " + e.query);

@@ -1,23 +1,26 @@
 import rateLimit from "express-rate-limit";
 import { Request, Response } from "express";
+import { getEnv } from "../config/environment";
 
 /**
  * Rate Limiting Configuration for Public API
  *
  * Since all endpoints are public without authentication, rate limiting
  * is critical to prevent abuse and ensure fair usage.
- * 
+ *
  * Set DISABLE_RATE_LIMIT=true to disable rate limiting (for load testing only)
  */
 
-const DISABLE_RATE_LIMIT = process.env.DISABLE_RATE_LIMIT === 'true';
+function isRateLimitDisabled(): boolean {
+  return getEnv().flags.disableRateLimit;
+}
 
 /**
  * General API rate limiter - applies to most endpoints
  * 100 requests per 15 minutes per IP
  */
 export const apiLimiter = rateLimit({
-  skip: () => DISABLE_RATE_LIMIT,
+  skip: () => isRateLimitDisabled(),
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: {
@@ -43,7 +46,8 @@ export const apiLimiter = rateLimit({
  * 30 requests per 15 minutes per IP
  */
 export const writeOperationLimiter = rateLimit({
-  skip: (req: Request) => DISABLE_RATE_LIMIT || req.method === "GET" || req.method === "HEAD",
+  skip: (req: Request) =>
+    isRateLimitDisabled() || req.method === "GET" || req.method === "HEAD",
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 30, // Limit each IP to 30 write requests per windowMs
   message: {
@@ -69,7 +73,7 @@ export const writeOperationLimiter = rateLimit({
  * 10 uploads per 15 minutes per IP
  */
 export const uploadLimiter = rateLimit({
-  skip: () => DISABLE_RATE_LIMIT,
+  skip: () => isRateLimitDisabled(),
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit each IP to 10 uploads per windowMs
   message: {
@@ -95,7 +99,7 @@ export const uploadLimiter = rateLimit({
  * 200 messages per 15 minutes per IP
  */
 export const messagingLimiter = rateLimit({
-  skip: () => DISABLE_RATE_LIMIT,
+  skip: () => isRateLimitDisabled(),
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 200, // Limit each IP to 200 messages per windowMs
   message: {
@@ -120,7 +124,7 @@ export const messagingLimiter = rateLimit({
  * 20 requests per 15 minutes per IP
  */
 export const adminLimiter = rateLimit({
-  skip: () => DISABLE_RATE_LIMIT,
+  skip: () => isRateLimitDisabled(),
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 20, // Limit each IP to 20 admin requests per windowMs
   message: {

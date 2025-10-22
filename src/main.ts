@@ -15,6 +15,10 @@
  * Integration Guide: docs/scope/upstream-integration.md
  */
 
+// Load .env file BEFORE importing any other modules
+import dotenv from "dotenv";
+dotenv.config();
+
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import * as fs from "fs";
@@ -57,43 +61,45 @@ async function bootstrap() {
     console.log("");
     console.log("🛡️  Security: Rate limiting, validation, logging enabled");
     console.log("📖 API Docs UI: http://localhost:" + port + "/docs");
-    console.log("📄 OpenAPI Spec: http://localhost:" + port + "/docs/openapi.yaml");
+    console.log(
+      "📄 OpenAPI Spec: http://localhost:" + port + "/docs/openapi.yaml",
+    );
   }
 
   await app.listen(port);
-  
+
   // Graceful shutdown handlers
   const gracefulShutdown = async (signal: string) => {
     console.log(`\n${signal} received, initiating graceful shutdown...`);
-    
+
     try {
       // 1. Stop accepting new HTTP connections
-      console.log('Closing HTTP server...');
+      console.log("Closing HTTP server...");
       await app.close();
-      console.log('HTTP server closed, no longer accepting connections');
-      
+      console.log("HTTP server closed, no longer accepting connections");
+
       // 2. Socket.IO server will emit 'server_shutdown' to clients
       // (handled by socket gateway's onModuleDestroy)
-      console.log('Socket.IO cleanup initiated via module destroy hooks');
-      
+      console.log("Socket.IO cleanup initiated via module destroy hooks");
+
       // 3. Wait briefly for messages in flight
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Grace period complete');
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("Grace period complete");
+
       // 4. Exit cleanly
-      console.log('Exiting gracefully');
+      console.log("Exiting gracefully");
       process.exit(0);
     } catch (error) {
-      console.error('Error during graceful shutdown:', error);
+      console.error("Error during graceful shutdown:", error);
       process.exit(1);
     }
   };
-  
+
   // Register shutdown handlers
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-  
-  console.log('Graceful shutdown handlers registered (SIGTERM, SIGINT)');
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+  console.log("Graceful shutdown handlers registered (SIGTERM, SIGINT)");
 }
 
 bootstrap().catch((error) => {

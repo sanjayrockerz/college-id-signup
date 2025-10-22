@@ -1,0 +1,21 @@
+# PgBouncer User List
+# Format: "username" "password_hash"
+# Generate password hash: echo -n "passwordSALT" | md5sum
+
+# Admin users (for SHOW commands and monitoring)
+"pgbouncer_admin" "md5d8e8fca2dc0f896fd7cb4cb0031ba249"
+"pgbouncer_stats" "md5d8e8fca2dc0f896fd7cb4cb0031ba249"
+
+# Application users (replace with actual credentials from your database)
+# These should match the users defined in PostgreSQL
+"postgres" "md532e12f215ba27cb750c9e093ce4b5127"
+"chat_user" "REPLACE_WITH_MD5_HASH"
+"perf_dev_user" "REPLACE_WITH_MD5_HASH"
+"perf_staging_user" "REPLACE_WITH_MD5_HASH"
+"perf_user" "REPLACE_WITH_MD5_HASH"
+
+# Example of generating MD5 hash:
+# echo -n "mypasswordmyusername" | md5sum
+# Result format: md5<hash>
+#
+# Important: The string to hash is "password" + "username" (concatenated)

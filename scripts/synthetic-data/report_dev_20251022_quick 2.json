@@ -1,0 +1,45 @@
+{
+  "generation_summary": {
+    "band": "dev",
+    "seed": "dev_quick_20251022",
+    "generated_at": "2025-10-22T16:45:00Z",
+    "generator": "quick-generator.ts",
+    "status": "COMPLETE"
+  },
+  "counts": {
+    "users": 5000,
+    "conversations": 8000,
+    "conversation_members": 26983,
+    "messages": 500000,
+    "attachments": 0,
+    "read_receipts": 0
+  },
+  "distributions": {
+    "conversation_types": {
+      "DIRECT_MESSAGE": "~70%",
+      "GROUP_CHAT": "~30%"
+    },
+    "message_types": {
+      "TEXT": "~85%",
+      "IMAGE": "~10%",
+      "FILE": "~5%"
+    },
+    "avg_messages_per_conversation": 63
+  },
+  "performance": {
+    "total_duration_minutes": "~10",
+    "messages_per_second": "~833"
+  },
+  "fixes_applied": [
+    "Removed isVerified field (doesn't exist in schema, used isActive instead)",
+    "Fixed conversation types (ONE_TO_ONE → DIRECT_MESSAGE, GROUP → GROUP_CHAT)",
+    "Fixed message types (MEDIA → IMAGE/VIDEO/FILE/AUDIO)",
+    "Created optimized quick-generator.ts for faster generation"
+  ],
+  "next_steps": [
+    "Run fidelity validation: ts-node validate-dataset-fidelity.ts",
+    "Capture pre-optimization baseline: ts-node verify-index-performance.ts --pre-optimization",
+    "Apply Phase 2 indexes: psql $DATABASE_URL -f ../../docs/database/indexes/phase-2-indexes.sql",
+    "Capture post-optimization baseline and compare"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "generatedAt": "2025-10-20T20:00:00Z",
+  "repository": "college-id-signup-1",
+  "testFramework": "Jest",
+  "summary": {
+    "totalSuites": 3,
+    "passedSuites": 1,
+    "failedSuites": 0,
+    "skippedSuites": 2,
+    "totalTests": 45,
+    "passedTests": 1,
+    "failedTests": 0,
+    "pendingTests": 44,
+    "success": true
+  },
+  "testResults": [
+    {
+      "name": "test/socket/handlers.spec.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "title": "rejects send_message for non-member sockets",
+          "fullName": "socket handlers rejects send_message for non-member sockets",
+          "status": "passed",
+          "duration": 6,
+          "assertionsPassed": 2
+        }
+      ]
+    },
+    {
+      "name": "test/socket-api.integration.spec.ts",
+      "status": "skipped",
+      "tests": [
+        {
+          "title": "should connect without authentication",
+          "fullName": "Socket.IO API (Anonymous Access) Connection should connect without authentication",
+          "status": "pending"
+        },
+        {
+          "title": "should NOT require auth token in handshake",
+          "fullName": "Socket.IO API (Anonymous Access) Connection should NOT require auth token in handshake",
+          "status": "pending"
+        }
+      ],
+      "totalPendingTests": 20
+    },
+    {
+      "name": "test/chat-api.integration.spec.ts",
+      "status": "skipped",
+      "tests": [
+        {
+          "title": "should create a direct conversation with userId in body",
+          "fullName": "Chat API (Anonymous Access) POST /api/v1/chat/conversations should create a direct conversation with userId in body",
+          "status": "pending"
+        },
+        {
+          "title": "should create a group conversation",
+          "fullName": "Chat API (Anonymous Access) POST /api/v1/chat/conversations should create a group conversation",
+          "status": "pending"
+        }
+      ],
+      "totalPendingTests": 24
+    }
+  ],
+  "failedTests": [],
+  "analysis": {
+    "criticalGaps": [
+      "44 integration tests are skipped/pending - no actual HTTP or Socket.IO integration validation",
+      "Only 1 unit test passing - insufficient coverage for production deployment",
+      "No coverage data generated due to skipped tests",
+      "Socket.IO connection flow not tested (authentication bypass verification missing)",
+      "REST API endpoints not validated (create conversation, send message, pagination)",
+      "Error handling paths not exercised (validation, rate limiting, size limits)",
+      "Real-time message delivery not verified (multiple clients, ordering, acknowledgements)"
+    ],
+    "suspectedRootCauses": [
+      "Tests likely skipped during migration from Express to NestJS",
+      "Database dependency may be preventing test execution (need test containers)",
+      "Socket.IO test setup may require additional configuration",
+      "Integration tests may need running server instance"
+    ]
+  }
+}

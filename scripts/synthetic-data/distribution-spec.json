@@ -1,0 +1,209 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Synthetic Dataset Distribution Specification",
+  "version": "1.0.0",
+  "generated": "2025-10-22",
+  "purpose": "Statistical specification for Phase 2 performance validation datasets",
+
+  "users": {
+    "count": {
+      "dev": 5000,
+      "staging": 150000,
+      "perf": 250000
+    },
+    "attributes": {
+      "username_length": {
+        "distribution": "normal",
+        "mean": 12,
+        "stddev": 4,
+        "min": 3,
+        "max": 30
+      },
+      "profile_completeness": {
+        "distribution": "beta",
+        "alpha": 2,
+        "beta": 5,
+        "notes": "Skewed toward incomplete profiles"
+      }
+    }
+  },
+
+  "conversations": {
+    "type_distribution": {
+      "one_to_one": 0.7,
+      "small_group": 0.25,
+      "large_group": 0.05
+    },
+    "size_ranges": {
+      "one_to_one": { "min": 2, "max": 2 },
+      "small_group": {
+        "min": 3,
+        "max": 20,
+        "distribution": "geometric",
+        "p": 0.3
+      },
+      "large_group": {
+        "min": 21,
+        "max": 256,
+        "distribution": "power_law",
+        "alpha": 2.5
+      }
+    },
+    "count_per_band": {
+      "dev": 8000,
+      "staging": 300000,
+      "perf": 600000
+    },
+    "heavy_rooms": {
+      "percentage": 0.02,
+      "min_messages": 10000,
+      "purpose": "Stress test hot index paths and cache pressure"
+    }
+  },
+
+  "messages": {
+    "count_per_band": {
+      "dev": 5000000,
+      "staging": 100000000,
+      "perf": 300000000
+    },
+    "per_conversation_distribution": {
+      "type": "power_law",
+      "alpha": 1.8,
+      "min": 1,
+      "max": 50000,
+      "median_target": 15,
+      "p95_target": 500,
+      "notes": "70% of conversations have <50 messages; 5% have >1000"
+    },
+    "content": {
+      "text_length": {
+        "distribution": "log_normal",
+        "mu": 4.5,
+        "sigma": 1.2,
+        "min": 1,
+        "max": 5000,
+        "notes": "Mean ~150 chars, median ~90, long tail to 5000"
+      },
+      "media_ratio": 0.15,
+      "attachment_distribution": {
+        "none": 0.85,
+        "single": 0.12,
+        "multiple": 0.03
+      }
+    },
+    "inter_arrival": {
+      "distribution": "exponential_with_diurnal",
+      "mean_lambda_peak": 0.5,
+      "mean_lambda_trough": 0.05,
+      "peak_hours": [9, 10, 11, 12, 18, 19, 20, 21],
+      "burst_coefficient": 2.5,
+      "notes": "Messages cluster in business hours and evenings with bursty patterns"
+    }
+  },
+
+  "read_receipts": {
+    "delivery_rate": 0.95,
+    "read_rate": 0.82,
+    "timing": {
+      "immediate": {
+        "percentage": 0.35,
+        "within_seconds": 30
+      },
+      "near_term": {
+        "percentage": 0.4,
+        "distribution": "exponential",
+        "mean_minutes": 45
+      },
+      "delayed": {
+        "percentage": 0.15,
+        "distribution": "log_normal",
+        "mu": 6.5,
+        "sigma": 1.8,
+        "notes": "Hours to days"
+      },
+      "never": {
+        "percentage": 0.1
+      }
+    }
+  },
+
+  "attachments": {
+    "type_distribution": {
+      "image": 0.65,
+      "video": 0.15,
+      "document": 0.12,
+      "audio": 0.08
+    },
+    "size_ranges_kb": {
+      "image": {
+        "min": 50,
+        "max": 8000,
+        "distribution": "log_normal",
+        "mu": 5.5,
+        "sigma": 1.2
+      },
+      "video": {
+        "min": 500,
+        "max": 50000,
+        "distribution": "log_normal",
+        "mu": 8.0,
+        "sigma": 1.5
+      },
+      "document": {
+        "min": 10,
+        "max": 5000,
+        "distribution": "log_normal",
+        "mu": 5.0,
+        "sigma": 1.0
+      },
+      "audio": {
+        "min": 50,
+        "max": 10000,
+        "distribution": "log_normal",
+        "mu": 6.0,
+        "sigma": 1.3
+      }
+    }
+  },
+
+  "temporal_patterns": {
+    "creation_window": {
+      "dev": "30_days",
+      "staging": "180_days",
+      "perf": "365_days"
+    },
+    "diurnal_cycle": {
+      "timezone": "UTC",
+      "weekday_boost": 1.4,
+      "weekend_factor": 0.7
+    },
+    "seasonal_variation": {
+      "enabled": true,
+      "amplitude": 0.2,
+      "notes": "20% seasonal swing for staging/perf datasets"
+    }
+  },
+
+  "validation_targets": {
+    "index_coverage": {
+      "message_history_queries": "composite_index_used_no_sort",
+      "conversation_list_queries": "index_scan_under_10ms_p95"
+    },
+    "pool_behavior": {
+      "connection_queue_depth": "<5_at_p95",
+      "wait_time_ms": "<50_at_p95"
+    },
+    "cache_behavior": {
+      "hit_rate_recent_messages": ">0.80",
+      "eviction_rate": "<0.10"
+    }
+  },
+
+  "reproducibility": {
+    "seed_format": "dataset_band_timestamp_hash",
+    "example": "perf_20251022_abc123def456",
+    "storage": "scripts/synthetic-data/seeds/",
+    "notes": "Store generation parameters and RNG seed for exact reproduction"
+  }
+}

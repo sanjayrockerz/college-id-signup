@@ -1,0 +1,80 @@
+{
+  "calibration_metadata": {
+    "source_shape_file": "2025-10-22T11:43:54.054Z",
+    "calibrated_at": "2025-10-22T11:44:06.084Z",
+    "production_sample_window_days": 30
+  },
+  "user_generation": {
+    "username_length": {
+      "distribution": "normal",
+      "mean": 17.5,
+      "stddev": 0
+    }
+  },
+  "conversation_generation": {
+    "type_distribution": {
+      "DIRECT_MESSAGE": 0.6969,
+      "GROUP_CHAT": 0.3031,
+      "CHANNEL": 0
+    },
+    "messages_per_conversation": {
+      "distribution": "power_law",
+      "alpha": 1.8,
+      "min": 1,
+      "max": 10000,
+      "p50": 50,
+      "p90": 500,
+      "p99": 2000
+    }
+  },
+  "message_generation": {
+    "content_length": {
+      "distribution": "log_normal",
+      "mean": 61,
+      "median": 60,
+      "p95": 93
+    },
+    "type_distribution": {
+      "IMAGE": 0.126,
+      "TEXT": 0.8338,
+      "FILE": 0.0402
+    },
+    "temporal": {
+      "hourly_weights": [
+        0.055,
+        0.0322,
+        0.0442,
+        0.0483,
+        0.0509,
+        0.0295,
+        0.0442,
+        0.0255,
+        0.0536,
+        0.0402,
+        0.0429,
+        0.0523,
+        0.0429,
+        0.0308,
+        0.0415,
+        0.0456,
+        0.0576,
+        0.0415,
+        0.0322,
+        0.0416,
+        0.0322,
+        0.0483,
+        0.0389,
+        0.0282
+      ],
+      "day_of_week_weights": [
+        0.1582,
+        0.1394,
+        0.1207,
+        0.1354,
+        0.1448,
+        0.1555,
+        0.1461
+      ]
+    }
+  }
+}

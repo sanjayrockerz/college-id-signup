@@ -1,0 +1,218 @@
+# Prometheus Alert Rules for Chat Backend
+# Monitors: PgBouncer connection pool, Redis cache, Application performance
+
+groups:
+  # ==========================================
+  # PgBouncer Connection Pool Alerts
+  # ==========================================
+  - name: pgbouncer_alerts
+    interval: 30s
+    rules:
+      - alert: PgBouncerHighQueueWait
+        expr: pgbouncer_stats_queries_queued_total > 100
+        for: 2m
+        labels:
+          severity: warning
+          component: pgbouncer
+        annotations:
+          summary: "PgBouncer queue wait time high"
+          description: "PgBouncer has {{ $value }} queries queued for more than 2 minutes. Consider increasing pool size."
+
+      - alert: PgBouncerPoolSaturation
+        expr: (pgbouncer_pools_server_active_connections / pgbouncer_pools_server_max_connections) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: pgbouncer
+        annotations:
+          summary: "PgBouncer connection pool saturated"
+          description: "PgBouncer pool usage is {{ $value | humanizePercentage }}. Pool is near capacity."
+
+      - alert: PgBouncerHighWaitTime
+        expr: pgbouncer_stats_avg_wait_time_seconds > 1
+        for: 3m
+        labels:
+          severity: warning
+          component: pgbouncer
+        annotations:
+          summary: "PgBouncer average wait time exceeds 1 second"
+          description: "Average wait time is {{ $value }}s. Queries are waiting too long for connections."
+
+      - alert: PgBouncerErrorRate
+        expr: rate(pgbouncer_stats_errors_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+          component: pgbouncer
+        annotations:
+          summary: "PgBouncer error rate high"
+          description: "PgBouncer is experiencing {{ $value }} errors per second."
+
+  # ==========================================
+  # Redis Cache Alerts
+  # ==========================================
+  - name: redis_alerts
+    interval: 30s
+    rules:
+      - alert: RedisLowHitRatio
+        expr: redis_cache_hit_ratio < 0.4
+        for: 10m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis cache hit ratio low"
+          description: "Cache hit ratio is {{ $value | humanizePercentage }}. Expected >60% after warmup."
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis is using {{ $value | humanizePercentage }} of allocated memory."
+
+      - alert: RedisConnectionsFailed
+        expr: rate(redis_rejected_connections_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: "Redis rejecting connections"
+          description: "Redis rejected {{ $value }} connections in the last 5 minutes."
+
+      - alert: RedisHighEvictionRate
+        expr: rate(redis_evicted_keys_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis eviction rate high"
+          description: "Redis is evicting {{ $value }} keys per second. Consider increasing memory limit."
+
+  # ==========================================
+  # Application Performance Alerts
+  # ==========================================
+  - name: application_alerts
+    interval: 30s
+    rules:
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "P95 latency exceeds 500ms"
+          description: "95th percentile latency is {{ $value }}s. Expected <500ms."
+
+      - alert: HighLatencyP99
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 1.0
+        for: 5m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "P99 latency exceeds 1 second"
+          description: "99th percentile latency is {{ $value }}s. Performance degraded."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.01
+        for: 3m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "HTTP error rate exceeds 1%"
+          description: "Error rate is {{ $value | humanizePercentage }}. Application is failing requests."
+
+      - alert: LatencyDegradation
+        expr: |
+          (
+            histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+            /
+            histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[30m] offset 1h))
+          ) > 1.5
+        for: 10m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Latency increased by 50%"
+          description: "P95 latency increased by {{ $value | humanizePercentage }} compared to 1 hour ago."
+
+  # ==========================================
+  # PostgreSQL Database Alerts
+  # ==========================================
+  - name: postgres_alerts
+    interval: 30s
+    rules:
+      - alert: PostgresConnectionsHigh
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: postgres
+        annotations:
+          summary: "PostgreSQL connection usage high"
+          description: "Database is using {{ $value | humanizePercentage }} of max connections."
+
+      - alert: PostgresSlowQueries
+        expr: rate(pg_stat_statements_mean_time_seconds[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: postgres
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Average query time is {{ $value }}s."
+
+      - alert: PostgresReplicationLag
+        expr: pg_replication_lag_seconds > 30
+        for: 5m
+        labels:
+          severity: critical
+          component: postgres
+        annotations:
+          summary: "PostgreSQL replication lag high"
+          description: "Replication lag is {{ $value }}s. Replica is falling behind."
+
+  # ==========================================
+  # System Resource Alerts
+  # ==========================================
+  - name: system_alerts
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "CPU usage high"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}."
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Memory usage high"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}."
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Disk space low"
+          description: "Only {{ $value | humanizePercentage }} disk space available on {{ $labels.instance }}."

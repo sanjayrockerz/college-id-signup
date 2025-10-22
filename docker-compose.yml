@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -8,29 +8,245 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: chat_backend_db
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "effective_cache_size=1GB"
+      - "-c"
+      - "maintenance_work_mem=128MB"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "wal_buffers=16MB"
+      - "-c"
+      - "default_statistics_target=100"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "effective_io_concurrency=200"
+      - "-c"
+      - "work_mem=4MB"
+      - "-c"
+      - "min_wal_size=1GB"
+      - "-c"
+      - "max_wal_size=4GB"
+      - "-c"
+      - "log_min_duration_statement=1000"
+      - "-c"
+      - "log_connections=on"
+      - "-c"
+      - "log_disconnections=on"
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chat-network
+
+  pgbouncer:
+    image: pgbouncer/pgbouncer:latest
+    container_name: chat-backend-pgbouncer
+    environment:
+      - DATABASES_HOST=postgres
+      - DATABASES_PORT=5432
+      - DATABASES_USER=postgres
+      - DATABASES_PASSWORD=password
+      - DATABASES_DBNAME=chat_backend_db
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=10000
+      - DEFAULT_POOL_SIZE=20
+      - MIN_POOL_SIZE=10
+      - RESERVE_POOL_SIZE=5
+      - MAX_DB_CONNECTIONS=100
+      - SERVER_IDLE_TIMEOUT=600
+      - ADMIN_USERS=postgres
+      - STATS_USERS=postgres
+      - LISTEN_PORT=6432
+      - AUTH_TYPE=md5
+      - AUTH_USER=postgres
+    ports:
+      - "6432:6432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "6432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chat-network
 
   redis:
     image: redis:7-alpine
     container_name: chat-backend-redis
+    command:
+      - "redis-server"
+      - "--maxmemory"
+      - "512mb"
+      - "--maxmemory-policy"
+      - "allkeys-lru"
+      - "--save"
+      - ""
+      - "--appendonly"
+      - "no"
+      - "--tcp-backlog"
+      - "511"
+      - "--timeout"
+      - "300"
+      - "--tcp-keepalive"
+      - "60"
+      - "--loglevel"
+      - "notice"
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - chat-network
+
+  # ==========================================
+  # Monitoring Stack (use --profile monitoring)
+  # ==========================================
+
+  # PgBouncer Exporter - exports PgBouncer metrics to Prometheus
+  pgbouncer-exporter:
+    image: prometheuscommunity/pgbouncer-exporter:latest
+    container_name: chat-backend-pgbouncer-exporter
+    environment:
+      - PGBOUNCER_HOST=pgbouncer
+      - PGBOUNCER_PORT=6432
+      - PGBOUNCER_USER=postgres
+      - PGBOUNCER_PASS=password
+      - PGBOUNCER_EXPORTER_HOST=0.0.0.0
+      - PGBOUNCER_EXPORTER_PORT=9127
+    ports:
+      - "9127:9127"
+    depends_on:
+      - pgbouncer
+    networks:
+      - chat-network
+    profiles:
+      - monitoring
+
+  # PostgreSQL Exporter - exports PostgreSQL metrics to Prometheus
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: chat-backend-postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://postgres:password@postgres:5432/chat_backend_db?sslmode=disable
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+    networks:
+      - chat-network
+    profiles:
+      - monitoring
+
+  # Redis Exporter - exports Redis metrics to Prometheus
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: chat-backend-redis-exporter
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    networks:
+      - chat-network
+    profiles:
+      - monitoring
+
+  # Node Exporter - exports system metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: chat-backend-node-exporter
+    command:
+      - "--path.rootfs=/host"
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - "/:/host:ro,rslave"
+    ports:
+      - "9100:9100"
+    networks:
+      - chat-network
+    profiles:
+      - monitoring
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: chat-backend-prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - pgbouncer-exporter
+      - postgres-exporter
+      - redis-exporter
+      - node-exporter
+    networks:
+      - chat-network
+    profiles:
+      - monitoring
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: chat-backend-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - chat-network
+    profiles:
+      - monitoring
+
+networks:
+  chat-network:
+    driver: bridge
 
 volumes:
   postgres_data:
   redis_data:
+  pgbouncer_logs:
+  prometheus_data:
+  grafana_data:
